@@ -1,0 +1,27 @@
+#
+# Sample experiment definition (fluorescence).
+#
+# Parameters for the experiment.
+#
+# Operator (comment)
+operator = John Doe
+# Sample (comment)
+sample = Test sample
+# monochromator scan start, stop, step
+mono_begin = 200
+mono_end = 600.0  
+mono_step = 0.5
+# Monochromator input & output slits (microns)
+mono_islit = 500
+mono_oslit = 200
+# Number of data points / measurement point
+accum = 10
+# Laser and detection timing:
+# 3 = Delay for PMT/diode array 
+delay1 = 150.0E-6
+# qswitch
+delay3 = 103.0E-6
+# PMT gain (1 = 100 mV, 2 = 1 V, 3 = 10 V, 4 = 100 V).
+gain = 3
+# Output file (autosave)
+output = kala

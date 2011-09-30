@@ -1,0 +1,6 @@
+- complete SR810 lock in amplifier (needed for endor)
+- wavelength calibration params should be variables, not preproc defines.
+- add verbose flag so that the library functions will output debug info
+- instead of hard coding termination for gpib devices, add a function to 
+  deal with this.
+

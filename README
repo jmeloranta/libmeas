@@ -1,0 +1,65 @@
+
+libmeas - a simplified C programming interface for research instruments (Linux).
+
+1. Supported devices:
+---------------------
+
+SP DK240 monochromator
+Oxford ITC503 temperature controller
+Lambda Physik ScanMate Pro dye laser
+Lambda Physik FL3001/2 dye laser
+MKS PDR2000 capacitance manometer controller
+Stanford Research SR245
+Berkeley Nucleonics 565 delay generator
+Newport IS diode array spectrometer (Diode array)
+Newport Matrix spectrometer (CCD)
+Stanford Research Delay Generator DG535
+Varian E-500 Gaussmeter
+TakedaRiken 5211 microwave frequency counter
+Bruker ER-023 signal channel
+Bruker ER-032 Magnetic field controller
+HP 5350B microwave frequency counter
+PC parallel port TTL driver
+HP 53131A RF frequency counter
+HP 34401A multimeter
+HP 5384A RF frequency counter
+Aspect slow speed serial bus
+Wavetek 80 function generator
+
+2. Compling libmeas
+-------------------
+
+2.1 Install required external libraries (Fedora naming convention): 
+   plplot-devel, grace-devel, libusb-devel
+   For pi-max, you will need the freely available pvcam library installed in
+   /usr/lib and /usr/include. Also, you will need to install the
+   libraw1394-devel package. Don't forget to install the necessary kernel
+   level driver for the camera. Last time I checked, these drivers were not
+   compatible with the latest kernels but they can be fairly easily patched
+   to work with the 2.6.x series. Also they need the old firewire stack.
+   For gpib, you will need the linux gpib package 
+   (http://linux-gpib.sourceforge.net/). Be sure to install and activate the
+   kernel modules. Install under /usr (i.e. ./configure --prefix=/usr)
+
+2.2. Compile by issuing make
+
+2.3. Install (as root) with make install
+
+2.4. For documentation look at the source files under libmeas and examples.
+
+2.6. To link program agaist this library use: -lmeas -lm -lpvcam -lraw1394 -ldl -lplplotd -lgpib -lusb -lrt
+
+Note that many functions require root access. While I have tried to pay
+attention to security issues, this has not been my top priority. So remember
+this when you make programs linked against this library setuid root (i.e.,
+chmod u+s). There are functions in misc.c to switch between normal user
+and root (given the setuid bit).
+
+3. Documentation
+----------------
+
+Read the source ;-) This is the easiest approach as I have included 
+comments there. Look also at the example applications under examples directory.
+
+jmeloranta@gmail.com
+

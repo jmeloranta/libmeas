@@ -1,0 +1,61 @@
+#
+# Sample experiment definition.
+#
+# Parameters for the experiment.
+#
+# Operator (comment)
+operator = John Doe
+# Sample (comment)
+sample = Test sample
+# Dye laser start, step and end (448.56nm in He droplets, 446.5nm in gas phase)
+dye_begin = 440
+dye_end = 460
+dye_step = 0.1
+# Fix grating to avoid changing it during scans (0 = auto).
+dye_order = 6
+# Dye SHG calibration
+manual_shg = shg.dat
+# Monochromator start, step and end (only for DK240) was 0.4 to 0.8
+mono_begin = 448.0
+mono_end = 448.0
+mono_step = 0.5
+# Signal source: -1 = Newport Matrix, 0 = Newport IS (diode array), 1 - 8 channels in SR245
+# In SR245: 1 = PMT or Optogalvanic.
+source = 1
+# Reference signal source (e.g. diode) for dye laser power normalization (-1 = not in use)
+ref-source = -1
+# Read out mode: 1 = wait for trigger before reading signal, 0 = don't wait.
+# For NewportIS and optogalvanic, set to zero. For PMT set to one.
+synchronous = 1
+# Number of data points / measurement point
+accum = 10
+# Laser and detection timing:
+# 1 = Delay for Minilite-II (ablation/desorption)
+# 2 = Delay for Surelite-II/dye laser (probe)
+# 3 = Delay for PMT/diode array 
+delay1 = 0.0E-9
+delay2 = 0.0E-6
+#delay3 = 50.0E-6
+# YAG laser Q-switch settings (1 = Minilite-II, 2 = Surelite-II)
+qswitch1 = 250.0E-6
+qswitch2 = 310.0E-6
+# DK240 monochromator input/output slits (microns)
+islit = 10.0
+oslit = 10.0
+# PMT voltage (remember to set manually!)
+pmt = 700
+# Detection gate width (for PMT/diode array)
+gate = 600E-3
+# Output file (autosave)
+output = kala
+# Interactive graphics display mode:
+# 0 = No display
+# 1 = Display at fixed wavelength (defined by display-arg in nm)
+# 2 = Display whole spectrum after each monohcromator scan
+# 3 = Display all spectra in pseudo 3D mode
+display = 1
+# For mode 1: wavelength to display
+# display-arg = 448.0
+# Autoscale during display? (1 = yes, 0 = no)
+display-autoscale = 1
+

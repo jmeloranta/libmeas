@@ -1,0 +1,31 @@
+#!/bin/tcsh
+
+echo "Measure kinetics using the current background."
+
+echo " "
+
+echo -n "Enter base filename: "
+set fi="$<"
+
+echo -n "Enter exposure time (s): "
+set exp="$<"
+
+echo -n "Number of points: "
+set pts="$<"
+
+echo -n "Delay between measurements (s): "
+set del="$<"
+
+echo -n "Number of points = " $pts " and delay = " $del ". Press return:"
+set asd="$<"
+
+set i=0
+while ($i < $pts)
+  set out="${fi}-${i}"
+  echo "Measurement " $i " - output = " $out
+  abs -e $exp -s $out
+  sleep $del
+  @ i++
+end
+exit 0
+

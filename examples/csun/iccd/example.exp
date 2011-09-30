@@ -1,0 +1,69 @@
+#
+# Sample experiment definition.
+#
+# Parameters for the experiment.
+#
+# Operator (comment)
+operator = John Doe
+# Sample (comment)
+sample = Test sample
+# Dye laser start, step and end (448.56nm in He droplets, 446.5nm in gas phase)
+# 449.8 RT gas phase resonance, 447.8 off resonance
+dye_begin = 449.8
+dye_end = 449.9
+dye_step = 0.0001
+# Fix grating to avoid changing it during scans (0 = auto).
+dye_order = 6
+# Don't scan the dye laser (0 = scan, 1 = don't scan).
+dye_noscan = 1
+# Dye SHG calibration
+#manual_shg = shg.dat
+# Monochromator start and end 
+mono_begin = 427.7
+mono_end = 498.7
+# Number of data points / measurement point
+accum = 20
+# Laser and detection timing:
+# 1 = Delay for Minilite-II (ablation/desorption)
+# 2 = Delay for Surelite-II/dye laser (probe)
+# 3 = Delay for ICCD - RELATIVE to Surelite!
+delay1 = 0.0E-9
+delay2 = 70.0E-6
+delay3 = 30E-9
+# YAG laser Q-switch settings (1 = Minilite-II, 2 = Surelite-II)
+qswitch1 = 157.0E-6
+qswitch2 = 270.0E-6
+# Gate width for the ICCD in sec; Use 50E-6 for focusing & 50E-9 for measurement
+gate = 80E-9
+# ICCD gain (0 - 255). Use 10 for focusing & 255 for measurement
+gain = 255
+# CCD element temperature
+temp = -20
+# Output file (autosave)
+output = kala
+# Region of interest on the CCD element (1st: serial begin & end and binning)
+#                                       (2nd: parallel begin & end and binning)
+# (last param 1 or 512)
+roi = 0 511 1 0 511 512
+# Interactive graphics display mode:
+# 0 = Display both the emission and excitation spectrum (excitation range 
+#     defined by display-arg1 and display-arg2 in nm)
+# 1 = Full image display of the CCD element (output to screen).
+# 2 = Fill image display of the CCD element (output to /tmp/image.png).
+display = 0
+# For mode 0: wavelength to display, not used for mode 1
+display-arg1 = 460.0
+display-arg2 = 480.0
+# For mode 1: intensity scale (min & max)
+display-zmin = 1
+display-zmax = 1
+# Autoscale during display? (1 = yes, 0 = no)
+display-autoscale = 1
+# image z-axis scale (0 = linear, 1 = logarithmic).
+display-scale = 0
+# Background subtraction:
+# 0 = No background subtraction
+# 1 = Subtract ablation
+# 2 = Subtract dye laser
+# 3 = Subtract both ablation and dye lasers off
+background = 2
