@@ -29,7 +29,7 @@ USB0 = SCANMATE
 // #define SURELITE_DELAY 0.380E-6
 #define MINILITE_DELAY 0.140E-6
 #define SURELITE_DELAY 0.380E-6
-#define CCD_DELAY      0.0E-9
+#define CCD_DELAY      120E-9
 
 /* Prototypes etc. */
 extern struct experiment *exp_read(char *);
