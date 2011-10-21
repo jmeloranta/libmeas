@@ -345,12 +345,12 @@ void exp_run(struct experiment *p) {
       break;
     case 3: /* Subtract both ablation and dye off */
       /* Dye laser off, ablation on */
-      meas_bnc565_enable(0, 1, 0);
+      meas_bnc565_enable(0, 2, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
       meas_pi_max_read(p->accum, bkg_data);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= bkg_data[j];
-      meas_bnc565_enable(0, 1, 1);
+      meas_bnc565_enable(0, 2, 1);
       /*  dye laser on and ablation off */
       meas_bnc565_enable(0, 3, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
