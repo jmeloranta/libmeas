@@ -77,14 +77,14 @@ void laser_set_delays() {
     meas_bnc565_set(0, 2, 1, surelite_qswitch_val, 10.0E-6, 5.0, 1);
     /* Minilite */
     meas_bnc565_set(0, 3, 0, 0.0, 10.0E-6, 5.0, 0); /* positive logic / TTL */
-    meas_bnc565_set(0, 4, 3, minilite_qswitch_val, 10.0E-6, 5.0, 0);    
+    meas_bnc565_set(0, 4, 3, minilite_qswitch_val, 10.0E-6, 5.0, 1); /* negative logic */
   } else { /* Surelite goes first */
     /* Surelite */
     meas_bnc565_set(0, 1, 0, 0.0, 10.0E-6, 5.0, 1); /* negative logic / TTL */
     meas_bnc565_set(0, 2, 1, surelite_qswitch_val, 10.0E-6, 5.0, 1);
     /* Minilite */
     meas_bnc565_set(0, 3, 0, diff, 10.0E-6, 5.0, 0); /* positive logic / TTL */
-    meas_bnc565_set(0, 4, 3, minilite_qswitch_val, 10.0E-6, 5.0, 0);    
+    meas_bnc565_set(0, 4, 3, minilite_qswitch_val, 10.0E-6, 5.0, 1); /* negative logic */    
   }
   /* Enable channels */
   meas_bnc565_enable(0, 1, 1);
