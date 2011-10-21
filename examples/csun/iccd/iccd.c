@@ -9,8 +9,8 @@
  *
  * Delay generator #1: A(surelite-II flash, neg), B(surelite-II Q-switch, neg),
  *                     C(minilite-II flash, pos), D(minilite-II Q-switch, pos).
- * Delay generator #2: A & B (special cable to ICCD), AB to ICCD controller,
- *                     Ext trig to fixed sync out in surelite.
+ * Delay generator #2: A & B (special cable to ICCD), AB to ICCD controller
+ *                     (ext sync), Ext trig to flash lamp sync out in surelite.
  * 
  */
 
