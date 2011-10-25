@@ -25,9 +25,7 @@ USB0 = SCANMATE
 
 /* Internal electronics delays for Surelite-II, Minilite-II (excl. Q-switch) and the ICCD in sec */
 
-// #define MINILITE_DELAY 0.140E-6
-// #define SURELITE_DELAY 0.380E-6
-#define MINILITE_DELAY 0.140E-6
+#define MINILITE_DELAY (0.140E-6 - 10E-6)
 #define SURELITE_DELAY 0.380E-6
 #define CCD_DELAY      120E-9
 
