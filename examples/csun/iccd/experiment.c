@@ -225,7 +225,7 @@ struct experiment *exp_read(char *file) {
     if(sscanf(buf, "manual_shg%*[ \t]=%*[ \t]%s", p.shg) == 1) continue;
     if(sscanf(buf, "background%*[ \t]=%*[ \t]%d", &p.bkg_sub)== 1) continue;
     if(sscanf(buf, "display-scale%*[ \t]=%*[ \t]%d", &p.zscale)== 1) continue;
-    if(sscanf(buf, "active_bkg%*[ \t]=%*[ \t]%d", active_bkg) == 1) continue;
+    if(sscanf(buf, "active_bkg%*[ \t]=%*[ \t]%d", &active_bkg) == 1) continue;
 
     fprintf(stderr, "Unknown command: %s\n", buf);
     return NULL;
