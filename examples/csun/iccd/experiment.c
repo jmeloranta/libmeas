@@ -18,7 +18,7 @@ double zmin_fact = 1.0, zmax_fact = 1.0;
 double shg_x[8192], wl_scale = 1.0;
 double shg_y[8192];
 int roi_s2 = -1, roi_s1, roi_sbin, roi_p2, roi_p1, roi_pbin;
-int shg_n = 0, gain, dye_noscan = 0;
+int shg_n = 0, gain, dye_noscan = 0, active_bkg = 0;
 double ccd_temp;
 double bkg_data[512*512];
 
@@ -225,6 +225,7 @@ struct experiment *exp_read(char *file) {
     if(sscanf(buf, "manual_shg%*[ \t]=%*[ \t]%s", p.shg) == 1) continue;
     if(sscanf(buf, "background%*[ \t]=%*[ \t]%d", &p.bkg_sub)== 1) continue;
     if(sscanf(buf, "display-scale%*[ \t]=%*[ \t]%d", &p.zscale)== 1) continue;
+    if(sscanf(buf, "active_bkg%*[ \t]=%*[ \t]%d", active_bkg) == 1) continue;
 
     fprintf(stderr, "Unknown command: %s\n", buf);
     return NULL;
@@ -320,6 +321,15 @@ void exp_run(struct experiment *p) {
     printf("Current CCD temperature = %le\n", meas_pi_max_get_temperature());
     memset(&(p->ydata[i * p->mono_points]), 0, sizeof(double) * p->mono_points);
     meas_pi_max_read(p->accum, &(p->ydata[i * p->mono_points]));
+    if(active_bkg) {
+      double ave = 0.0;
+      for(j = 0; j < p->mono_points; j++)
+	ave += p->ydata[i * p->mono_points + j];
+      ave /= (double) p->mono_points;
+      for(j = 0; j < p->mono_points; j++)
+	p->ydata[i * p->mono_points + j] -= ave;
+    }
+
     switch (p->bkg_sub) {
     case 0: /* No background sub */
       break;
