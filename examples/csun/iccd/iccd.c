@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 
   exp_init();
   
-  exp_setup(p);
+  exp_setup(p, 1);
 
   exp_run(p);
 

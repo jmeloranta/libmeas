@@ -205,7 +205,7 @@ struct experiment *exp_read(char *file) {
     if(sscanf(buf, "mono_end%*[ \t]=%*[ \t]%le", &p.mono_end) == 1) continue;
     if(sscanf(buf, "accum%*[ \t]=%*[ \t]%d", &p.accum) == 1) continue;
     if(sscanf(buf, "delay1%*[ \t]=%*[ \t]%le", &p.delay1) == 1) continue;
-    if(sscanf(buf, "delay2%*[ \t]=%*[ \t]%le", &p.delay2) == 1) continue;
+    if(sscanf(buf, "delay2%*[ \t]=%*[ \t]%le%*[ \t]%le", &p.delay2, &p.delay2_inc) == 2) continue;
     if(sscanf(buf, "delay3%*[ \t]=%*[ \t]%le", &p.delay3) == 1) continue;
     if(sscanf(buf, "gate%*[ \t]=%*[ \t]%le", &p.gate) == 1) continue;
     if(sscanf(buf, "gain%*[ \t]=%*[ \t]%le", &p.gain) == 1) continue;
@@ -260,10 +260,10 @@ struct experiment *exp_read(char *file) {
   return &p;
 }
 
-void exp_setup(struct experiment *p) {
+void exp_setup(struct experiment *p, int init) {
 
   /* Stop everything */
-  laser_stop();
+  if(init) laser_stop();
 
   /* Setup lasers */
   minilite_qswitch(p->qswitch1);
@@ -274,11 +274,13 @@ void exp_setup(struct experiment *p) {
   ccd_set_delays(p->delay3, p->gate);
 
   /* Dye laser */
-  if(p->shg[0]) set_shg(p->shg, p->dye_begin);
-  meas_scanmate_pro_setwl(0, p->dye_begin*wl_scale);
-
+  if(init) {
+    if(p->shg[0]) set_shg(p->shg, p->dye_begin);
+    meas_scanmate_pro_setwl(0, p->dye_begin*wl_scale);
+  }
+    
   /* Start the experiment */
-  laser_start();
+  if(init) laser_start();
 }
 
 void exp_run(struct experiment *p) {
@@ -308,6 +310,9 @@ void exp_run(struct experiment *p) {
     meas_pi_max_read(1, &(p->ydata[0]));
 
   for(p->dye_cur = p->dye_begin, i = 0; p->dye_cur < p->dye_end; p->dye_cur += p->dye_step, i++) {
+    p->delay2 += p->delay2_inc;
+    fprintf(stderr, "Current delay between lasers = %le s.\n", p->delay2);
+    exp_setup(p, 0);
     if(dye_noscan == 0) {
       if(p->shg[0]) set_shg(p->shg, p->dye_cur);
       meas_scanmate_pro_setwl(0, p->dye_cur * wl_scale);

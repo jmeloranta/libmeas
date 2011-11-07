@@ -31,7 +31,7 @@ USB0 = SCANMATE
 
 /* Prototypes etc. */
 extern struct experiment *exp_read(char *);
-void exp_setup(struct experiment *), exp_run(struct experiment *);
+void exp_setup(struct experiment *, int), exp_run(struct experiment *);
 int exp_save_data(struct experiment *);
 void exp_init();
 
@@ -57,8 +57,9 @@ struct experiment {
   double mono_cur;  /* Monochromator current position (not really used here) */
   int mono_points;  /* # of data points for monochromator */
   int accum;        /* Number of accumulations / data point */
-  double delay1;    /* Delay for Surelite-II (laser 1) (s) */
-  double delay2;    /* Delay for Minilite-II (laser 2) (s) */
+  double delay1;    /* Delay for Minilite-II (laser 1) (s) */
+  double delay2;    /* Delay for Surelite-II (laser 2) (s) */
+  double delay2_inc;/* Delay increment for Surelite-II (s) */
   double delay3;    /* Delay for ICCD (s) */
   double gain;      /* ICCD gain (0 - 255) */
   double gate;      /* ICCD gate width (s) */
