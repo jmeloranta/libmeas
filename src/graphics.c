@@ -88,6 +88,10 @@ int meas_graphics_init(int nwin, char *driver, char *file) {
   if(!strcmp(driver, "xwin")) {
     plsetopt("drvopt","usepth=0");
     plsetopt("db","");
+  } else {
+    /* use family of output files (i.e., each frame into a separate file) */
+    plsfam(1, 0, 1);
+    plsfnam(file);
   }
 
   /* PS files have 60 dpi resolution (the files become very big with larger dpi ) */

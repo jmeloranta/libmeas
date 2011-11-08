@@ -1,5 +1,5 @@
 CC = cc
-CFLAGS = -O -march=native -mtune=native
+CFLAGS = -O -march=native -mtune=native -I/opt/include
 INCLUDE = meas.h
 OBJS = aspect.o bnc565.o bruker-er023.o bruker-er032.o dg535.o dk240.o \
        fl3000.o gpib.o graphics.o hp-34401a.o hp-53131a.o hp-5350b.o \

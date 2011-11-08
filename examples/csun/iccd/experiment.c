@@ -66,7 +66,7 @@ static void err(char *txt) {
 static void turn_off(int x) {
 
   laser_stop();
-  //  if(p->display == 2) meas_graphics_close();
+  meas_graphics_close();
   exit(0);
 }
 
@@ -108,7 +108,7 @@ static void graph_callback(struct experiment *p) {
       if(p->display == 1) 
 	meas_graphics_init(1, NULL, NULL); /* one image */
       else
-	meas_graphics_init(1, "pngcairo", "/tmp/image.png"); /* slow... */
+	meas_graphics_init(1, "gif", "/tmp/image-%n.gif"); /* each frame in a separate file */
       meas_graphics_colormap(0, MEAS_GRAPHICS_GRAY); /* or MEAS_GRAPHICS_RGB */
     }
     if(!(tmp = (double *) malloc(sizeof(double) * p->dye_points))) {
