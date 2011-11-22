@@ -19,6 +19,7 @@ USB0 = SCANMATE
 
 #define DG535  16
 #define BNC565 15
+#define HP34401A 22
 
 /* Standard buffer size for reads */
 #define BUF_SIZE 4096

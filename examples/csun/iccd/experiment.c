@@ -18,7 +18,7 @@ double zmin_fact = 1.0, zmax_fact = 1.0;
 double shg_x[8192], wl_scale = 1.0;
 double shg_y[8192];
 int roi_s2 = -1, roi_s1, roi_sbin, roi_p2, roi_p1, roi_pbin;
-int shg_n = 0, gain, dye_noscan = 0, active_bkg = 0;
+int shg_n = 0, gain, dye_noscan = 0, active_bkg = 0, diode_bkg = 0;
 double ccd_temp;
 double bkg_data[512*512];
 
@@ -75,6 +75,15 @@ void exp_init() {
   meas_scanmate_pro_init(0, SCANMATE_PRO);
   meas_bnc565_init(0, 0, BNC565);
   meas_dg535_init(0, 0, DG535);
+  if(diode_bkg) {
+    meas_hp34401a_init(0, 0, HP34401A);
+    meas_hp34401a_set_autoscale(0, MEAS_HP34401A_AUTOSCALE_VOLT_DC, 1);
+    meas_hp34401a_set_resolution(0, MEAS_HP34401A_MODE_VOLT_DC, MEAS_HP34401A_SCALE_VOLT_10V, MEAS_HP34401A_RESOL_MAX);
+    meas_hp34401a_set_integration_time(0, MEAS_HP34401A_MODE_VOLT_DC, MEAS_HP34401A_INTEGRATION_TIME_100NLPC);
+    meas_hp34401a_autozero(0, MEAS_HP34401A_AUTOZERO_ONCE);
+    meas_hp34401a_set_mode(0, MEAS_HP34401A_MODE_VOLT_DC);
+    meas_hp34401a_set_trigger_source(0, MEAS_HP34401A_TRIGGER_IMMEDIATE);
+  }
   meas_pi_max_init(ccd_temp);
   meas_pi_max_gain(gain);
   // meas_pi_max_gain_index(3);  /* 1, 2, 3 */
@@ -226,6 +235,7 @@ struct experiment *exp_read(char *file) {
     if(sscanf(buf, "background%*[ \t]=%*[ \t]%d", &p.bkg_sub)== 1) continue;
     if(sscanf(buf, "display-scale%*[ \t]=%*[ \t]%d", &p.zscale)== 1) continue;
     if(sscanf(buf, "active_bkg%*[ \t]=%*[ \t]%d", &active_bkg) == 1) continue;
+    if(sscanf(buf, "dye_bkg%*[ \t]=%*[ \t]%d", &diode_bkg) == 1) continue;
 
     fprintf(stderr, "Unknown command: %s\n", buf);
     return NULL;
@@ -286,7 +296,7 @@ void exp_setup(struct experiment *p, int init) {
 void exp_run(struct experiment *p) {
 
   int i, j, k;
-  double tmp;
+  double tmp, diode;
 
   p->mono_points =  meas_pi_max_size();
   p->mono_step = (p->mono_end - p->mono_begin) / (double) (p->mono_points - 1);
@@ -309,10 +319,19 @@ void exp_run(struct experiment *p) {
   for (i = 0; i < 10; i++)
     meas_pi_max_read(1, &(p->ydata[0]));
 
+  /* Main scan loop */
   for(p->dye_cur = p->dye_begin, i = 0; p->dye_cur < p->dye_end; p->dye_cur += p->dye_step, i++) {
-    p->delay2 += p->delay2_inc;
-    fprintf(stderr, "Current delay between lasers = %le s.\n", p->delay2);
-    exp_setup(p, 0);
+    if(diode_bkg) {
+      meas_hp34401a_initiate_read(0);
+      diode = meas_hp34401a_complete_read(0);
+      fprintf(stderr, "Diode background level = %le V.\n", diode);
+    }
+
+    if(p->delay2_inc > 0.0) {
+      p->delay2 += p->delay2_inc;
+      fprintf(stderr, "Current delay between lasers = %le s.\n", p->delay2);
+      exp_setup(p, 0);
+    }
     if(dye_noscan == 0) {
       if(p->shg[0]) set_shg(p->shg, p->dye_cur);
       meas_scanmate_pro_setwl(0, p->dye_cur * wl_scale);
@@ -326,6 +345,11 @@ void exp_run(struct experiment *p) {
     printf("Current CCD temperature = %le\n", meas_pi_max_get_temperature());
     memset(&(p->ydata[i * p->mono_points]), 0, sizeof(double) * p->mono_points);
     meas_pi_max_read(p->accum, &(p->ydata[i * p->mono_points]));
+    if(diode_bkg) {
+      for (j = 0; j < p->mono_points; j++)
+	p->ydata[i * p->mono_points + j] /= diode + 1E-6;
+      fprintf(stderr, "Applied diode background correction.\n");
+    }
     if(active_bkg) {
       double ave = 0.0;
       for(j = 0; j < p->mono_points; j++)
