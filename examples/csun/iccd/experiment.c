@@ -248,6 +248,7 @@ struct experiment *exp_read(char *file) {
     if(sscanf(buf, "background%*[ \t]=%*[ \t]%d", &p.bkg_sub)== 1) continue;
     if(sscanf(buf, "display-scale%*[ \t]=%*[ \t]%d", &p.zscale)== 1) continue;
     if(sscanf(buf, "active_bkg%*[ \t]=%*[ \t]%d", &active_bkg) == 1) continue;
+    if(sscanf(buf, "dye_bkg%*[ \t]=%*[ \t]%d", &diode_bkg) == 1) continue;
     if(sscanf(buf, "dye_bkg_wl1%*[ \t]=%*[ \t]%le", &diode_bkg_wl1) == 1) continue;
     if(sscanf(buf, "dye_bkg_wl2%*[ \t]=%*[ \t]%le", &diode_bkg_wl2) == 1) continue;
     if(sscanf(buf, "dye_bkg_val1%*[ \t]=%*[ \t]%le", &diode_bkg_val1) == 1) continue;
