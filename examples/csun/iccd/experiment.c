@@ -19,8 +19,21 @@ double shg_x[8192], wl_scale = 1.0;
 double shg_y[8192];
 int roi_s2 = -1, roi_s1, roi_sbin, roi_p2, roi_p1, roi_pbin;
 int shg_n = 0, gain, dye_noscan = 0, active_bkg = 0, diode_bkg = 0;
-double ccd_temp;
+double ccd_temp, diode_bkg_wl1 = -1.0, diode_bkg_wl2, diode_bkg_val1, diode_bkg_val2;
 double bkg_data[512*512];
+
+double diode_corr(double val) {
+
+  double tmp;
+
+  if(diode_bkg_wl1 == -1.0) return 1.0;
+  if(val < diode_bkg_wl1 || val > diode_bkg_wl2) {
+    fprintf(stderr, "Diode background correction wavelength out of range.\n");
+    exit(1);
+  }
+  tmp = (val - diode_bkg_wl1) / (diode_bkg_wl2 - diode_bkg_wl1);
+  return tmp * diode_bkg_val2 + (1.0 - tmp) * diode_bkg_val1;
+}
 
 static void set_shg(char *file, double wl) {
 
@@ -235,7 +248,10 @@ struct experiment *exp_read(char *file) {
     if(sscanf(buf, "background%*[ \t]=%*[ \t]%d", &p.bkg_sub)== 1) continue;
     if(sscanf(buf, "display-scale%*[ \t]=%*[ \t]%d", &p.zscale)== 1) continue;
     if(sscanf(buf, "active_bkg%*[ \t]=%*[ \t]%d", &active_bkg) == 1) continue;
-    if(sscanf(buf, "dye_bkg%*[ \t]=%*[ \t]%d", &diode_bkg) == 1) continue;
+    if(sscanf(buf, "dye_bkg_wl1%*[ \t]=%*[ \t]%le", &diode_bkg_wl1) == 1) continue;
+    if(sscanf(buf, "dye_bkg_wl2%*[ \t]=%*[ \t]%le", &diode_bkg_wl2) == 1) continue;
+    if(sscanf(buf, "dye_bkg_val1%*[ \t]=%*[ \t]%le", &diode_bkg_val1) == 1) continue;
+    if(sscanf(buf, "dye_bkg_val2%*[ \t]=%*[ \t]%le", &diode_bkg_val2) == 1) continue;
 
     fprintf(stderr, "Unknown command: %s\n", buf);
     return NULL;
@@ -314,18 +330,15 @@ void exp_run(struct experiment *p) {
   meas_scanmate_pro_grating(0, p->dye_order);
   if(p->shg[0]) set_shg(p->shg, p->dye_begin);
   meas_scanmate_pro_setwl(0, p->dye_begin * wl_scale);
+  if(diode_bkg) meas_hp34401a_initiate_read(0);
 
   /* Discard few first samples */
   for (i = 0; i < 10; i++)
     meas_pi_max_read(1, &(p->ydata[0]));
+  if(diode_bkg) (void) meas_hp34401a_complete_read(0);
 
   /* Main scan loop */
   for(p->dye_cur = p->dye_begin, i = 0; p->dye_cur < p->dye_end; p->dye_cur += p->dye_step, i++) {
-    if(diode_bkg) {
-      meas_hp34401a_initiate_read(0);
-      diode = meas_hp34401a_complete_read(0);
-      fprintf(stderr, "Diode background level = %le V.\n", diode);
-    }
 
     if(p->delay2_inc > 0.0) {
       p->delay2 += p->delay2_inc;
@@ -342,13 +355,17 @@ void exp_run(struct experiment *p) {
 	p->dye_cur = p->dye_begin;
       }
     }
+    if(diode_bkg) meas_hp34401a_initiate_read(0);
     printf("Current CCD temperature = %le\n", meas_pi_max_get_temperature());
     memset(&(p->ydata[i * p->mono_points]), 0, sizeof(double) * p->mono_points);
     meas_pi_max_read(p->accum, &(p->ydata[i * p->mono_points]));
     if(diode_bkg) {
+      diode = meas_hp34401a_complete_read(0);
+      fprintf(stderr, "Diode background level = %le V.\n", diode);
+      diode = diode_corr(diode);
+      fprintf(stderr, "Diode background level after correction = %le V.\n", diode);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] /= diode + 1E-6;
-      fprintf(stderr, "Applied diode background correction.\n");
     }
     if(active_bkg) {
       double ave = 0.0;

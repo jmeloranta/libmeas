@@ -366,7 +366,7 @@ int meas_hp34401a_set_trigger_source(int unit, int source){
     meas_err("meas_hp34401a_set_trigger_source: Non-existent unit.");
   if(source < MEAS_HP34401A_TRIGGER_BUS || source > MEAS_HP34401A_TRIGGER_EXTERNAL)
     meas_err("meas_hp34401a_set_trigger_source: Invalid trigger source.");
-  sprintf(buf, "TRIG:SOUR:%s", trigger_sources[source]);
+  sprintf(buf, "TRIG:SOUR %s", trigger_sources[source]);
   meas_gpib_write(hp34401a_fd[unit], buf, MEAS_HP34401A_CRLF);  
   return 0;
 }
