@@ -1,4 +1,4 @@
-/* filename: pressure.c
+/*
  *
  * MKS PDR2000 capacitance manometer controller.
  *

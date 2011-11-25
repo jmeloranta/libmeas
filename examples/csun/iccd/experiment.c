@@ -363,7 +363,7 @@ void exp_run(struct experiment *p) {
     if(diode_bkg) {
       diode = meas_hp34401a_complete_read(0);
       fprintf(stderr, "Diode background level = %le V.\n", diode);
-      diode = diode_corr(diode);
+      diode /= diode_corr(p->dye_cur);
       fprintf(stderr, "Diode background level after correction = %le V.\n", diode);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] /= diode + 1E-6;
