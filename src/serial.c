@@ -27,7 +27,12 @@ int meas_rs232_open(char *dev, int speed) {
 
   struct termios newtio;
   int fd;
+  unsigned int handshake;
 
+  if(speed >= MEAS_NOHANDSHAKE) {
+    speed -= MEAS_NOHANDSHAKE;
+    handshake = 0;
+  } else handshake = CRTSCTS;
   meas_misc_root_on();
   if((fd = open(dev, O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
     meas_err("meas_serial_open: Can't open device.");
@@ -36,16 +41,16 @@ int meas_rs232_open(char *dev, int speed) {
   /*    newtio.c_cflag = B9600 | CS8 | CLOCAL | CRTSCTS | CREAD | CSTOPB; */
   switch (speed) {
   case MEAS_B9600:
-    newtio.c_cflag = B9600 | CS8 | CLOCAL | CRTSCTS | CREAD;
+    newtio.c_cflag = B9600 | CS8 | CLOCAL | handshake | CREAD;
     break;
   case MEAS_B19200:
-    newtio.c_cflag = B19200 | CS8 | CLOCAL | CRTSCTS | CREAD;
+    newtio.c_cflag = B19200 | CS8 | CLOCAL | handshake | CREAD;
     break;
   case MEAS_B57600:
-    newtio.c_cflag = B57600 | CS8 | CLOCAL | CRTSCTS | CREAD;
+    newtio.c_cflag = B57600 | CS8 | CLOCAL | handshake | CREAD;
     break;
   case MEAS_B115200:
-    newtio.c_cflag = B115200 | CS8 | CLOCAL | CRTSCTS | CREAD;
+    newtio.c_cflag = B115200 | CS8 | CLOCAL | handshake | CREAD;
     break;
   }
   newtio.c_iflag = 0;
@@ -87,7 +92,6 @@ int meas_rs232_close(int fd) {
 
 int meas_rs232_readnl(int fd, char *buf) {
 
-  /* TODO: make this generic by allowing to specify the EOS character */
   int i = 0;
 
   meas_misc_root_on();
@@ -96,9 +100,70 @@ int meas_rs232_readnl(int fd, char *buf) {
     if(buf[i] == MEAS_SERIAL_EOS) break;
     i++;
   }
-  buf[i] = 0;
   meas_misc_root_off();
+  buf[i] = 0;
   return 0;
+}
+
+/*
+ * Read line from RS232 port (with specified end of transmission string).
+ *
+ * fd  = File descriptor for the RS232 port.
+ * buf = Output buffer for data.
+ * eot = End of transmission string.
+ *
+ */
+
+int meas_rs232_readeot(int fd, char *buf, char *eot) {
+
+  int i = 0, len;
+
+  len = strlen(eot);
+  meas_misc_root_on();
+  while (1) {
+    meas_rs232_read(fd, buf + i, 1);
+    i++;
+    if(i >= len && !strncmp(buf + i - len, eot, len)) break;
+  }
+  meas_misc_root_off();
+  buf[i] = 0;
+  return 0;
+}
+
+/*
+ * Read line from RS232 port (with two possible end of transmission strings).
+ *
+ * fd  = File descriptor for the RS232 port.
+ * buf = Output buffer for data.
+ * eot1 = End of transmission string 1.
+ * eot2 = End of transmission string 2.
+ *
+ * Return value: 1 = if eot1 found, 2 = if eot2 found.
+ *
+ */
+
+int meas_rs232_readeot2(int fd, char *buf, char *eot1, char *eot2) {
+
+  int i = 0, len1, len2, which;
+
+  len1 = strlen(eot1);
+  len2 = strlen(eot2);
+  meas_misc_root_on();
+  while (1) {
+    meas_rs232_read(fd, buf + i, 1);
+    i++;
+    if(i >= len1 && !strncmp(buf + i - len1, eot1, len1)) {
+      which = 1;
+      break;
+    }
+    if(i >= len2 && !strncmp(buf + i - len2, eot2, len2)) {
+      which = 2;
+      break;
+    }
+    }
+  meas_misc_root_off();
+  buf[i] = 0;
+  return which;
 }
 
 /*

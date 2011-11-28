@@ -25,3 +25,4 @@
 #include <meas/hp-53131a.h>
 #include <meas/aspect.h>
 #include <meas/wavetek80.h>
+#include <meas/pdr900.h>
