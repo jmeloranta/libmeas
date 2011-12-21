@@ -472,7 +472,7 @@ int exp_save_data(struct experiment *p) {
   fprintf(fp, "# Cryostat pressure (torr): %le\n", p->pres);
   fprintf(fp, "# Data points follow (loop 1. over dye and 2. mono).\n");
   
-  for (i = 0; i < p->dye_points; i++) {
+  for (i = 0; i < p->dye_points-1; i++) {
     for (j = 0; j < p->mono_points; j++)
       fprintf(fp, "%le %le %le\n", p->x1data[i], p->x2data[j], p->ydata[i * p->mono_points + j]);
     fprintf(fp, "\n");
