@@ -88,6 +88,10 @@ void exp_init() {
   meas_scanmate_pro_init(0, SCANMATE_PRO);
   meas_bnc565_init(0, 0, BNC565);
   meas_dg535_init(0, 0, DG535);
+  meas_pdr900_init(0, PDR900);
+  meas_itc503_init(0, ITC503);
+  meas_pdr2000_init(0, PDR2000);
+
   if(diode_bkg) {
     meas_hp34401a_init(0, 0, HP34401A);
     meas_hp34401a_set_autoscale(0, MEAS_HP34401A_AUTOSCALE_VOLT_DC, 1);
@@ -321,6 +325,13 @@ void exp_run(struct experiment *p) {
   if(!(p->x1data = (double *) malloc(sizeof(double) * p->dye_points))) err("Out of memory.");
   if(!(p->x2data = (double *) malloc(sizeof(double) * p->mono_points))) err("Out of memory.");
 
+  /* Read: vacuum shroud pressure, cryostat temperature, cryostat pressure */
+  p->vacP = meas_pdr900_read(0, 1);
+  p->temp = meas_itc503_read(0);
+  p->pres = meas_pdr2000_read(0, 1);
+  fprintf(stderr, "P_shroud = %le torr, T = %le K, P_cryo = %le torr.\n",
+	  p->vacP, p->temp, p->pres);
+
   /* Update axes */
   for (tmp = p->dye_begin, i = 0; i < p->dye_points; tmp += p->dye_step, i++)
     p->x1data[i] = tmp;
@@ -360,6 +371,14 @@ void exp_run(struct experiment *p) {
     printf("Current CCD temperature = %le\n", meas_pi_max_get_temperature());
     memset(&(p->ydata[i * p->mono_points]), 0, sizeof(double) * p->mono_points);
     meas_pi_max_read(p->accum, &(p->ydata[i * p->mono_points]));
+    if(active_bkg) { /* 10 last points from the long wavelength side */
+      double ave = 0.0;
+      for(j = p->mono_points-10; j < p->mono_points; j++)
+	ave += p->ydata[i * p->mono_points + j];
+      ave /= 10.0;
+      for(j = 0; j < p->mono_points; j++)
+	p->ydata[i * p->mono_points + j] -= ave;
+    }
     if(diode_bkg) {
       diode = meas_hp34401a_complete_read(0);
       fprintf(stderr, "Diode background level = %le V.\n", diode);
@@ -367,14 +386,6 @@ void exp_run(struct experiment *p) {
       fprintf(stderr, "Diode background level after correction = %le V.\n", diode);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] /= diode + 1E-6;
-    }
-    if(active_bkg) {
-      double ave = 0.0;
-      for(j = 0; j < p->mono_points; j++)
-	ave += p->ydata[i * p->mono_points + j];
-      ave /= (double) p->mono_points;
-      for(j = 0; j < p->mono_points; j++)
-	p->ydata[i * p->mono_points + j] -= ave;
     }
 
     switch (p->bkg_sub) {
@@ -406,14 +417,14 @@ void exp_run(struct experiment *p) {
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
       meas_pi_max_read(p->accum, bkg_data);
       for (j = 0; j < p->mono_points; j++)
-	p->ydata[i * p->mono_points + j] -= bkg_data[j];
+	p->ydata[i * p->mono_points + j] -= 0.5*bkg_data[j];
       meas_bnc565_enable(0, 2, 1);
       /*  dye laser on and ablation off */
       meas_bnc565_enable(0, 3, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
       meas_pi_max_read(p->accum, bkg_data);
       for (j = 0; j < p->mono_points; j++)
-	p->ydata[i * p->mono_points + j] -= bkg_data[j];
+	p->ydata[i * p->mono_points + j] -= 0.5*bkg_data[j];
       meas_bnc565_enable(0, 3, 1);
       break;
     }
@@ -456,28 +467,15 @@ int exp_save_data(struct experiment *p) {
   fprintf(fp, "# Display autoscale: %d\n", p->display_autoscale);
   fprintf(fp, "# Display arg1: %le\n", p->display_arg1);
   fprintf(fp, "# Display arg2: %le\n", p->display_arg2);
+  fprintf(fp, "# Vacuum shroud pressure (torr): %le\n", p->vacP);
+  fprintf(fp, "# Cryostat temperature (K): %le\n", p->temp);
+  fprintf(fp, "# Cryostat pressure (torr): %le\n", p->pres);
+  fprintf(fp, "# Data points follow (loop 1. over dye and 2. mono).\n");
   
-  switch(p->display) {
-  case 1:
-  case 2:
-    for (i = 0; i < p->dye_points; i++) {
-      for (j = 0; j < p->mono_points; j++)
-	fprintf(fp, "%le %le %le\n", p->x1data[i], p->x2data[j], p->ydata[i * p->mono_points + j]);
-      fprintf(fp, "\n");
-    }
-    break;
-  case 0:
-    j = (int) ((p->display_arg1 - p->mono_begin) / p->mono_step);
-    if (j < 0 || j >= p->mono_points) {
-      fprintf(stderr, "Warning: Display argument outside recorded wavelength interval.\n");
-      j = 0;
-    }
-    for (i = 0; i < p->dye_points; i++)
-      fprintf(fp, "%le %le\n", p->x1data[i], p->ydata[i * p->mono_points + j]);
-    break;
-  defaults:
-    fprintf(stderr, "Error: unknown display mode. Save failed.\n");
-    exit(1);
+  for (i = 0; i < p->dye_points; i++) {
+    for (j = 0; j < p->mono_points; j++)
+      fprintf(fp, "%le %le %le\n", p->x1data[i], p->x2data[j], p->ydata[i * p->mono_points + j]);
+    fprintf(fp, "\n");
   }
   fclose(fp);
 

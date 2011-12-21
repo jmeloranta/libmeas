@@ -26,7 +26,7 @@ int meas_pdr2000_init(int unit, char *dev) {
   if(unit < 0 || unit > 4)
     meas_err("meas_pdr2000_init: Non-existing unit.");
   if(pdr2000_fd[unit] == -1)
-    pdr2000_fd[unit] = meas_rs232_open(dev, 0);
+    pdr2000_fd[unit] = meas_rs232_open(dev, MEAS_B9600 + MEAS_NOHANDSHAKE);
   return 0;
 }
 

@@ -10,7 +10,10 @@ USB0 = SCANMATE
 
  */
 
-#define SCANMATE_PRO "/dev/ttyUSB0"
+#define PDR900 "/dev/ttyUSB0"
+#define PDR2000 "/dev/ttyUSB1"
+#define SCANMATE_PRO "/dev/ttyUSB2"
+#define ITC503 "/dev/ttyUSB3"
 
 /*
  * GPIB configuration.
@@ -77,4 +80,7 @@ struct experiment {
   double *x2data;    /* x-data (wavelength of the monochromator / diode array) */
   int bkg_sub;       /* Background subtraction */
   int zscale;        /* z-axis scale (0 = linear, 1 = log) */
+  double vacP;       /* vacuum shroud pressure (torr) */
+  double temp;       /* cryostat temperature (K) */
+  double pres;       /* cryostat pressure (torr) */
 };
