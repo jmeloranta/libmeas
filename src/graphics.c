@@ -422,7 +422,7 @@ int meas_graphics_update() {
 	switch(wins[j].colormap) {
 	case MEAS_GRAPHICS_RGB:
 	  ii[0] = 0.0; r[0] = 0.0; g[0] = 0.0; b[0] = 1.0;
-	  ii[1] = 1.0; r[1] = 1.0; g[1] = 1.0; b[1] = 0.0;
+	  ii[1] = 0.5; r[1] = 1.0; g[1] = 1.0; b[1] = 0.0;
 	  ii[2] = 1.0; r[2] = 1.0; g[2] = 0.0; b[2] = 0.0;
 	  break;
 	case MEAS_GRAPHICS_GRAY:
