@@ -49,6 +49,9 @@ int meas_rs232_open(char *dev, int speed) {
   case MEAS_B57600:
     newtio.c_cflag = B57600 | CS8 | CLOCAL | handshake | CREAD;
     break;
+  case MEAS_B38400:
+    newtio.c_cflag = B38400 | CS8 | CLOCAL | handshake | CREAD;
+    break;
   case MEAS_B115200:
     newtio.c_cflag = B115200 | CS8 | CLOCAL | handshake | CREAD;
     break;
