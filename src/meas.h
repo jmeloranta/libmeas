@@ -26,3 +26,4 @@
 #include <meas/aspect.h>
 #include <meas/wavetek80.h>
 #include <meas/pdr900.h>
+#include <meas/video.h>
