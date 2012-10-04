@@ -28,12 +28,13 @@ accum = 20
 # 2 = Delay for Surelite-II/dye laser (probe)
 # 3 = Delay for ICCD - RELATIVE to Surelite!
 delay1 = 0.0E-9
-delay2 = 70.0E-6
+delay2 = 70.0E-6 10E-6
 delay3 = 30E-9
 # YAG laser Q-switch settings (1 = Minilite-II, 2 = Surelite-II)
 qswitch1 = 157.0E-6
 qswitch2 = 270.0E-6
 # Gate width for the ICCD in sec; Use 50E-6 for focusing & 50E-9 for measurement
+# To disable ICCD, use a negative gate delay
 gate = 80E-9
 # ICCD gain (0 - 255). Use 10 for focusing & 255 for measurement
 gain = 255

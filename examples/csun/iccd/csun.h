@@ -65,6 +65,7 @@ struct experiment {
   double delay2;    /* Delay for Surelite-II (laser 2) (s) */
   double delay2_inc;/* Delay increment for Surelite-II (s) */
   double delay3;    /* Delay for ICCD (s) */
+  double delay3_inc; /* delay inc for ICCD */
   double gain;      /* ICCD gain (0 - 255) */
   double gate;      /* ICCD gate width (s) */
   double qswitch1;  /* Q-switch delay for Surelite-II (laser 1) (s) */

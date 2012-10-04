@@ -104,7 +104,7 @@ void ccd_set_delays(double delay, double gate) {
 
   printf("delay = %le\n", delay);
   delay += CCD_DELAY; /* internal triggering delay & 100 ns from surelite */
-  delay += surelite_qswitch_val;
+  delay += surelite_qswitch_val;   /* was surelite delay */
   printf("delay = %le\n", delay);
   if(delay < 0.0) {
     fprintf(stderr, "Error: CCD delay too small.\n");

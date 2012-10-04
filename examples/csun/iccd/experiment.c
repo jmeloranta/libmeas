@@ -16,7 +16,7 @@
 
 double zmin_fact = 1.0, zmax_fact = 1.0;
 double shg_x[8192], wl_scale = 1.0;
-double shg_y[8192];
+double shg_y[8192], gate;
 int roi_s2 = -1, roi_s1, roi_sbin, roi_p2, roi_p1, roi_pbin;
 int shg_n = 0, gain, dye_noscan = 0, active_bkg = 0, diode_bkg = 0;
 double ccd_temp, diode_bkg_wl1 = -1.0, diode_bkg_wl2, diode_bkg_val1, diode_bkg_val2;
@@ -101,12 +101,14 @@ void exp_init() {
     meas_hp34401a_set_mode(0, MEAS_HP34401A_MODE_VOLT_DC);
     meas_hp34401a_set_trigger_source(0, MEAS_HP34401A_TRIGGER_IMMEDIATE);
   }
-  meas_pi_max_init(ccd_temp);
-  meas_pi_max_gain(gain);
-  // meas_pi_max_gain_index(3);  /* 1, 2, 3 */
-  meas_pi_max_speed_index(1); /* 0 = 1 MHz, 1 = 5 MHz */
-  if(roi_s2 != -1)
-    meas_pi_max_roi(roi_s1, roi_s2, roi_sbin, roi_p1, roi_p2, roi_pbin);
+  if(gate >= 0.0) {
+    meas_pi_max_init(ccd_temp);
+    meas_pi_max_gain(gain);
+    // meas_pi_max_gain_index(3);  /* 1, 2, 3 */
+    meas_pi_max_speed_index(1); /* 0 = 1 MHz, 1 = 5 MHz */
+    if(roi_s2 != -1)
+      meas_pi_max_roi(roi_s1, roi_s2, roi_sbin, roi_p1, roi_p2, roi_pbin);
+  }
   // Turn everything off when ctrl-c hit
   signal(SIGINT, turn_off);
 }
@@ -117,6 +119,7 @@ void exp_init() {
  * 0 = Display both the emission and excitation spectrum.
  * 1 = Full display of the CCD element.
  * 2 = Full display of the CCD element (into a PS file).
+ * 3 = No display.
  *
  */
 
@@ -126,6 +129,8 @@ static void graph_callback(struct experiment *p) {
   static double *tmp = NULL;
   static int cur = 0;
   double wl, zmin, zmax;
+
+  if(p->display == 3) return;
 
   if(!tmp) {
     if(p->display == 0)
@@ -232,7 +237,7 @@ struct experiment *exp_read(char *file) {
     if(sscanf(buf, "accum%*[ \t]=%*[ \t]%d", &p.accum) == 1) continue;
     if(sscanf(buf, "delay1%*[ \t]=%*[ \t]%le", &p.delay1) == 1) continue;
     if(sscanf(buf, "delay2%*[ \t]=%*[ \t]%le%*[ \t]%le", &p.delay2, &p.delay2_inc) == 2) continue;
-    if(sscanf(buf, "delay3%*[ \t]=%*[ \t]%le", &p.delay3) == 1) continue;
+    if(sscanf(buf, "delay3%*[ \t]=%*[ \t]%le %le", &p.delay3, &p.delay3_inc) == 2) continue;
     if(sscanf(buf, "gate%*[ \t]=%*[ \t]%le", &p.gate) == 1) continue;
     if(sscanf(buf, "gain%*[ \t]=%*[ \t]%le", &p.gain) == 1) continue;
     if(sscanf(buf, "roi%*[ \t]=%*[ \t]%d %d %d %d %d %d",
@@ -273,7 +278,9 @@ struct experiment *exp_read(char *file) {
   if(p.delay1 < 0.0) err("Illegal delay1 value.\n");
   if(p.delay2 < 0.0) err("Illegal delay2 value.\n");
   if(p.delay3 < 0.0) err("Illegal delay3 value.\n");
-  if(p.gate < 0.0) err("Illegal gate value.\n");
+  if(p.gate < 0.0)
+    fprintf(stderr,"Negative gate: ICCD disabled.\n");
+  gate = p.gate;
   if(p.qswitch1 < 0.0) err("Illegal qswitch1 value.\n");
   if(p.qswitch2 < 0.0) err("Illegal qswitch2 value.\n");
   if(!p.output[0]) err("Missing output file name.\n");
@@ -302,7 +309,7 @@ void exp_setup(struct experiment *p, int init) {
   minilite_delay(p->delay1);
   surelite_delay(p->delay2);
   laser_set_delays();
-  ccd_set_delays(p->delay3, p->gate);
+  if(p->gate >= 0.0) ccd_set_delays(p->delay3, p->gate);
 
   /* Dye laser */
   if(init) {
@@ -319,7 +326,10 @@ void exp_run(struct experiment *p) {
   int i, j, k;
   double tmp, diode;
 
-  p->mono_points =  meas_pi_max_size();
+  if(p->gate >= 0.0)
+    p->mono_points =  meas_pi_max_size();
+  else
+    p->mono_points = 512;
   p->mono_step = (p->mono_end - p->mono_begin) / (double) (p->mono_points - 1);
   if(!(p->ydata = (double *) malloc(sizeof(double) * p->dye_points * p->mono_points))) err("Out of memory.");
   if(!(p->x1data = (double *) malloc(sizeof(double) * p->dye_points))) err("Out of memory.");
@@ -344,9 +354,11 @@ void exp_run(struct experiment *p) {
   meas_scanmate_pro_setwl(0, p->dye_begin * wl_scale);
   if(diode_bkg) meas_hp34401a_initiate_read(0);
 
-  /* Discard few first samples */
-  for (i = 0; i < 10; i++)
-    meas_pi_max_read(1, &(p->ydata[0]));
+  if(p->gate >= 0.0) {
+    /* Discard few first samples */
+    for (i = 0; i < 10; i++) 
+      meas_pi_max_read(1, &(p->ydata[0]));
+  }
   if(diode_bkg) (void) meas_hp34401a_complete_read(0);
 
   /* Main scan loop */
@@ -356,6 +368,11 @@ void exp_run(struct experiment *p) {
       p->delay2 += p->delay2_inc;
       fprintf(stderr, "Current delay between lasers = %le s.\n", p->delay2);
       exp_setup(p, 0);
+    }
+    if(p->delay3_inc > 0.0) {
+      p->delay3 += p->delay3_inc;
+      fprintf(stderr, "Current delay between laser and CCD = %le s.\n", p->delay3);
+      ccd_set_delays(p->delay3, p->gate);
     }
     if(dye_noscan == 0) {
       if(p->shg[0]) set_shg(p->shg, p->dye_cur);
@@ -368,9 +385,11 @@ void exp_run(struct experiment *p) {
       }
     }
     if(diode_bkg) meas_hp34401a_initiate_read(0);
-    printf("Current CCD temperature = %le\n", meas_pi_max_get_temperature());
+    if(p->gate >= 0.0)
+      printf("Current CCD temperature = %le\n", meas_pi_max_get_temperature());
     memset(&(p->ydata[i * p->mono_points]), 0, sizeof(double) * p->mono_points);
-    meas_pi_max_read(p->accum, &(p->ydata[i * p->mono_points]));
+    if(p->gate >= 0.0)
+      meas_pi_max_read(p->accum, &(p->ydata[i * p->mono_points]));
     if(active_bkg) { /* 10 last points from the long wavelength side */
       double ave = 0.0;
       for(j = p->mono_points-10; j < p->mono_points; j++)
@@ -395,7 +414,8 @@ void exp_run(struct experiment *p) {
       /* Turn off dye laser */
       meas_bnc565_enable(0, 2, 0);  /* disable Q switch */
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
-      meas_pi_max_read(p->accum, bkg_data);
+      if(p->gate >= 0.0)
+	meas_pi_max_read(p->accum, bkg_data);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= bkg_data[j];
       /* Turn on dye laser */
@@ -405,7 +425,8 @@ void exp_run(struct experiment *p) {
       /* Turn off ablation laser */
       meas_bnc565_enable(0, 3, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
-      meas_pi_max_read(p->accum, bkg_data);
+      if(p->gate >= 0.0)
+	meas_pi_max_read(p->accum, bkg_data);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= bkg_data[j];
       /* Turn on ablation laser */
@@ -415,14 +436,16 @@ void exp_run(struct experiment *p) {
       /* Dye laser off, ablation on */
       meas_bnc565_enable(0, 2, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
-      meas_pi_max_read(p->accum, bkg_data);
+      if(p->gate >= 0.0)
+	meas_pi_max_read(p->accum, bkg_data);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= 0.5*bkg_data[j];
       meas_bnc565_enable(0, 2, 1);
       /*  dye laser on and ablation off */
       meas_bnc565_enable(0, 3, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
-      meas_pi_max_read(p->accum, bkg_data);
+      if(p->gate >= 0.0)
+	meas_pi_max_read(p->accum, bkg_data);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= 0.5*bkg_data[j];
       meas_bnc565_enable(0, 3, 1);
@@ -434,7 +457,8 @@ void exp_run(struct experiment *p) {
 
   /* Stop the delay generator */
   laser_stop();
-  meas_pi_max_close();
+  if(p->gate >= 0.0)
+    meas_pi_max_close();
 
   /* save window data */
   meas_graphics_save("window.dat");
