@@ -1,6 +1,8 @@
 /*
  * Simple frame grabbing interface using video for linux 2.
  *
+ * TODO: This assumes that the MMAP interface is available for the camera.
+ *
  */
 
 #include "video.h"
@@ -17,15 +19,6 @@
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
 
-/*
- * Open video device. 640 x 480 resolution (hard coded at present).
- *
- * device = Device name (e.g., /dev/video0).
- *
- * Returns descriptor to the video device.
- *
- */
-
 struct buffer {
   void *start;
   size_t length;
@@ -38,6 +31,15 @@ struct device {
 } devices[MEAS_VIDEO_MAXDEV];
 
 static int been_here = 0;
+
+/*
+ * Open video device. 640 x 480 resolution (hard coded at present).
+ *
+ * device = Device name (e.g., /dev/video0, /dev/video1, ...).
+ *
+ * Returns descriptor to the video device.
+ *
+ */
 
 int meas_video_open(char *device) {
 
@@ -113,6 +115,8 @@ int meas_video_open(char *device) {
 /*
  * Start video capture.
  *
+ * cd  = Video device descriptor as return by meas_video_open().
+ *
  */
 
 int meas_video_start(int cd) {
@@ -139,6 +143,8 @@ int meas_video_start(int cd) {
 
 /*
  * Stop video capture.
+ *
+ * cd  = Video device descriptor as return by meas_video_open().
  *
  */
 
@@ -207,6 +213,20 @@ static void convert_yuv_ro_rgb(unsigned char *buf, unsigned int len, double *r, 
       b[ind+1] = y2 + 2.03211 * u;
     }
 }
+
+/*
+ * Read frame from the camera.
+ *
+ * cd  = Video device descriptor as return by meas_video_open().
+ * r   = Array for storing red component of RGB (double *).
+ * g   = Array for storing green component of RGB (double *).
+ * b   = Array for storing blue component of RGB (double *).
+ *
+ * The r, g, b arrays are two dimensional and are stored
+ * in the same order as they come from the camera, i.e.
+ * i * WIDTH + j  where i = 0, ..., HEIGHT and j = 0, ..., WIDTH.
+ *
+ */
 
 int meas_video_read_rgb(int cd, double *r, double *g, double *b) {
 
