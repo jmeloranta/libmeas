@@ -235,7 +235,7 @@ struct experiment *exp_read(char *file) {
     if(sscanf(buf, "mono_begin%*[ \t]=%*[ \t]%le", &p.mono_begin) == 1) continue;
     if(sscanf(buf, "mono_end%*[ \t]=%*[ \t]%le", &p.mono_end) == 1) continue;
     if(sscanf(buf, "accum%*[ \t]=%*[ \t]%d", &p.accum) == 1) continue;
-    if(sscanf(buf, "delay1%*[ \t]=%*[ \t]%le", &p.delay1) == 1) continue;
+    if(sscanf(buf, "delay1%*[ \t]=%*[ \t]%le%*[ \t]%le", &p.delay1, &p.delay1_inc) == 2) continue;
     if(sscanf(buf, "delay2%*[ \t]=%*[ \t]%le%*[ \t]%le", &p.delay2, &p.delay2_inc) == 2) continue;
     if(sscanf(buf, "delay3%*[ \t]=%*[ \t]%le %le", &p.delay3, &p.delay3_inc) == 2) continue;
     if(sscanf(buf, "gate%*[ \t]=%*[ \t]%le", &p.gate) == 1) continue;
@@ -364,10 +364,13 @@ void exp_run(struct experiment *p) {
   /* Main scan loop */
   for(p->dye_cur = p->dye_begin, i = 0; p->dye_cur < p->dye_end; p->dye_cur += p->dye_step, i++) {
 
-    if(p->delay2_inc > 0.0) {
+    if(p->delay2_inc > 0.0 || p->delay1_inc > 0.0) {
+      p->delay1 += p->delay1_inc;
       p->delay2 += p->delay2_inc;
-      fprintf(stderr, "Current delay between lasers = %le s.\n", p->delay2);
+      fprintf(stderr, "Current delay between lasers = %le s.\n", fabs(p->delay1 - p->delay2));
+      laser_stop();
       exp_setup(p, 0);
+      laser_start();
     }
     if(p->delay3_inc > 0.0) {
       p->delay3 += p->delay3_inc;

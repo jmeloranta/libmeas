@@ -62,6 +62,7 @@ struct experiment {
   int mono_points;  /* # of data points for monochromator */
   int accum;        /* Number of accumulations / data point */
   double delay1;    /* Delay for Minilite-II (laser 1) (s) */
+  double delay1_inc;    /* Delay increment for Minilite-II (laser 1) (s) */
   double delay2;    /* Delay for Surelite-II (laser 2) (s) */
   double delay2_inc;/* Delay increment for Surelite-II (s) */
   double delay3;    /* Delay for ICCD (s) */

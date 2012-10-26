@@ -1,4 +1,5 @@
 #include <meas/config.h>
+#include <meas/misc.h>
 #include <meas/serial.h>
 #include <meas/gpib.h>
 #include <meas/graphics.h>

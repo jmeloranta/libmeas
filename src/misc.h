@@ -1,4 +1,5 @@
 #include <time.h>
+#include <stdio.h>
 
 /* Prototypes */
 void meas_misc_nsleep(time_t, long), meas_misc_set_time(), meas_misc_sleep_rest(time_t, long);

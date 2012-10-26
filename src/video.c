@@ -6,6 +6,7 @@
  */
 
 #include "video.h"
+#include "misc.h"
 
 #include <stdlib.h>
 #include <strings.h>
@@ -19,15 +20,11 @@
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
 
-struct buffer {
-  void *start;
-  size_t length;
-};
-
 struct device {
   int fd;
   int nbufs;
-  struct buffer *bufs;
+  size_t *length;   /* buffer length array */
+  void **memory;    /* buffer array */
 } devices[MEAS_VIDEO_MAXDEV];
 
 static int been_here = 0;
@@ -55,7 +52,8 @@ int meas_video_open(char *device) {
     for(i = 0; i < MEAS_VIDEO_MAXDEV; i++) {
       devices[i].fd = -1;
       devices[i].nbufs = 0;
-      devices[i].bufs = NULL;
+      devices[i].length = 0;
+      devices[i].memory = NULL;
     }
     been_here = 1;
   }
@@ -66,7 +64,7 @@ int meas_video_open(char *device) {
   cd = i;
 
   meas_misc_root_on();
-  if((fd = open(device, O_RDWR | O_NONBLOCK, 0))) meas_err("video: Can't open device.");
+  if((fd = open(device, O_RDWR | O_NONBLOCK, 0)) < 0) meas_err("video: Can't open device.");
   devices[cd].fd = fd;
   
   if(ioctl(fd, VIDIOC_QUERYCAP, &cap) < 0) meas_err("video: ioctl(VIDIOC_QUERYCAP).");
@@ -78,7 +76,7 @@ int meas_video_open(char *device) {
   if(ioctl(fd, VIDIOC_CROPCAP, &cropcap) < 0) meas_err("video: ioctl(VIDIOC_CROPCAP).");
   crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   crop.c = cropcap.defrect; /* default */
-  if(ioctl(fd, VIDIOC_S_CROP, &crop) < 0) meas_err("video: ioctl(VIDIOC_S_CROP).");
+  if(ioctl(fd, VIDIOC_S_CROP, &crop) < 0) fprintf(stderr, "video: cropping not supported (info).\n");
   
   bzero(&fmt, sizeof(fmt));
   fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -96,16 +94,18 @@ int meas_video_open(char *device) {
   if(ioctl(fd, VIDIOC_REQBUFS, &req) < 0) meas_err("video: ioctl(VIDIOC_REQBUFS).");
   if(req.count < 2) meas_err("video: insufficient video memory.");
   devices[cd].nbufs = req.count;
-  if(!(devices[cd].bufs = calloc(req.count, sizeof(struct buffer)))) meas_err("video: out of memory in calloc().");
+  if(!(devices[cd].length = calloc(req.count, sizeof(size_t)))) meas_err("video: out of memory in calloc().");
+  if(!(devices[cd].memory = calloc(req.count, sizeof(void *)))) meas_err("video: out of memory in calloc().");
+
   for (i = 0; i < req.count; i++) {
     bzero(&buf, sizeof(buf));
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
     buf.index = i;
     if(ioctl(fd, VIDIOC_QUERYBUF, &buf) < 0) meas_err("video: ioctl(VIDIOC_QUERYBUF).");
-    devices[cd].bufs[i].length = buf.length;
-    devices[cd].bufs[i].start = mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, buf.m.offset);
-    if(devices[cd].bufs[i].start == MAP_FAILED) meas_err("video: mmap() failed.");    
+    devices[cd].memory[i] = mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, buf.m.offset);
+    devices[cd].length[i] = buf.length;
+    if(devices[cd].memory[i] == MAP_FAILED) meas_err("video: mmap() failed.");    
   }
   meas_misc_root_off();
 
@@ -156,6 +156,7 @@ int meas_video_stop(int cd) {
 
   meas_misc_root_on();
   // stop capturing
+  type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   ioctl(devices[cd].fd, VIDIOC_STREAMOFF, &type);
   meas_misc_root_off();
 }
@@ -178,19 +179,19 @@ int meas_video_close(int cd) {
 
   // uninit_device
   for (i = 0; i < devices[cd].nbufs; i++)
-    munmap(devices[cd].bufs[i].start, devices[cd].bufs[i].length);
+    munmap(devices[cd].memory[i], devices[cd].length[i]);
   
   close(devices[cd].fd);
 
-  free(devices[cd].bufs);
-  free(devices[cd].bufs);
+  free(devices[cd].length);
+  free(devices[cd].memory);
   devices[cd].fd = -1;
   devices[cd].nbufs = 0;
   meas_misc_root_off();
 }
 
 /* r[i * WIDTH + j] where i runs along Y and j along X */
-static void convert_yuv_ro_rgb(unsigned char *buf, unsigned int len, double *r, double *g, double *b) {
+static void convert_yuv_to_rgb(unsigned char *buf, unsigned int len, double *r, double *g, double *b) {
 
   int w, h;
   unsigned char y1, y2, u, v, ind;
@@ -203,14 +204,17 @@ static void convert_yuv_ro_rgb(unsigned char *buf, unsigned int len, double *r, 
       y2 = buf[ind+2];
       u = buf[ind+1];
       v = buf[ind+3];
+      printf("YUV: %u %u %u %u\n", y1, y2, u, v);
       /* yuv -> rgb */
       ind = h * MEAS_VIDEO_WIDTH + w/2;
-      r[ind] = y1 + 1.13983 * v;
-      g[ind] = y1 - 0.39465 * u - 0.58060 * v;
-      b[ind] = y1 + 2.03211 * u;
-      r[ind+1] = y2 + 1.13983 * v;
-      g[ind+1] = y2 - 0.39465 * u - 0.58060 * v;
-      b[ind+1] = y2 + 2.03211 * u;
+      r[ind] = ((double) y1) + 1.13983 * (double) v;
+      g[ind] = ((double) y1) - 0.39465 * ((double) u) - 0.58060 * (double) v;
+      b[ind] = ((double) y1) + 2.03211 * (double) u;
+      r[ind+1] = ((double) y2) + 1.13983 * (double) v;
+      g[ind+1] = ((double) y2) - 0.39465 * ((double) u) - 0.58060 * (double) v;
+      b[ind+1] = ((double) y2) + 2.03211 * (double) u;
+      printf("RGB1: %lf %lf %lf\n", r[ind], g[ind], b[ind]);
+      printf("RGB2: %lf %lf %lf\n", r[ind+1], g[ind+1], b[ind+1]);
     }
 }
 
@@ -230,29 +234,48 @@ static void convert_yuv_ro_rgb(unsigned char *buf, unsigned int len, double *r, 
 
 int meas_video_read_rgb(int cd, double *r, double *g, double *b) {
 
-  //mainloop()
   struct v4l2_buffer buf;
-  int i;
+  struct timeval tv;
+  fd_set fds;
 
   if(devices[cd].fd == -1) meas_err("video: Attempt to read without opening the device.");
 
   meas_misc_root_on();
+
+  FD_ZERO(&fds);
+  FD_SET(devices[cd].fd, &fds);
+  tv.tv_sec = 2;
+  tv.tv_usec = 0;
+  
+  if(select(devices[cd].fd + 1, &fds, NULL, NULL, &tv) <= 0) meas_err("video: time out in select.");
+
   // read_frame()
   bzero(&buf, sizeof(buf));
   buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   buf.memory = V4L2_MEMORY_MMAP;
-  if(ioctl(devices[cd].fd, VIDIOC_DQBUF, &buf) < 0) {
-    switch(errno) {
-    case EAGAIN: return 0; /* no frames available */
-    case EIO: break;
-    default: meas_err("video: ioctl(VIDIOC_DQBUF).");
-    }
+  /* dequeue */
+  while(ioctl(devices[cd].fd, VIDIOC_DQBUF, &buf) < 0) {
+    if(errno != EAGAIN && errno != EIO) meas_err("video: ioctl(VIDIOC_DQBUF).");
   }
-  if(buf.index < devices[cd].nbufs) meas_err("video: not enough buffers.");
+  if(buf.index >= devices[cd].nbufs) meas_err("video: not enough buffers.");
+
+#if 0
+  {
+    int i;
+    unsigned long chk;
+    printf("index = %u, length = %u\n", buf.index, buf.length);
+    chk = 0;
+    for(i = 0; i < buf.bytesused; i++) 
+      chk += ((unsigned char *) devices[cd].memory[buf.index])[i];
+    printf("check sum = %u\n", chk);
+  }
+#endif
 
   // process image
-  convert_yuv_to_rgb(devices[cd].bufs[buf.index].start, buf.bytesused);
+  convert_yuv_to_rgb((unsigned char *) devices[cd].memory[buf.index], buf.bytesused, r, g, b);
 
+  /* put the empty buffer back into the queue */
   if(ioctl(devices[cd].fd, VIDIOC_QBUF, &buf) < 0) meas_err("video: ioctl(VIDIOC_QBUF).");
   meas_misc_root_off();
+  return 1;
 }
