@@ -402,3 +402,29 @@ int meas_graphics_close() {
   }
   return 0;
 }
+
+/*
+ * Map a floating point value to RGB.
+ *
+ * value = value to be mapped (between 0.0 and 1.0; double).
+ * r     = r(ed) value (unsigned char *).
+ * g     = g(reen) value (unsigned char *).
+ * b     = b(lue) value (unsigned char *).
+ *
+ */
+
+void meas_graphics_rgb(double value, unsigned char *r, unsigned char *g, unsigned char *b) {
+
+  if(value < 0.0) value = 0.0;
+  if(value > 1.0) value = 1.0;
+
+  if(value > 0.5) *r = 0;
+  else *r = (int) (255.0 * 2.0 * (0.5 - value));
+
+  if(value < 0.5) *g = (int) (255.0 * (2.0 * value));
+  else *g = (int) (255.0 * (2.0 * (1.0 - value)));
+
+  if(value < 0.5) *b = 0;
+  else *b = (int) (255.0 * (2.0 * (value - 0.5)));
+
+}

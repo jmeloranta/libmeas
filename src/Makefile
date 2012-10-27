@@ -1,5 +1,5 @@
-CC = gcc
-CFLAGS = -Wall -O -march=native -mtune=native -I/opt/include
+include ../make.conf
+
 INCLUDE = meas.h
 OBJS = aspect.o bnc565.o bruker-er023.o bruker-er032.o dg535.o dk240.o \
        fl3000.o gpib.o graphics.o hp-34401a.o hp-53131a.o hp-5350b.o \
@@ -16,10 +16,10 @@ libmeas.a: $(OBJS)
 	cc -c $(CFLAGS) $< 
 
 install: libmeas.a
-	cp -f libmeas.a /usr/lib
-	ranlib /usr/lib/libmeas.a
-	-mkdir /usr/include/meas
-	cp -f *.h /usr/include/meas
+	cp -f libmeas.a $(ROOT)/lib
+	ranlib $(ROOT)/lib/libmeas.a
+	-mkdir $(ROOT)/include/meas
+	cp -f *.h $(ROOT)/include/meas
 
 clean:
 	-rm -f *.o *~ *.a $(PROGS)

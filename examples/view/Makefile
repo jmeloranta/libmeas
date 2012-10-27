@@ -1,6 +1,4 @@
-CC = cc
-CFLAGS = -O
-LDFLAGS = -lmeas -lm -lpvcam -lraw1394 -ldl -lplplotd -lgpib -lusb -lrt
+include ../../make.conf
 
 all: view view2 slice slice2 subtract
 

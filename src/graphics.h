@@ -57,3 +57,4 @@ int meas_graphics_update_xy(int, double *, double *);
 int meas_graphics_update_image(int, unsigned char *, unsigned char *, unsigned char *);
 int meas_graphics_xautoscale(int), meas_graphics_yautoscale(int), meas_graphics_close();
 int meas_graphics_autoscale(int);
+void  meas_graphics_rgb(double, unsigned char *, unsigned char *, unsigned char*);
