@@ -1,18 +1,12 @@
 include ../../make.conf
 
-all: view view2 slice slice2 subtract
+all: view slice slice2 subtract
 
 view: view.o
 	$(CC) $(CFLAGS) -o view view.o $(LDFLAGS)
 
 view.o: view.c
 	$(CC) $(CFLAGS) -c view.c
-
-view2: view2.o
-	$(CC) $(CFLAGS) -o view2 view2.o $(LDFLAGS)
-
-view2.o: view2.c
-	$(CC) $(CFLAGS) -c view2.c
 
 slice: slice.o
 	$(CC) $(CFLAGS) -o slice slice.o $(LDFLAGS)
