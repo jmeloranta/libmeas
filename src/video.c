@@ -191,40 +191,58 @@ int meas_video_close(int cd) {
 }
 
 /* r[i * WIDTH + j] where i runs along Y and j along X */
-static void convert_yuv_to_rgb(unsigned char *buf, unsigned int len, double *r, double *g, double *b) {
+static void convert_yuv_to_rgb(unsigned char *buf, unsigned int len, unsigned char *r, unsigned char *g, unsigned char *b) {
 
-  int w, h;
-  unsigned char y1, y2, u, v, ind;
+  int i, j;
+  double tmp;
+  unsigned char y1, y2, u, v;
 
-  for(h = 0; h < MEAS_VIDEO_HEIGHT; h++)
-    for(w = 0; w < MEAS_VIDEO_WIDTH; w += 4) {
-      ind = h * MEAS_VIDEO_WIDTH + w;
-      /* two pixels interleaved */
-      y1 = buf[ind];
-      y2 = buf[ind+2];
-      u = buf[ind+1];
-      v = buf[ind+3];
-      printf("YUV: %u %u %u %u\n", y1, y2, u, v);
-      /* yuv -> rgb */
-      ind = h * MEAS_VIDEO_WIDTH + w/2;
-      r[ind] = ((double) y1) + 1.13983 * (double) v;
-      g[ind] = ((double) y1) - 0.39465 * ((double) u) - 0.58060 * (double) v;
-      b[ind] = ((double) y1) + 2.03211 * (double) u;
-      r[ind+1] = ((double) y2) + 1.13983 * (double) v;
-      g[ind+1] = ((double) y2) - 0.39465 * ((double) u) - 0.58060 * (double) v;
-      b[ind+1] = ((double) y2) + 2.03211 * (double) u;
-      printf("RGB1: %lf %lf %lf\n", r[ind], g[ind], b[ind]);
-      printf("RGB2: %lf %lf %lf\n", r[ind+1], g[ind+1], b[ind+1]);
-    }
+  for(i = j = 0; i < MEAS_VIDEO_HEIGHT * MEAS_VIDEO_WIDTH; i += 2, j += 4) {
+    /* two pixels interleaved */
+    y1 = buf[j];
+    y2 = buf[j+2];
+    u = buf[j+1];
+    v = buf[j+3];
+    /* yuv -> rgb */
+    tmp = (1.164 * (((double) y1) - 16.0) + 1.596 * (((double) v) - 128.0));
+    if(tmp < 0.) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    r[i] = (unsigned char) tmp;
+    
+    tmp = (1.164 * (((double) y1) - 16.0) - 0.813 * (((double) v) - 128.0) - 0.391 * (((double) u) - 128.0));
+    if(tmp < 0.0) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    g[i] = (unsigned char) tmp;
+    
+    tmp = (1.164 * (((double) y1) - 16.0) + 2.018 * (((double) u) - 128.0));
+    if(tmp < 0.0) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    b[i] = (unsigned char) tmp;
+
+    tmp = (1.164 * (((double) y2) - 16.0) + 1.596 * (((double) v) - 128.0));
+    if(tmp < 0.0) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    r[i+1] = (unsigned char) tmp;
+    
+    tmp = (1.164 * (((double) y2) - 16.0) - 0.813 * (((double) v) - 128.0) - 0.391 * (((double) u) - 128.0));
+    if(tmp < 0.0) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    g[i+1] = (unsigned char) tmp;
+    
+    tmp = (1.164 * (((double) y2) - 16.0) + 2.018 * (((double) u) - 128.0));
+    if(tmp < 0.0) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    b[i+1] = (unsigned char) tmp;
+  }
 }
 
 /*
  * Read frame from the camera.
  *
  * cd  = Video device descriptor as return by meas_video_open().
- * r   = Array for storing red component of RGB (double *).
- * g   = Array for storing green component of RGB (double *).
- * b   = Array for storing blue component of RGB (double *).
+ * r   = Array for storing red component of RGB (unsigned char *).
+ * g   = Array for storing green component of RGB (unsigned char *).
+ * b   = Array for storing blue component of RGB (unsigned char *).
  *
  * The r, g, b arrays are two dimensional and are stored
  * in the same order as they come from the camera, i.e.
@@ -232,7 +250,7 @@ static void convert_yuv_to_rgb(unsigned char *buf, unsigned int len, double *r, 
  *
  */
 
-int meas_video_read_rgb(int cd, double *r, double *g, double *b) {
+int meas_video_read_rgb(int cd, unsigned char *r, unsigned char *g, unsigned char *b) {
 
   struct v4l2_buffer buf;
   struct timeval tv;
@@ -258,18 +276,6 @@ int meas_video_read_rgb(int cd, double *r, double *g, double *b) {
     if(errno != EAGAIN && errno != EIO) meas_err("video: ioctl(VIDIOC_DQBUF).");
   }
   if(buf.index >= devices[cd].nbufs) meas_err("video: not enough buffers.");
-
-#if 0
-  {
-    int i;
-    unsigned long chk;
-    printf("index = %u, length = %u\n", buf.index, buf.length);
-    chk = 0;
-    for(i = 0; i < buf.bytesused; i++) 
-      chk += ((unsigned char *) devices[cd].memory[buf.index])[i];
-    printf("check sum = %u\n", chk);
-  }
-#endif
 
   // process image
   convert_yuv_to_rgb((unsigned char *) devices[cd].memory[buf.index], buf.bytesused, r, g, b);

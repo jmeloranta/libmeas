@@ -54,6 +54,7 @@ int main(int argc, char **argv) {
     }
   }
   meas_graphics_update3d(0, data, ny, nx, min_y, min_x, (max_y - min_y) / ny, (max_x - min_x) / nx);
+
   meas_graphics_update();
   printf("Press reutrn: ");
   gets(asd);

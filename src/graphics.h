@@ -27,13 +27,14 @@
 #define MEAS_GRAPHICS_WHITE      15
 
 /* Graph types */
-#define MEAS_GRAPHICS_EMPTY  0      
+#define MEAS_GRAPHICS_EMPTY  0
 #define MEAS_GRAPHICS_2D     1      /* regular X-Y plot */
-#define MEAS_GRAPHICS_3D     2      /* contour plot */
+#define MEAS_GRAPHICS_IMAGE  2      /* color image */
 
 /* Color maps */
 #define MEAS_GRAPHICS_RGB  0       /* RGB colormap */
 #define MEAS_GRAPHICS_GRAY 1       /* gray scale colormap */
+#define MEAS_GRAPHICS_DIRECT 2     /* y = b + 256 * g + 256 * 256 * r */
 
 /* 3D pixel styles */
 #define MEAS_GRAPHICS_FAST3D  -1
@@ -48,18 +49,11 @@
 #define MEAS_GRAPHICS_LOG3D    1
 
 /* Prototypes */
-int meas_graphics_init(int, char *, char *), meas_graphics_xscale(int, double, double, double, double);
-int meas_graphics_yscale(int, double, double, double, double), meas_graphics_zscale(int, double, double), meas_graphics_clear(int);
-int meas_graphics_title(int, char *), meas_graphics_update();
-int meas_graphics_update2d(int, int, int, double *, double *, int);
-int meas_graphics_update3d(int, double *, int, int, double, double, double, double);
+int meas_graphics_init(int, int, int, int, char *), meas_graphics_xscale(int, double, double);
+int meas_graphics_yscale(int, double, double), meas_graphics_clear(int);
 int meas_graphics_xtitle(int, char *), meas_graphics_ytitle(int, char *);
-int meas_graphics_comment(int, char *), meas_graphics_save(char *), meas_graphics_autoscale(int);
-int meas_graphics_xautoscale(int, double, double), meas_graphics_yautoscale(int, double, double), meas_graphics_close();
-int meas_graphics_type(int, char);
-int meas_graphics_pixel3d(int);
-int meas_graphics_line_color(int, int);
-int meas_graphics_colormap(int, int);
-int meas_graphics_xaxis3d(int);
-int meas_graphics_yaxis3d(int);
-int meas_graphics_zlog(int, int);
+int meas_graphics_update();
+int meas_graphics_update_xy(int, double *, double *);
+int meas_graphics_update_image(int, unsigned char *, unsigned char *, unsigned char *);
+int meas_graphics_xautoscale(int), meas_graphics_yautoscale(int), meas_graphics_close();
+int meas_graphics_autoscale(int);
