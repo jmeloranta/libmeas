@@ -259,7 +259,7 @@ int meas_graphics_update() {
  *
  */
 
-int meas_graphics_update_xy(int win, double *xdata, double *ydata) {
+int meas_graphics_update_xy(int win, double *xdata, double *ydata, int ns) {
 
   int i;
 
@@ -267,6 +267,7 @@ int meas_graphics_update_xy(int win, double *xdata, double *ydata) {
     meas_err("meas_graphics_update2d: Illegal window id.");  
   if(wins[win].type == MEAS_GRAPHICS_IMAGE || wins[win].type == MEAS_GRAPHICS_EMPTY)
     meas_err("meas_graphics_update2d: Wrong data set type.");
+  wins[win].ns = ns;
   for (i = 0; i < wins[win].ns; i++) {
     wins[win].xvalues[i] = xdata[i];
     wins[win].yvalues[i] = ydata[i];

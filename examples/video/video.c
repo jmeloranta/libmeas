@@ -10,10 +10,7 @@ main() {
   double mi, ma;
 
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 640, 480, 0, "test");
-  if((fd = meas_video_open("/dev/video0")) < 0) {
-    fprintf(stderr, "Can't open /dev/video0\n");
-    exit(1);
-  }
+  fd = meas_video_open("/dev/video0");
   while (1) {
     meas_video_start(fd);
     meas_video_read_rgb(fd, r, g, b);

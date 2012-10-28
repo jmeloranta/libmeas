@@ -14,13 +14,19 @@
 #include <math.h>
 #include <signal.h>
 
+/* CCD dimensions */
+#define NX 512
+#define NY 512
+
 double zmin_fact = 1.0, zmax_fact = 1.0;
 double shg_x[8192], wl_scale = 1.0;
 double shg_y[8192], gate;
 int roi_s2 = -1, roi_s1, roi_sbin, roi_p2, roi_p1, roi_pbin;
 int shg_n = 0, gain, dye_noscan = 0, active_bkg = 0, diode_bkg = 0;
 double ccd_temp, diode_bkg_wl1 = -1.0, diode_bkg_wl2, diode_bkg_val1, diode_bkg_val2;
-double bkg_data[512*512];
+double bkg_data[NX*NY];
+
+unsigned char rr[512*512], gg[512*512], bb[512*512];
 
 double diode_corr(double val) {
 
@@ -133,15 +139,12 @@ static void graph_callback(struct experiment *p) {
   if(p->display == 3) return;
 
   if(!tmp) {
-    if(p->display == 0)
-      meas_graphics_init(2, NULL, NULL); /* two windows: emission and excitation */
-    else {
+    if(p->display == 0) {
+      meas_graphics_init(0, MEAS_GRAPHICS_2D, 512, 512, 0, "Fluorescence");
+      meas_graphics_init(1, MEAS_GRAPHICS_2D, 512, 512, 0, "Excitation");
+    } else
       if(p->display == 1) 
-	meas_graphics_init(1, NULL, NULL); /* one image */
-      else
-	meas_graphics_init(1, "gif", "/tmp/image-%n.gif"); /* each frame in a separate file */
-      meas_graphics_colormap(0, MEAS_GRAPHICS_GRAY); /* or MEAS_GRAPHICS_RGB */
-    }
+	meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, NX, NY, 0, "CCD image"); /* one image */
     if(!(tmp = (double *) malloc(sizeof(double) * p->dye_points))) {
       fprintf(stderr, "Out of memory.\n");
       exit(1);
@@ -149,8 +152,7 @@ static void graph_callback(struct experiment *p) {
   }
 
   /* display both emission and exciation */
-  if(p->display == 0) {
-    
+  if(p->display == 0) {    
     /* Current emission spectrum */
     for (i = 0; i < p->mono_points; i++)
       if (p->x2data[i] >= p->display_arg1) break;
@@ -170,13 +172,13 @@ static void graph_callback(struct experiment *p) {
       fprintf(stderr, "display-arg1 > display-arg2. Setting them equal.\n");
       j = i;
     }
-    meas_graphics_update2d(1, 0, MEAS_GRAPHICS_WHITE, p->x2data, &(p->ydata[cur * p->mono_points]), p->mono_points);
+    meas_graphics_update_xy(1, p->x2data, &(p->ydata[cur * p->mono_points]), p->mono_points);
     /* Current excitation spectrum */
     tmp[cur] = 0.0;
     for (k = i; k <= j; k++)
       tmp[cur] += p->ydata[cur * p->mono_points + k];
     cur++;
-    meas_graphics_update2d(0, 0, MEAS_GRAPHICS_WHITE, p->x1data, tmp, cur);
+    meas_graphics_update2d(0, p->x1data, tmp, cur);
     if(p->display_autoscale) {
       meas_graphics_autoscale(0);
       meas_graphics_autoscale(1);
@@ -184,26 +186,18 @@ static void graph_callback(struct experiment *p) {
   }
     
   /* Full display of the CCD element. */
-  if(p->display == 1 || p->display == 2) {
-    if(p->zscale == 1) meas_graphics_zlog(0, MEAS_GRAPHICS_LOG3D);
-    else meas_graphics_zlog(0, MEAS_GRAPHICS_LINEAR3D);
-    i = (int) ((p->dye_cur - p->dye_begin) / p->dye_step);
-    j = (int) (sqrt(p->mono_points) + 0.5);
+  if(p->display == 1) {
+    i = (int) ((p->dye_cur - p->dye_begin) / p->dye_step); /* image position in memory */
     zmin = 1E99; zmax = -zmin;
-    for (k = 0; k < j * j; k++) {
+    for (k = 0; k < NX * NY; k++) {
       if(p->ydata[i * p->mono_points + k] < zmin) zmin = p->ydata[i * p->mono_points + k];
       if(p->ydata[i * p->mono_points + k] > zmax) zmax = p->ydata[i * p->mono_points + k];
     }
-      
-    zmin *= zmin_fact;
-    zmax *= zmax_fact;
-    fprintf(stderr, "zmin = %le, zmax = %le\n", zmin, zmax);
-    if(p->display_autoscale) meas_graphics_zscale(0, zmin, zmax);
-    /* invert image */
-    meas_graphics_xaxis3d(MEAS_GRAPHICS_REV3D);
-    meas_graphics_yaxis3d(MEAS_GRAPHICS_REV3D);
-    meas_graphics_pixel3d(MEAS_GRAPHICS_SMOOTH3D);
-    meas_graphics_update3d(0, &p->ydata[i * p->mono_points], j, j, 0.0, 0.0, 1.0, 1.0);
+    for(k = 0; k < NX * NY; k++) /* scale between 0 and 1 */
+      p->ydata[i * p->mono_points + k] = (p->ydata[i * p->mono_points + k] - zmin) / (zmax - zmin); 
+    for (k = 0; k < NX * NY; k++) /* invert axes & convert to rgb */
+      meas_graphics_rgb(p->ydata[i * p->mono_points + k], &rr[NX * NY - k - 1], &gg[NX * NY - k - 1], &bb[NX * NY - k - 1]);
+    meas_graphics_update_image(0, rr, gg, bb);
   }
   meas_graphics_update();
 }
@@ -463,8 +457,6 @@ void exp_run(struct experiment *p) {
   if(p->gate >= 0.0)
     meas_pi_max_close();
 
-  /* save window data */
-  meas_graphics_save("window.dat");
 }
 
 int exp_save_data(struct experiment *p) {
