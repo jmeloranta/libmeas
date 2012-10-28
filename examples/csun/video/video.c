@@ -10,11 +10,13 @@ int main(int argc, char **argv) {
 
   double tstep, delay;
   char filebase[512], filename[512];
-  int fd;
+  int fd, aves;
   FILE *fp;
 
   printf("Enter output file name: ");
   scanf("%s", filebase);
+  printf("Enter number of averages: ");
+  scanf("%s", &aves);
   printf("Enter time step (ns): ");
   scanf(" %le", &tstep);
   printf("Running... press ctrl-c to stop.\n");
@@ -32,7 +34,7 @@ int main(int argc, char **argv) {
     minilite_delay(delay);// flash
     laser_set_delays();
     meas_video_start(fd);
-    meas_video_read_rgb(fd, r, g, b);
+    meas_video_read_rgb(fd, r, g, b, aves);
     meas_video_stop(fd);
     meas_graphics_update_image(0, r, g, b);
     meas_graphics_update();
