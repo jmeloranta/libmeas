@@ -28,6 +28,7 @@ struct device {
 } devices[MEAS_VIDEO_MAXDEV];
 
 static int been_here = 0;
+static unsigned int ave_r[MEAS_VIDEO_WIDTH * MEAS_VIDEO_HEIGHT], ave_g[MEAS_VIDEO_WIDTH * MEAS_VIDEO_HEIGHT], ave_b[MEAS_VIDEO_WIDTH * MEAS_VIDEO_HEIGHT];
 
 /*
  * Open video device. 640 x 480 resolution (hard coded at present).
@@ -243,6 +244,7 @@ static void convert_yuv_to_rgb(unsigned char *buf, unsigned int len, unsigned ch
  * r   = Array for storing red component of RGB (unsigned char *).
  * g   = Array for storing green component of RGB (unsigned char *).
  * b   = Array for storing blue component of RGB (unsigned char *).
+ * aves= Number of averages (int).
  *
  * The r, g, b arrays are two dimensional and are stored
  * in the same order as they come from the camera, i.e.
@@ -250,38 +252,54 @@ static void convert_yuv_to_rgb(unsigned char *buf, unsigned int len, unsigned ch
  *
  */
 
-int meas_video_read_rgb(int cd, unsigned char *r, unsigned char *g, unsigned char *b) {
+int meas_video_read_rgb(int cd, unsigned char *r, unsigned char *g, unsigned char *b, int aves) {
 
   struct v4l2_buffer buf;
   struct timeval tv;
   fd_set fds;
+  int i, ave;
 
   if(devices[cd].fd == -1) meas_err("video: Attempt to read without opening the device.");
 
   meas_misc_root_on();
 
-  FD_ZERO(&fds);
-  FD_SET(devices[cd].fd, &fds);
-  tv.tv_sec = 2;
-  tv.tv_usec = 0;
-  
-  if(select(devices[cd].fd + 1, &fds, NULL, NULL, &tv) <= 0) meas_err("video: time out in select.");
+  bzero(ave_r, sizeof(unsigned int) * MEAS_VIDEO_HEIGHT * MEAS_VIDEO_WIDTH);
+  bzero(ave_g, sizeof(unsigned int) * MEAS_VIDEO_HEIGHT * MEAS_VIDEO_WIDTH);
+  bzero(ave_b, sizeof(unsigned int) * MEAS_VIDEO_HEIGHT * MEAS_VIDEO_WIDTH);
+  for(ave = 0; ave < aves; ave++) {
 
-  // read_frame()
-  bzero(&buf, sizeof(buf));
-  buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  buf.memory = V4L2_MEMORY_MMAP;
-  /* dequeue */
-  while(ioctl(devices[cd].fd, VIDIOC_DQBUF, &buf) < 0) {
-    if(errno != EAGAIN && errno != EIO) meas_err("video: ioctl(VIDIOC_DQBUF).");
+    FD_ZERO(&fds);
+    FD_SET(devices[cd].fd, &fds);
+    tv.tv_sec = 2;
+    tv.tv_usec = 0;
+    
+    if(select(devices[cd].fd + 1, &fds, NULL, NULL, &tv) <= 0) meas_err("video: time out in select.");
+    
+    // read_frame()
+    bzero(&buf, sizeof(buf));
+    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory = V4L2_MEMORY_MMAP;
+    /* dequeue */
+    while(ioctl(devices[cd].fd, VIDIOC_DQBUF, &buf) < 0) {
+      if(errno != EAGAIN && errno != EIO) meas_err("video: ioctl(VIDIOC_DQBUF).");
+    }
+    if(buf.index >= devices[cd].nbufs) meas_err("video: not enough buffers.");
+    
+    // process image
+    convert_yuv_to_rgb((unsigned char *) devices[cd].memory[buf.index], buf.bytesused, r, g, b);
+    for (i = 0; i < MEAS_VIDEO_WIDTH * MEAS_VIDEO_HEIGHT; i++) {
+      ave_r[i] += r[i];
+      ave_g[i] += g[i];
+      ave_b[i] += b[i];
+    }
+    /* put the empty buffer back into the queue */
+    if(ioctl(devices[cd].fd, VIDIOC_QBUF, &buf) < 0) meas_err("video: ioctl(VIDIOC_QBUF).");
   }
-  if(buf.index >= devices[cd].nbufs) meas_err("video: not enough buffers.");
-
-  // process image
-  convert_yuv_to_rgb((unsigned char *) devices[cd].memory[buf.index], buf.bytesused, r, g, b);
-
-  /* put the empty buffer back into the queue */
-  if(ioctl(devices[cd].fd, VIDIOC_QBUF, &buf) < 0) meas_err("video: ioctl(VIDIOC_QBUF).");
   meas_misc_root_off();
+  for (i = 0; i < MEAS_VIDEO_WIDTH * MEAS_VIDEO_HEIGHT; i++) {
+    r[i] = (unsigned char) (ave_r[i] / (unsigned int) aves);
+    g[i] = (unsigned char) (ave_g[i] / (unsigned int) aves);
+    b[i] = (unsigned char) (ave_b[i] / (unsigned int) aves);
+  }
   return 1;
 }

@@ -7,5 +7,5 @@
 #define MEAS_VIDEO_HEIGHT 480
 
 /* Prototypes */
-int meas_video_open(char *), meas_video_start(int), meas_video_stop(int), meas_video_close(int), meas_video_read_rgb(int, unsigned char *, unsigned char *, unsigned char *);
+int meas_video_open(char *), meas_video_start(int), meas_video_stop(int), meas_video_close(int), meas_video_read_rgb(int, unsigned char *, unsigned char *, unsigned char *, int);
 
