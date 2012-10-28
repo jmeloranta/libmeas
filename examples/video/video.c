@@ -13,7 +13,7 @@ main() {
   fd = meas_video_open("/dev/video0");
   while (1) {
     meas_video_start(fd);
-    meas_video_read_rgb(fd, r, g, b);
+    meas_video_read_rgb(fd, r, g, b, 20);
     meas_video_stop(fd);
     meas_graphics_update_image(0, r, g, b);
     meas_graphics_update();
