@@ -90,7 +90,6 @@ int meas_graphics_init(int win, int type, int nx, int ny, int ns, char *title) {
     wins[win].form = fl_bgn_form(FL_NO_BOX, nx, ny);
     wins[win].canvas = fl_add_xyplot(FL_NORMAL_XYPLOT, 0, 0, nx, ny, title);
     fl_end_form();
-    fl_check_forms();
     if(!(wins[win].xvalues = (float *) malloc(sizeof(float) * ns)))
       meas_err("meas_graphics_init: out of memory.");
     if(!(wins[win].yvalues = (float *) malloc(sizeof(float) * ns)))
