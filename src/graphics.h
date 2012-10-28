@@ -49,7 +49,7 @@
 #define MEAS_GRAPHICS_LOG3D    1
 
 /* Prototypes */
-int meas_graphics_init(int, int, int, int, char *), meas_graphics_xscale(int, double, double);
+int meas_graphics_init(int, int, int, int, int, char *), meas_graphics_xscale(int, double, double);
 int meas_graphics_yscale(int, double, double), meas_graphics_clear(int);
 int meas_graphics_xtitle(int, char *), meas_graphics_ytitle(int, char *);
 int meas_graphics_update();
