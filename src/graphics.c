@@ -25,7 +25,7 @@ struct form {
 
 static struct window {
   int type;          /* not in use (0), 2D (1) or contour (3) */
-  int nx, ny, ns;        /* for 2-D ns indicates the data length */
+  int nx, ny, ns, maxns;        /* for 2-D ns indicates the data length */
   unsigned char *img_data;   /* ordered: b, g, r, 0 */
   float *xvalues;
   char xtitle[256];
@@ -44,9 +44,9 @@ static struct window {
  * 
  * win   = window to init (int).
  * type  = 2D graph or image (MEAS_GRAPHICS_2D or MEAS_GRAPHICS_IMAGE).
- * nx = window size along x direction.
- * ny = window size along y direction.
- * ns = number of data points for 2D plots.
+ * nx    = window size along x direction.
+ * ny    = window size along y direction.
+ * maxns = maximum number of data points for 2D plots.
  * title = window title.
  *
  * Note: The window numbering starts from 0.
@@ -55,7 +55,7 @@ static struct window {
  *
  */
 
-int meas_graphics_init(int win, int type, int nx, int ny, int ns, char *title) {
+int meas_graphics_init(int win, int type, int nx, int ny, int maxns, char *title) {
 
   static int been_here = 0;
   char *av[1] = {""};
@@ -84,15 +84,15 @@ int meas_graphics_init(int win, int type, int nx, int ny, int ns, char *title) {
   wins[win].type = type;
   wins[win].nx = nx;
   wins[win].ny = ny;
-  wins[win].ns = ns;
+  wins[win].ns = 0;
   switch(type) {
   case MEAS_GRAPHICS_2D:
     wins[win].form = fl_bgn_form(FL_NO_BOX, nx, ny);
     wins[win].canvas = fl_add_xyplot(FL_NORMAL_XYPLOT, 0, 0, nx, ny, title);
     fl_end_form();
-    if(!(wins[win].xvalues = (float *) malloc(sizeof(float) * ns)))
+    if(!(wins[win].xvalues = (float *) malloc(sizeof(float) * maxns)))
       meas_err("meas_graphics_init: out of memory.");
-    if(!(wins[win].yvalues = (float *) malloc(sizeof(float) * ns)))
+    if(!(wins[win].yvalues = (float *) malloc(sizeof(float) * maxns)))
       meas_err("meas_graphics_init: out of memory.");
     wins[win].img_data =  NULL;
     wins[win].img = NULL;
@@ -267,6 +267,8 @@ int meas_graphics_update_xy(int win, double *xdata, double *ydata, int ns) {
     meas_err("meas_graphics_update2d: Illegal window id.");  
   if(wins[win].type == MEAS_GRAPHICS_IMAGE || wins[win].type == MEAS_GRAPHICS_EMPTY)
     meas_err("meas_graphics_update2d: Wrong data set type.");
+  if(wins[win].maxns <= ns)
+    meas_err("meas_graphics_update2d: ns too large, increase maxns.");
   wins[win].ns = ns;
   for (i = 0; i < wins[win].ns; i++) {
     wins[win].xvalues[i] = xdata[i];

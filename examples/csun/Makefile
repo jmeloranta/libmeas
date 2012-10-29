@@ -1,7 +1,6 @@
-CC = cc
-CFLAGS = -O
+include ../../make.conf
+
 PROGS = abs abs2 takesp ftakesp takesp2 exp abs-kin abs2-kin rd eap eap2 cv cv2 pulse-cv
-LDFLAGS = -lmeas -lm -lpvcam -lraw1394 -ldl -lplplotd -lgpib -lusb -lrt
 
 all: $(PROGS)
 
