@@ -47,8 +47,9 @@ Wavetek 80 function generator
 
 2.4. For documentation look at the source files under libmeas and examples.
 
-2.6. To link program agaist this library use: -lmeas -lm -lpvcam -lraw1394 -ldl -lplplotd -lgpib -lusb -lrt
+2.6. To link program agaist this library use: -lmeas -lm -lpvcam -lraw1394 -ldl -lforms -lX11 -lgpib -lusb -lrt
 
+If pvcam interface is not compiled, drop -lpvcam and -lraw1394 from above.
 Note that many functions require root access. While I have tried to pay
 attention to security issues, this has not been my top priority. So remember
 this when you make programs linked against this library setuid root (i.e.,
