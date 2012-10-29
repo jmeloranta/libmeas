@@ -13,15 +13,17 @@ int main(int argc, char **argv) {
   int fd, aves;
   FILE *fp;
 
-  printf("Enter output file name: ");
+  printf("Enter output file name (0 = no save): ");
   scanf("%s", filebase);
   printf("Enter number of averages: ");
-  scanf("%s", &aves);
+  scanf("%d", &aves);
   printf("Enter time step (ns): ");
   scanf(" %le", &tstep);
   printf("Running... press ctrl-c to stop.\n");
   tstep *= 1E-9;
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 640, 480, 0, "video");
+  meas_bnc565_init(0, 0, BNC565);
+  meas_dg535_init(0, 0, DG535);
   fd = meas_video_open("/dev/video0");
   surelite_delay(0.0);
   minilite_delay(delay);
@@ -39,13 +41,15 @@ int main(int argc, char **argv) {
     meas_graphics_update_image(0, r, g, b);
     meas_graphics_update();
     sprintf(filename, "%s-%le.img", filebase, delay);
-    if(!(fp = fopen(filename, "w"))) {
-      fprintf(stderr, "Error writing file.\n");
-      exit(1);
+    if(filename[0] != '0') {
+      if(!(fp = fopen(filename, "w"))) {
+	fprintf(stderr, "Error writing file.\n");
+	exit(1);
+      }
+      fwrite((void *) r, sizeof(unsigned char) * 640 * 480, 1, fp);
+      fwrite((void *) g, sizeof(unsigned char) * 640 * 480, 1, fp);
+      fwrite((void *) b, sizeof(unsigned char) * 640 * 480, 1, fp);
+      fclose(fp);
     }
-    fwrite((void *) r, sizeof(unsigned char) * 640 * 480, 1, fp);
-    fwrite((void *) g, sizeof(unsigned char) * 640 * 480, 1, fp);
-    fwrite((void *) b, sizeof(unsigned char) * 640 * 480, 1, fp);
-    fclose(fp);
   }
 }
