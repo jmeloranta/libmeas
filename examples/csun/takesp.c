@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
   }
 
   meas_newport_is_init();
-  meas_graphics_init(1, NULL, NULL);
+  meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "takesp");
 
   while(con) {
     meas_newport_is_read(atof(argv[1]), mode, atoi(argv[3]), y);
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
       printf("%le %le\n", x[i], y[i]);
     }
 
-    meas_graphics_update2d(0, 0, MEAS_GRAPHICS_WHITE, x, y, size);
+    meas_graphics_update_xy(0, x, y, size);
     meas_graphics_autoscale(0);
     meas_graphics_update();
   }

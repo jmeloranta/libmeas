@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
     fclose(fp);
   } /* end if mode */
     
-  if(graph) meas_graphics_init(0, MEAS_GRAPHICS_2D, 512, 512, 65535, "abs");
+  if(graph) meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "abs");
   meas_newport_is_init();
   
   while (1) {
@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
     }
     fclose(fp);
     if(graph) {
-      meas_graphics_update2d(0, 0, MEAS_GRAPHICS_WHITE, x, spec, 1024);
+      meas_graphics_update_xy(0, x, spec, 1024);
       meas_graphics_autoscale(0);
       meas_graphics_update();
     }

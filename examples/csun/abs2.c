@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
     fclose(fp);
   } /* end if mode */
 
-  if(graph) meas_graphics_init(1, NULL, NULL);
+  if(graph) meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "abs2");
 
   while (1) {
     memset(spec, 0, sizeof(double) * size);
@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
     }
     fclose(fp);
     if(graph) {
-      meas_graphics_update2d(0, 0, MEAS_GRAPHICS_WHITE, x, spec, size);
+      meas_graphics_update_xy(0, x, spec, size);
       meas_graphics_autoscale(0);
       meas_graphics_update();
     }

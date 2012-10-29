@@ -15,14 +15,6 @@
 #include "graphics.h"
 #include "misc.h"
 
-struct form {
-  FL_FORM *form;
-  void *vdata;
-  char *cdata;
-  long ldata;
-  FL_OBJECT *canvas;
-};
-
 static struct window {
   int type;          /* not in use (0), 2D (1) or contour (3) */
   int nx, ny, ns, maxns;        /* for 2-D ns indicates the data length */
@@ -437,3 +429,30 @@ void meas_graphics_rgb(double value, unsigned char *r, unsigned char *g, unsigne
   else *b = (int) (255.0 * (2.0 * (value - 0.5)));
 
 }
+
+/*
+ * Contour plot based on a array (double).
+ *
+ * win = window number (int).
+ * data= data, which is indexed according to nx, ny (double *).
+ *
+ */
+
+void meas_graphics_update_image_contour(int win, double *data) {
+
+  int i, j;
+  double mi = 1E99, ma = -1E99;
+
+  for (i = 0; i < wins[win].nx * wins[win].ny; i++) {
+    if(data[i] > ma) ma = data[i];
+    if(data[i] < mi) mi = data[i];
+  }
+  fprintf(stderr, "libmeas: Minimum contour = %le, Maximum contour = %le.\n", mi, ma);
+  j = 0;
+  for (i = 0; i < wins[win].nx * wins[win].ny; i++) {
+    meas_graphics_rgb((data[i] - mi) / (ma - mi), &wins[win].img_data[j+2], &wins[win].img_data[j+1], &wins[win].img_data[j]);
+    wins[win].img_data[j+3] = 0;
+    j += 4;
+  }
+}
+

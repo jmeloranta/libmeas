@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
   }
   signal(SIGINT, quit);
 
-  meas_graphics_init(1, NULL, NULL);
+  meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "takesp2");
   while (1) {
     bzero(y, sizeof(double) * size);
     meas_matrix_read(atof(argv[1]), atoi(argv[2]), y);
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     /* for now (x = pixel #) */
     for (i = 0; i < size; i++) x[i] = meas_matrix_calib(i);
     
-    meas_graphics_update2d(0, 0, MEAS_GRAPHICS_WHITE, x, y, size);
+    meas_graphics_update_xy(0, x, y, size);
     meas_graphics_autoscale(0);
     meas_graphics_update();
     if(!cont) break;

@@ -88,7 +88,15 @@ static void graph_callback(struct experiment *p) {
   double wl;
 
   if(!tmp) {
-    meas_graphics_init(1, NULL, NULL);
+    switch(p->display) {
+    case 0:
+      break;
+    case 1:
+    meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, MAX_SAMPLES, "exp0");
+    meas_graphics_init(1, MEAS_GRAPHICS_XY, 512, 512, MAX_SAMPLES, "exp1");
+    break;
+    case 2:
+      
     if(!(tmp = (double *) malloc(sizeof(double) * MAX_SAMPLES))) {
       fprintf(stderr, "Out of memory.\n");
       exit(1);
@@ -121,26 +129,26 @@ static void graph_callback(struct experiment *p) {
       fprintf(stderr, "display-arg1 > display-arg2. Setting the equal.\n");
       j = i;
     }
-    meas_graphics_update2d(1, 0, MEAS_GRAPHICS_WHITE, p->x2data, &(p->ydata[cur * p->mono_points]), p->mono_points);
+    meas_graphics_update_xy(1, p->x2data, &(p->ydata[cur * p->mono_points]), p->mono_points);
     tmp[cur] = 0.0;
     for (k = i; k <= j; k++)
       tmp[cur] += p->ydata[cur * p->mono_points + k];
     cur++;
-    meas_graphics_update2d(0, 0, MEAS_GRAPHICS_WHITE, p->x1data, tmp, cur);
+    meas_graphics_update_xy(0, p->x1data, tmp, cur);
     break;
   case 2:
     /* Live emission spectrum display */
     i = (int) ((p->dye_cur - p->dye_begin) / p->dye_step);
     j = (int) ((p->mono_cur - p->mono_begin) / p->mono_step);
     if(!j) return;
-    meas_graphics_update2d(0, 0, MEAS_GRAPHICS_WHITE, p->x2data, &(p->ydata[i * p->mono_points]), j);
+    meas_graphics_update_xy(0, p->x2data, &(p->ydata[i * p->mono_points]), j);
     break;
   case 3:
     /* Live emission spectrum display - pseudo 3D */
     i = (int) ((p->dye_cur - p->dye_begin) / p->dye_step);
     for (j = 0; j < p->mono_points; j++)
       tmp[j] = p->ydata[i * p->mono_points + j] + 100.0 * spec;
-    meas_graphics_update(0, spec, MEAS_GRAPHICS_WHITE, p->x2data, tmp, p->mono_points);
+    meas_graphics_update_image(0, spec, MEAS_GRAPHICS_WHITE, p->x2data, tmp, p->mono_points);
     spec++;
     break;
   default:
