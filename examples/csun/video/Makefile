@@ -3,7 +3,7 @@ include ../../../make.conf
 all: video video-view
 
 install: video video-view
-	cp -f video /usr/bin
+	cp -f video video-view /usr/bin
 #	chmod u+s /usr/bin/video
 
 video: video.o lasers.o

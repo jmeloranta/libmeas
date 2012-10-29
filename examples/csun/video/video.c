@@ -24,6 +24,8 @@ int main(int argc, char **argv) {
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 640, 480, 0, "video");
   meas_bnc565_init(0, 0, BNC565);
   meas_dg535_init(0, 0, DG535);
+  surelite_qswitch(290E-6);
+  minilite_qswitch(157E-6);
   fd = meas_video_open("/dev/video0");
   surelite_delay(0.0);
   minilite_delay(delay);

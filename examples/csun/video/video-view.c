@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
       fclose(fp);
       meas_graphics_update_image(0, r, g, b);
       meas_graphics_update();
+      sleep(1);
     }
   }
 }

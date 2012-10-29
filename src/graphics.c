@@ -43,7 +43,7 @@ static struct window {
  * Initialize graphics display.
  * 
  * win   = window to init (int).
- * type  = 2D graph or image (MEAS_GRAPHICS_2D or MEAS_GRAPHICS_IMAGE).
+ * type  = 2D graph or image (MEAS_GRAPHICS_XY or MEAS_GRAPHICS_IMAGE).
  * nx    = window size along x direction.
  * ny    = window size along y direction.
  * maxns = maximum number of data points for 2D plots.
@@ -86,7 +86,7 @@ int meas_graphics_init(int win, int type, int nx, int ny, int maxns, char *title
   wins[win].ny = ny;
   wins[win].ns = 0;
   switch(type) {
-  case MEAS_GRAPHICS_2D:
+  case MEAS_GRAPHICS_XY:
     wins[win].form = fl_bgn_form(FL_NO_BOX, nx, ny);
     wins[win].canvas = fl_add_xyplot(FL_NORMAL_XYPLOT, 0, 0, nx, ny, title);
     fl_end_form();
@@ -136,7 +136,7 @@ int meas_graphics_xscale(int win, double begin, double end) {
   if(win < 0 || win >= MEAS_GRAPHICS_MAX_WIN)
     meas_err("meas_graphics_xscale: Illegal window id.");
 
-  if(wins[win].type != MEAS_GRAPHICS_2D) meas_err("meas_graphics_xscale: wrong window type.");
+  if(wins[win].type != MEAS_GRAPHICS_XY) meas_err("meas_graphics_xscale: wrong window type.");
 
   fl_set_xyplot_xbounds(wins[win].canvas, begin, end);
   return 0;
@@ -181,7 +181,7 @@ int meas_graphics_clear(int win) {
   switch(wins[win].type) {
   case MEAS_GRAPHICS_EMPTY:
     break;
-  case MEAS_GRAPHICS_2D:
+  case MEAS_GRAPHICS_XY:
     fl_set_xyplot_data(wins[win].canvas, &x, &y, 0, "", "", "");
     break;
   case MEAS_GRAPHICS_IMAGE:
@@ -328,7 +328,7 @@ int meas_graphics_xautoscale(int win) {
 
   if(win < 0 || win >= MEAS_GRAPHICS_MAX_WIN)
     meas_err("meas_graphics_xautoscale: Illegal window id.");  
-  if(wins[win].type != MEAS_GRAPHICS_2D)
+  if(wins[win].type != MEAS_GRAPHICS_XY)
     meas_err("meas_graphics_xautoscale: Illegal window type for autoscale.\n");
 
   tmp = wins[win].xvalues;
@@ -361,7 +361,7 @@ int meas_graphics_yautoscale(int win) {
 
   if(win < 0 || win >= MEAS_GRAPHICS_MAX_WIN)
     meas_err("meas_graphics_yautoscale: Illegal window id.");  
-  if(wins[win].type != MEAS_GRAPHICS_2D)
+  if(wins[win].type != MEAS_GRAPHICS_XY)
     meas_err("meas_graphics_yautoscale: Illegal window type for autoscale.\n");
 
   tmp = wins[win].yvalues;

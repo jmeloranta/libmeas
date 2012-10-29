@@ -28,25 +28,8 @@
 
 /* Graph types */
 #define MEAS_GRAPHICS_EMPTY  0
-#define MEAS_GRAPHICS_2D     1      /* regular X-Y plot */
+#define MEAS_GRAPHICS_XY     1      /* regular X-Y plot */
 #define MEAS_GRAPHICS_IMAGE  2      /* color image */
-
-/* Color maps */
-#define MEAS_GRAPHICS_RGB  0       /* RGB colormap */
-#define MEAS_GRAPHICS_GRAY 1       /* gray scale colormap */
-#define MEAS_GRAPHICS_DIRECT 2     /* y = b + 256 * g + 256 * 256 * r */
-
-/* 3D pixel styles */
-#define MEAS_GRAPHICS_FAST3D  -1
-#define MEAS_GRAPHICS_SMOOTH3D 0
-
-/* 3D axis directions */
-#define MEAS_GRAPHICS_NORMAL3D 0
-#define MEAS_GRAPHICS_REV3D    1
-
-/* 3D axis scales */
-#define MEAS_GRAPHICS_LINEAR3D 0
-#define MEAS_GRAPHICS_LOG3D    1
 
 /* Prototypes */
 int meas_graphics_init(int, int, int, int, int, char *), meas_graphics_xscale(int, double, double);

@@ -9,7 +9,7 @@ main() {
 
   int i;
 
-  meas_graphics_init(0, MEAS_GRAPHICS_2D, 512, 512, 128, "testi");
+  meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 128, "testi");
   while(1) {
     for (i = 0; i < 128; i++) {
       xdata[i] = i;
