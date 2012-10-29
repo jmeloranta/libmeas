@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
     fclose(fp);
   } /* end if mode */
     
-  if(graph) meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "abs");
+  if(graph) meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "abs");
   meas_newport_is_init();
   
   while (1) {

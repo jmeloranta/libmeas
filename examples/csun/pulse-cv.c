@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   scanf(" %u", &averages);
 
   /* Initialize graphics */
-  meas_graphics_init(1, NULL, NULL);
+  meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "pulse-cv");
   meas_graphics_xtitle(0, "Time (s)");
   meas_graphics_ytitle(0, "Current (arb)");
 
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
     } else val -= bkg;
     x[i] = meas_misc_get_reftime();
     y[i] = val;
-    meas_graphics_update2d(0, 0, 5, x, y, i);
+    meas_graphics_update_xy(0, x, y, i);
     meas_graphics_update();
     meas_graphics_autoscale(0);
     printf("%le %le\n", x[i], val);

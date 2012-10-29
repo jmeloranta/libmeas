@@ -44,9 +44,9 @@ int main(int argc, char **argv) {
   scanf(" %u", &scan_delay);
 
   /* Initialize graphics */
-  meas_graphics_init(1, NULL, NULL);
-  meas_graphics_xscale(0, scan_begin, scan_end, width / 10.0, width / 50.0);
-  meas_graphics_yscale(0, -1.0, 1.0, 0.25, 0.1);
+  meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "cv");
+  meas_graphics_xscale(0, scan_begin, scan_end);
+  meas_graphics_yscale(0, -1.0, 1.0);
   meas_graphics_xtitle(0, "Potential (V)");
   meas_graphics_ytitle(0, "Current (arb)");
 
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     val = meas_hp34401a_complete_read(0);
     x[samples] = cur;
     y[samples] = val;
-    meas_graphics_update2d(0, 0, 5, x, y, samples);
+    meas_graphics_update_xy(0, x, y, samples);
     meas_graphics_update();
     meas_graphics_autoscale(0);
     printf("%le %le\n", cur, val);
@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
     val = meas_hp34401a_complete_read(0);
     x[samples] = cur;
     y[samples] = val;
-    meas_graphics_update2d(0, 0, 5, x, y, samples);
+    meas_graphics_update_xy(0, x, y, samples);
     meas_graphics_update();
     meas_graphics_autoscale(0);
     printf("%le %le\n", cur, val);

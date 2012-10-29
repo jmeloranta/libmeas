@@ -259,8 +259,15 @@ int meas_graphics_update_xy(int win, double *xdata, double *ydata, int ns) {
     meas_err("meas_graphics_update2d: Illegal window id.");  
   if(wins[win].type == MEAS_GRAPHICS_IMAGE || wins[win].type == MEAS_GRAPHICS_EMPTY)
     meas_err("meas_graphics_update2d: Wrong data set type.");
-  if(wins[win].maxns <= ns)
-    meas_err("meas_graphics_update2d: ns too large, increase maxns.");
+  if(ns >= wins[win].maxns) {
+    free(wins[win].xvalues);
+    free(wins[win].yvalues);
+    if(!(wins[win].xvalues = (float *) malloc(sizeof(float) * ns)))
+      meas_err("meas_graphics_init: out of memory.");
+    if(!(wins[win].yvalues = (float *) malloc(sizeof(float) * ns)))
+      meas_err("meas_graphics_init: out of memory.");
+    wins[win].maxns = ns;
+  }
   wins[win].ns = ns;
   for (i = 0; i < wins[win].ns; i++) {
     wins[win].xvalues[i] = xdata[i];

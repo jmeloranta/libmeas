@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
   meas_sr245_mode(0, 1); /* triggered mode */
 
   if(graphix == 'y')
-    meas_graphics_init(1, NULL, NULL);
+    meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "rd");
   i = 0;
   while(1) {
     meas_misc_set_time();
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     meas_sr245_disable_trigger(0);
     yval[i] /= (double) loop_amt;
     if(graphix == 'y')
-      meas_graphics_update2d(0, 0, MEAS_GRAPHICS_WHITE, xval, yval, i+1);
+      meas_graphics_update_xy(0, xval, yval, i+1);
     if(i && graphix == 'y')
       meas_graphics_autoscale(0);
     if(graphix == 'y') meas_graphics_update();

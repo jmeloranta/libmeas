@@ -186,7 +186,7 @@ int main(int argc, char **argv) {
   }
   fclose(fp);
   
-  if(live) meas_graphics_init(1, NULL, NULL);
+  if(live) meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "abs-kin");
   
   if(!(fp = fopen(output, "w"))) {
     fprintf(stderr, "Can't open file for writing.\n");
@@ -265,7 +265,7 @@ int main(int argc, char **argv) {
     fflush(fp);
 
     if(live) {
-      meas_graphics_update2d(0, 0, MEAS_GRAPHICS_WHITE, kinetics_t, kinetics, k);
+      meas_graphics_update_xy(0, kinetics_t, kinetics, k);
       if(k > 1) meas_graphics_autoscale(0);
       meas_graphics_update();
     }

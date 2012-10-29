@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
     fclose(fp);
   } /* end if mode */
 
-  if(graph) meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "abs2");
+  if(graph) meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "abs2");
 
   while (1) {
     memset(spec, 0, sizeof(double) * size);

@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     }
 
   if(graphix == 'y')
-    meas_graphics_init(1, NULL, NULL);
+    meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "eap2");
   i = 0;
   meas_pdr2000_init(0, "/dev/ttyS0"); /* com1 */
   meas_misc_set_reftime();
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     xval[i] = meas_misc_get_reftime();
     yval[i] = meas_pdr2000_read(0, 2);
     if(graphix == 'y')
-      meas_graphics_update2d(0, 0, MEAS_GRAPHICS_WHITE, xval, yval, i+1);
+      meas_graphics_update_xy(0, xval, yval, i+1);
     if(i && graphix == 'y')
       meas_graphics_autoscale(0);
     if(graphix == 'y') meas_graphics_update();
