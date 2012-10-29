@@ -97,21 +97,3 @@ void laser_set_delays() {
   meas_bnc565_mode(0, 3, 0, 0, 0); /* regular single shot */
   meas_bnc565_mode(0, 4, 0, 0, 0); /* regular single shot */
 }
-
-/* Note: CCD delay is given relative to surelite! */
-
-void ccd_set_delays(double delay, double gate) {
-
-  printf("delay = %le\n", delay);
-  delay += CCD_DELAY; /* internal triggering delay & 100 ns from surelite */
-  delay += surelite_qswitch_val;   /* was surelite delay */
-  printf("delay = %le\n", delay);
-  if(delay < 0.0) {
-    fprintf(stderr, "Error: CCD delay too small.\n");
-    exit(1);
-  }
-  /* A = Start, B = End, AB = intensifier - all TTL */
-  meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, delay, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-  meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_CHA, gate, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-  meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-}
