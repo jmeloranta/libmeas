@@ -92,17 +92,19 @@ static void graph_callback(struct experiment *p) {
     case 0:
       break;
     case 1:
-    meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, MAX_SAMPLES, "exp0");
-    meas_graphics_init(1, MEAS_GRAPHICS_XY, 512, 512, MAX_SAMPLES, "exp1");
-    break;
+      meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, MAX_SAMPLES, "exp0");
+      meas_graphics_init(1, MEAS_GRAPHICS_XY, 512, 512, MAX_SAMPLES, "exp1");
+      break;
     case 2:
-      
+      meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 512, 512, 512 * 512, "exp");
+      break;
+    }
     if(!(tmp = (double *) malloc(sizeof(double) * MAX_SAMPLES))) {
       fprintf(stderr, "Out of memory.\n");
       exit(1);
     }
   }
-
+  
   printf("Dye cur = %le nm\n", p->dye_cur);
   switch(p->display) {
   case 0:
@@ -148,7 +150,7 @@ static void graph_callback(struct experiment *p) {
     i = (int) ((p->dye_cur - p->dye_begin) / p->dye_step);
     for (j = 0; j < p->mono_points; j++)
       tmp[j] = p->ydata[i * p->mono_points + j] + 100.0 * spec;
-    meas_graphics_update_image(0, spec, MEAS_GRAPHICS_WHITE, p->x2data, tmp, p->mono_points);
+    meas_graphics_update_image_contour(0, tmp);
     spec++;
     break;
   default:
