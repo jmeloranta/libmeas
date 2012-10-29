@@ -15,14 +15,16 @@
 #include "graphics.h"
 #include "misc.h"
 
+#define MAX_LABEL 256
+
 static struct window {
   int type;          /* not in use (0), 2D (1) or contour (3) */
   int nx, ny, ns, maxns;        /* for 2-D ns indicates the data length */
   unsigned char *img_data;   /* ordered: b, g, r, 0 */
   float *xvalues;
-  char xtitle[256];
+  char xtitle[MAX_LABEL];
   float *yvalues;
-  char ytitle[256];
+  char ytitle[MAX_LABEL];
   FL_FORM *form;
   FL_OBJECT *canvas;   /* XY plot area or image area */
   GC canvasGC;
@@ -200,7 +202,7 @@ int meas_graphics_xtitle(int win, char *str) {
 
   if(win < 0 || win >= MEAS_GRAPHICS_MAX_WIN)
     meas_err("meas_graphics_xtitle: Illegal window id.");  
-  strncpy(wins[win].xtitle, str, MEAS_GRAPHICS_MAX_STRING);
+  strncpy(wins[win].xtitle, str, MAX_LABEL);
   return 0;
 }
 
@@ -218,7 +220,7 @@ int meas_graphics_ytitle(int win, char *str) {
 
   if(win < 0 || win >= MEAS_GRAPHICS_MAX_WIN)
     meas_err("meas_graphics_ytitle: Illegal window id.");  
-  strncpy(wins[win].ytitle, str, MEAS_GRAPHICS_MAX_STRING);
+  strncpy(wins[win].ytitle, str, MAX_LABEL);
   return 0;
 }
 
