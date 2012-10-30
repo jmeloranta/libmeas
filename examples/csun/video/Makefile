@@ -11,6 +11,8 @@ video: video.o lasers.o
 
 video.o: video.c csun.h
 
+laser.o: laser.c csun.h
+
 video-view: video-view.o
 	$(CC) $(CFLAGS) -o video-view video-view.o $(LDFLAGS)
 

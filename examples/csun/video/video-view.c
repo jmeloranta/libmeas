@@ -8,18 +8,21 @@ unsigned char r[640 * 480], g[640 * 480], b[640 * 480];
 
 int main(int argc, char **argv) {
 
-  double tstep, delay;
+  double tstep, delay, t0;
   char filebase[512], filename[512];
   int fd;
   FILE *fp;
 
   printf("Enter file basename: ");
   scanf("%s", filebase);
+  printf("Enter T0 (ns): ");
+  scanf("%le", &t0);
   printf("Enter time step (ns): ");
   scanf(" %le", &tstep);
   tstep *= 1E-9;
+  t0 *= 1E-9;
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 640, 480, 0, "video");
-  for(delay = 0.0; ; delay += tstep) {
+  for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
     sprintf(filename, "%s-%le.img", filebase, delay);
     if(filename[0] != '0') {

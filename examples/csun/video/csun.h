@@ -16,7 +16,7 @@
 
 /* Internal electronics delays for Surelite-II, Minilite-II (excl. Q-switch) and the ICCD in sec */
 
-#define MINILITE_DELAY (0.140E-6 - 9.975E-6)
+#define MINILITE_DELAY (0.140E-6 - 10.025E-6)
 #define SURELITE_DELAY 0.380E-6
 
 /* Prototypes etc. */
