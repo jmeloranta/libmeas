@@ -8,6 +8,7 @@
 #include "video.h"
 #include "misc.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
 #include <unistd.h>
@@ -302,4 +303,24 @@ int meas_video_read_rgb(int cd, unsigned char *r, unsigned char *g, unsigned cha
     b[i] = (unsigned char) (ave_b[i] / (unsigned int) aves);
   }
   return 1;
+}
+
+/*
+ * Write R, G, & B array into a PPM file.
+ *
+ */
+
+void meas_video_rgb_to_ppm(FILE *fp, unsigned char *r, unsigned char *g, unsigned char *b) {
+  
+  int i;
+
+  fprintf(fp, "P6 ");
+  fprintf(fp, "640 ");
+  fprintf(fp, "480 ");
+  fprintf(fp, "255 ");
+  for(i = 0; i < 640 * 480; i++) {
+    fwrite((void *) &r[i], sizeof(unsigned char), 1, fp);
+    fwrite((void *) &g[i], sizeof(unsigned char), 1, fp);
+    fwrite((void *) &b[i], sizeof(unsigned char), 1, fp);
+  }
 }
