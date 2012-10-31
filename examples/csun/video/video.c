@@ -34,6 +34,15 @@ int main(int argc, char **argv) {
   minilite_delay(delay);
   laser_set_delays();
   laser_start();
+  if(filename[0] != '0') {
+    sprintf(filename, "%s.info", filebase);
+    if(!(fp = fopen(filename, "w"))) {
+      fprintf(stderr, "Can't open file for writing.\n");
+      exit(1);
+    }
+    fprintf(fp, "%d %.15le %.15le\n", aves, t0, tstep);
+    fclose(fp);
+  }
   for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
     // need to stop lasers for this?

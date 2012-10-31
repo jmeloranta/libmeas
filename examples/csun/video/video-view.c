@@ -17,10 +17,13 @@ int main(int argc, char **argv) {
 
   printf("Enter file basename: ");
   scanf("%s", filebase);
-  printf("Enter T0 (ns): ");
-  scanf("%le", &t0);
-  printf("Enter time step (ns): ");
-  scanf(" %le", &tstep);
+  sprintf(filename, "%s.info", filebase);
+  if(!(fp = fopen(filename, "r"))) {
+    fprintf(stderr, "Can't open info file.\n");
+    exit(1);
+  }
+  fscanf(fp , " %*d %le %le", &t0, &tstep);
+  fclose(fp);
   tstep *= 1E-9;
   t0 *= 1E-9;
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 640, 480, 0, "video");
