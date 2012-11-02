@@ -50,7 +50,6 @@ void minilite_delay(double x) {
 void laser_stop() {
 
   meas_bnc565_run(0, 0);
-  meas_dg535_run(0, 0);
 }
 
 void laser_start() {
@@ -58,8 +57,6 @@ void laser_start() {
   /* Program the external trigger */
   meas_bnc565_trigger(0, MEAS_BNC565_TRIG_INT, 10.0, 0); /* 10 Hz */
   meas_bnc565_run(0, 1);
-  meas_dg535_trigger(0, MEAS_DG535_TRIG_EXT, 1.0, MEAS_DG535_TRIG_FALL, MEAS_DG535_IMP_50); /* Trigger at 1.5 V and falling edge (surelite is inverted) */
-  meas_dg535_run(0, 1);
 }
 
 void laser_set_delays() {
