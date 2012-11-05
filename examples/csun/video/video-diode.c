@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
     meas_video_stop(fd);
     meas_graphics_update_image(0, r, g, b);
     meas_graphics_update();
-    sprintf(filename, "%s-%le.img", filebase, delay);
+    sprintf(filename, "%s-%le.img", filebase, diode_delay);
     if(filename[0] != '0') {
       if(!(fp = fopen(filename, "w"))) {
 	fprintf(stderr, "Error writing file.\n");
