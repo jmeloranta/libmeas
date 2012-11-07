@@ -5,6 +5,16 @@
 #include <meas/meas.h>
 #include "csun.h"
 
+/* #define FOCUS /**/
+
+#ifdef FOCUS
+#define VOLTS 3.0
+#define LENGTH 1E-3
+#else 
+#define VOLTS 4.9
+#define LENGTH 20E-6
+#endif
+
 unsigned char r[640 * 480], g[640 * 480], b[640 * 480];
 
 int main(int argc, char **argv) {
@@ -47,18 +57,19 @@ int main(int argc, char **argv) {
     fprintf(fp, "%d %.15le %.15le\n", aves, t0, tstep);
     fclose(fp);
   }
+  meas_dg535_run(0, 0);
   meas_dg535_trigger(0, MEAS_DG535_TRIG_EXT, 1.0, MEAS_DG535_TRIG_FALL, MEAS_DG535_IMP_50); /* Trigger at 1.5 V and falling edge (surelite is inverted) */
   /* position of diode flash */
-  meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, t0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-  /* pulse length 100 micosec. */
-  meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_CHA, 100E-6, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, t0, VOLTS, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
+  /* pulse length 10 micosec. */
+  meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_CHA, LENGTH, VOLTS, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
   /* Trigger from AB at 4.0 V */
-  meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-  meas_dg535_run(0, 0);
+  meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, VOLTS, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
+  meas_dg535_run(0, 1);
   for(diode_delay = t0; ; diode_delay += tstep) {
     printf("Diode delay = %le ns.\n", diode_delay*1E9);
     // update diode params
-    meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, diode_delay, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+    meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, diode_delay, VOLTS, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
     meas_video_start(fd);
     meas_video_read_rgb(fd, r, g, b, aves);
     meas_video_stop(fd);

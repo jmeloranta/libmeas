@@ -68,8 +68,10 @@ int meas_dg535_set(int unit, int channel, int origin, double delay, double level
   /* Output level */
   /* Level (remove if necessary - just for safety) */
   /* TODO: add a function that can override this */
+#if 0
   if(level > 5.1)
     meas_err("meas_dg535_set: Output level greater than 5 V requested! Won't do.");
+#endif
   sprintf(buf, "OA %d,+%.1lf", channel, level);
   meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
   vals[unit][channel] = level;

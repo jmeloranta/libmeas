@@ -10,7 +10,7 @@
  *
  */
 
-int meas_pi_max_init(double), meas_pi_max_close(), meas_pi_max_read(int, double *);
+int meas_pi_max_init(double), meas_pi_max_close(), meas_pi_max_read(int, unsigned short *);
 int meas_pi_max_temperature(double);
 int meas_pi_max_size();
 int meas_pi_max_gate_mode(int), meas_pi_max_shutter_mode(int);

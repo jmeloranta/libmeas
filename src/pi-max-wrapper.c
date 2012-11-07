@@ -448,11 +448,11 @@ int meas_pi_max_init(double temperature) {
  *
  * ave = Number of averages to take (if ave < 0; use abs(ave) with internal
  *       CCD accumulation).
- * dst = Destination buffer for data.
+ * dst = Destination buffer for data (unsigned short *).
  *
  */
 
-int meas_pi_max_read(int ave, double *dst) {
+int meas_pi_max_read(int ave, unsigned short *dst) {
 
 /* Binning: wavelength along x, average along y (one pixel width) */
 /* TODO: Additional params required: gate gain, gate mode */
@@ -476,7 +476,7 @@ int meas_pi_max_read(int ave, double *dst) {
       meas_err("meas_pi_max_read: Memory allocation failure.");
   }
 
-  for (i = 0; i < size/2; i++) dst[i] = 0.0;
+  for (i = 0; i < size/2; i++) dst[i] = 0;
 
   if (ave < 0) ave = 1;
   for (i = 0; i < ave; i++) {
