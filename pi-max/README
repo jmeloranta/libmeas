@@ -1,0 +1,3 @@
+ieee1394	- Needed to get /dev/raw1394
+pi	   	- the PI-MAX driver
+pvcam 		- PVCAM library for PI-MAX
