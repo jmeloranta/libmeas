@@ -24,8 +24,6 @@ int main(int argc, char **argv) {
   }
   fscanf(fp , " %*d %le %le", &t0, &tstep);
   fclose(fp);
-  tstep *= 1E-9;
-  t0 *= 1E-9;
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 640, 480, 0, "video");
   for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
@@ -47,6 +45,6 @@ int main(int argc, char **argv) {
     }
     meas_video_rgb_to_ppm(fp, r, g, b);
     fclose(fp);
-    sleep(1);
+    //sleep(1);
   }
 }

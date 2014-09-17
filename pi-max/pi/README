@@ -1,0 +1,21 @@
+
+1. This is how to install the driver. Note this requires the old firewire raw1394 driver!
+This is not supported anymore....
+
+modprobe pipci
+modprobe raw1394
+mknod /dev/rspipci0 c 177 0
+
+2. This is a sample output from dmesg when the driver was loaded:
+
+pipci: module license 'Proprietary' taints kernel.
+KERN_INFO Registered Character Driver 0
+KERN_INFO PCI Bios Found
+KERN_INFO Searching For Princeton Card
+KERN_INFO Using IRQ 9
+KERN_INFO Base Address 0 0xa000
+KERN_INFO Base Address 1 0xa400
+KERN_INFO Base Address 2 0xa800
+KERN_INFO Nodes allocated 512
+KERN_INFO Number of Devices Found 1
+KERN_INFO Status = 0
