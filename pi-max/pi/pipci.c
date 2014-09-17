@@ -258,13 +258,13 @@ int princeton_output(void *io_object, struct extension *devicex, unsigned int ty
   if (devicex->mem_mapped == 0) {
     switch (type) {
     case IOCTL_PCI_WRITE_BYTE:
-      outb(output.data.byte_data, output.port);
+      outb_p(output.data.byte_data, output.port);
       break;
     case IOCTL_PCI_WRITE_WORD:
-      outw(output.data.word_data, output.port);
+      outw_p(output.data.word_data, output.port);
       break;
     case IOCTL_PCI_WRITE_DWORD:
-      outl(output.data.dword_data, output.port);
+      outl_p(output.data.dword_data, output.port);
       break;
     }
   } else {
@@ -294,13 +294,13 @@ int princeton_input(void *io_object, struct extension *devicex,	unsigned int typ
   if (devicex->mem_mapped == 0) {
     switch (type) {
     case IOCTL_PCI_READ_BYTE:
-      input.data.byte_data  = inb(input.port);
+      input.data.byte_data  = inb_p(input.port);
       break;
     case IOCTL_PCI_READ_WORD:
-      input.data.word_data  = inw(input.port);
+      input.data.word_data  = inw_p(input.port);
       break;
     case IOCTL_PCI_READ_DWORD:
-      input.data.dword_data = inl(input.port);
+      input.data.dword_data = inl_p(input.port);
       break;		
     }
   } else {

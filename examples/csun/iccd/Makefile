@@ -1,7 +1,7 @@
 CC = cc
 CFLAGS = -O -I/opt/include
 PROGS = iccd
-LDFLAGS = -lmeas -lm -lpvcam -lraw1394 -ldl -L/opt/lib -lplplotd -lgpib -lusb -lrt
+LDFLAGS = -lmeas -lm -lpvcam -lraw1394 -ldl -L/opt/lib -lforms -lX11 -lgpib -lusb -lrt
 
 all: $(PROGS)
 

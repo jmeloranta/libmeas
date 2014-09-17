@@ -140,8 +140,8 @@ static void graph_callback(struct experiment *p) {
 
   if(!tmp) {
     if(p->display == 0) {
-      meas_graphics_init(0, MEAS_GRAPHICS_2D, 512, 512, 0, "Fluorescence");
-      meas_graphics_init(1, MEAS_GRAPHICS_2D, 512, 512, 0, "Excitation");
+      meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 0, "Fluorescence");
+      meas_graphics_init(1, MEAS_GRAPHICS_XY, 512, 512, 0, "Excitation");
     } else
       if(p->display == 1) 
 	meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, NX, NY, 0, "CCD image"); /* one image */
@@ -178,7 +178,7 @@ static void graph_callback(struct experiment *p) {
     for (k = i; k <= j; k++)
       tmp[cur] += p->ydata[cur * p->mono_points + k];
     cur++;
-    meas_graphics_update2d(0, p->x1data, tmp, cur);
+    meas_graphics_update_xy(0, p->x1data, tmp, cur);
     if(p->display_autoscale) {
       meas_graphics_autoscale(0);
       meas_graphics_autoscale(1);
@@ -351,7 +351,7 @@ void exp_run(struct experiment *p) {
   if(p->gate >= 0.0) {
     /* Discard few first samples */
     for (i = 0; i < 10; i++) 
-      meas_pi_max_read(1, &(p->ydata[0]));
+      meas_pi_max_read2(1, NULL);
   }
   if(diode_bkg) (void) meas_hp34401a_complete_read(0);
 
@@ -386,7 +386,7 @@ void exp_run(struct experiment *p) {
       printf("Current CCD temperature = %le\n", meas_pi_max_get_temperature());
     memset(&(p->ydata[i * p->mono_points]), 0, sizeof(double) * p->mono_points);
     if(p->gate >= 0.0)
-      meas_pi_max_read(p->accum, &(p->ydata[i * p->mono_points]));
+      meas_pi_max_read2(p->accum, &(p->ydata[i * p->mono_points]));
     if(active_bkg) { /* 10 last points from the long wavelength side */
       double ave = 0.0;
       for(j = p->mono_points-10; j < p->mono_points; j++)
@@ -412,7 +412,7 @@ void exp_run(struct experiment *p) {
       meas_bnc565_enable(0, 2, 0);  /* disable Q switch */
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
       if(p->gate >= 0.0)
-	meas_pi_max_read(p->accum, bkg_data);
+	meas_pi_max_read2(p->accum, bkg_data);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= bkg_data[j];
       /* Turn on dye laser */
@@ -423,7 +423,7 @@ void exp_run(struct experiment *p) {
       meas_bnc565_enable(0, 3, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
       if(p->gate >= 0.0)
-	meas_pi_max_read(p->accum, bkg_data);
+	meas_pi_max_read2(p->accum, bkg_data);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= bkg_data[j];
       /* Turn on ablation laser */
@@ -434,7 +434,7 @@ void exp_run(struct experiment *p) {
       meas_bnc565_enable(0, 2, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
       if(p->gate >= 0.0)
-	meas_pi_max_read(p->accum, bkg_data);
+	meas_pi_max_read2(p->accum, bkg_data);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= 0.5*bkg_data[j];
       meas_bnc565_enable(0, 2, 1);
@@ -442,7 +442,7 @@ void exp_run(struct experiment *p) {
       meas_bnc565_enable(0, 3, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
       if(p->gate >= 0.0)
-	meas_pi_max_read(p->accum, bkg_data);
+	meas_pi_max_read2(p->accum, bkg_data);
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= 0.5*bkg_data[j];
       meas_bnc565_enable(0, 3, 1);

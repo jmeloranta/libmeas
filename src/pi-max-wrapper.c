@@ -476,7 +476,10 @@ int meas_pi_max_read(int ave, unsigned short *dst) {
       meas_err("meas_pi_max_read: Memory allocation failure.");
   }
 
-  for (i = 0; i < size/2; i++) dst[i] = 0;
+  if(dst) {
+    for (i = 0; i < size/2; i++)
+      dst[i] = 0;
+  }
 
   if (ave < 0) ave = 1;
   for (i = 0; i < ave; i++) {
@@ -488,8 +491,69 @@ int meas_pi_max_read(int ave, unsigned short *dst) {
       meas_err("meas_pi_max_read: Error reading CCD.");
     pl_exp_finish_seq(hCam, data, 0);
 
-    for (j = 0; j < size/2; j++)
-      dst[j] += data[j];
+    if(dst) {
+      for (j = 0; j < size/2; j++)
+	dst[j] += data[j];
+    }
+  }
+  pl_exp_uninit_seq();
+  return 0;
+}
+
+/*
+ * Read CCD element.
+ *
+ * ave = Number of averages to take (if ave < 0; use abs(ave) with internal
+ *       CCD accumulation).
+ * dst = Destination buffer for data (double *).
+ *
+ * Just another version for double arrays (backwards compatibility).
+ *
+ */
+
+int meas_pi_max_read2(int ave, double *dst) {
+
+/* Binning: wavelength along x, average along y (one pixel width) */
+/* TODO: Additional params required: gate gain, gate mode */
+
+  static uns16 *data = NULL;
+  int16 exp_time = 100; /* ms (seems to work...) */
+  uns32 size;
+  int16 status;
+  uns32 dummy;
+  int i, j;
+
+  pl_exp_init_seq();
+  fprintf(stderr, "meas_pi_max_read: ROI = %d %d %d / %d %d %d\n", region.s1, region.s2, region.sbin, region.p1, region.p2, region.pbin);
+
+  if(pl_exp_setup_seq(hCam, (ave<0)?abs(ave):1, 1, &region, STROBED_MODE, exp_time, &size)) {
+    fprintf(stderr, "meas_pi_max_read: Frame size = %d\n", size);
+  } else meas_err("meas_pi_max_read: Experiment failed.");
+
+  if(!data) {
+    if(!(data = (uns16 *) malloc(2*size)))
+      meas_err("meas_pi_max_read: Memory allocation failure.");
+  }
+
+  if(dst) {
+    for (i = 0; i < size/2; i++)
+      dst[i] = 0.0;
+  }
+
+  if (ave < 0) ave = 1;
+  for (i = 0; i < ave; i++) {
+    pl_exp_start_seq(hCam, data);
+
+    while(pl_exp_check_status(hCam, &status, &dummy) &&
+	  (status != READOUT_COMPLETE && status != READOUT_FAILED));
+    if(status == READOUT_FAILED)
+      meas_err("meas_pi_max_read: Error reading CCD.");
+    pl_exp_finish_seq(hCam, data, 0);
+
+    if(dst) {
+      for (j = 0; j < size/2; j++)
+	dst[j] += data[j];
+    }
   }
   pl_exp_uninit_seq();
   return 0;
