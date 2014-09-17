@@ -1,0 +1,30 @@
+Linux PCI SDK Installation Instructions
+
+Copyright (c) 2005 
+Princeton Instruments
+
+1. Power off your computer.
+
+2. Install the Model II PCI Camera Adapter into your machine or the Princeton Instruments
+   PCI Interface card.
+
+3. Attach the cable between the camera and the computer.
+
+4. Restart your computer.
+
+5. Turn the camera on.
+
+6. Insert the disk and copy the PISDKinst2.7.x.y.tar.gz file to a temporary directory on your hard disk.
+	cp PISDKinst2.7.x.y.tgz /tmp
+	cd /tmp
+	
+7. Unpack the archive.
+	tar -xvzf PISDKinst2.7.x.y.tar.gz
+	
+8. Run the install script.
+	install_sdk.sh
+	 
+9. Build the provided examples found in /usr/local/pvcam/examples
+	make all
+
+10. **Note** The libraries libdl, libraw1394, and libpthread must be linked in with all programs depending on PVCam V2.7.x.y
