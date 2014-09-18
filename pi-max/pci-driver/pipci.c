@@ -39,7 +39,7 @@
 #include <linux/ioctl.h>
 #include "pidriver.h"
 
-/*#define DEBUG   /* Enable command debugging */
+/* #define DEBUG   /* Enable command debugging */
 
 /* Global structure holds state of card for all devices */
 static struct extension device[PI_MAX_CARDS];

@@ -71,7 +71,10 @@ int main(int argc, char **argv) {
   meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, delay, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_CHA, gate, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-  meas_dg535_trigger(0, MEAS_DG535_TRIG_EXT, 1.0, MEAS_DG535_TRIG_FALL, MEAS_DG535_IMP_50);
+  /* Run without the laser */
+  //  meas_dg535_trigger(0, MEAS_DG535_TRIG_EXT, 1.0, MEAS_DG535_TRIG_FALL, MEAS_DG535_IMP_50);
+  meas_dg535_trigger(0, MEAS_DG535_TRIG_INT, 10.0, MEAS_DG535_TRIG_FALL, MEAS_DG535_IMP_50);
+
   /* Run delay generators */
   meas_dg535_run(0, 1);
   meas_bnc565_run(0, 1);
@@ -80,9 +83,15 @@ int main(int argc, char **argv) {
   while(1) {
     meas_pi_max_read(1, img);
     for(i = 0; i < 512 * 512; i++) {
+#if 1
+      r[i] = img[i] / 128;
+      g[i] = img[i] / 128;
+      b[i] = img[i] / 128;
+#else
       r[i] = img[i] & 0x3f;          /* Of 16 bit sample, 6 to red, 6 to green and 6 to blue */
       g[i] = (img[i] >> 6) & 0x3f;
       b[i] = (img[i] >> 12) & 0x3f;
+#endif
     }
     meas_graphics_update_image(0, r, g, b);
     meas_graphics_update();
