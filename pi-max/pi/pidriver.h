@@ -24,7 +24,6 @@ typedef unsigned short uint16, *uint16_ptr;
 typedef unsigned long uns32, *uns32_ptr;
 typedef unsigned long DWORD;
 	
-	
 struct pi_dma_node {
   void *virtaddr;
   void *physaddr;

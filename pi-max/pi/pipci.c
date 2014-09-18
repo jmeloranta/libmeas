@@ -1,3 +1,22 @@
+/*
+ * pipci.c
+ *
+ * Copyright (C) 2002, 2008 Princeton Instruments
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation version 2 of the License
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
 /*************************************************************
 **************************************************************
 ***     Added version info which is available              ***
@@ -25,6 +44,8 @@
 **************************************************************
 *************************************************************/
 	
+/* NOTE: This is modified from the original pipci driver */
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -62,7 +83,7 @@ int SHARE       = 1;
 static struct pi_dma_node *dmanodeshead;
 
 MODULE_AUTHOR("Princeton Instruments");
-MODULE_DESCRIPTION("PCI Device Driver for Linux\n\t\tVERSION "DRV_VERSION " \t" DRV_RELDATE);
+MODULE_DESCRIPTION("PCI Device Driver for TAXI board");
 MODULE_ALIAS("PIPCI");	
 module_param(DMA_MB, int, 0);
 module_param(IMAGE_ORDER, int, 0);
@@ -74,7 +95,7 @@ MODULE_PARM_DESC(IMAGE_ORDER, "2 ^ IMAGE_ORDER = IMAGE_PAGES");
 MODULE_PARM_DESC(IMAGE_PAGES, "IMAGE_PAGES = 2 ^ IMAGE_ORDER");
 MODULE_PARM_DESC(IRQ, "Specify IRQ to use for pipci");
 MODULE_PARM_DESC(SHARE, "1 Enables Irq Sharing, 0 Disables Irq Sharing");
-MODULE_LICENSE("Proprietary");
+MODULE_LICENSE("GPL v2");
 
 /* Global driver entry points */
 	
@@ -92,16 +113,16 @@ struct file_operations functions = {
 	
 static int initialize(void) {
 
-  int devices;
+  int devices, err;
   
-  if(register_chrdev(MAJOR_NUM, DEVICE_NAME, &functions) < 0) {
+  if((err = register_chrdev(MAJOR_NUM, DEVICE_NAME, &functions)) < 0) {
     printk("pipci: Failed to register character driver.\n");
-    return 1;
+    return err;
   }
   
   if (!(devices = princeton_find_devices())) {
     printk("pipci: No devices found.\n");
-    return 1;
+    return -ENODEV;
   } else printk("pipci: %d devices found.\n", devices);
 		
   // TODO: GFP_KERNEL -> GFP_DMA?
@@ -124,7 +145,7 @@ static void cleanup(void) {
     }
   }
 
-  free_pages((unsigned long) dmanodeshead, 1);						
+  if(dmanodeshead) free_pages((unsigned long) dmanodeshead, 1);
   
   unregister_chrdev(MAJOR_NUM, DEVICE_NAME);
 }
@@ -162,6 +183,7 @@ int princeton_find_devices(void) {
     printk("pipci: Base address 1 0x%x\n", (unsigned int) device[0].base_address1);
     printk("pipci: Base address 2 0x%x\n", (unsigned int) device[0].base_address2);
     
+    // TODO: should we remove IRQF_DISABLED ?
     flags = IRQF_DISABLED | ((SHARE)?IRQF_SHARED:0);
     status = request_irq(dev->irq, princeton_handle_irq, flags, DEVICE_NAME, &device[cards_found]);
     
@@ -196,6 +218,7 @@ static int princeton_open(struct inode *inode, struct file *fp) {
     return -EBUSY;
 
   fp->private_data = (void *) (&device[card]);
+  mutex_init(&device[card].mutex);
   device[card].state = STATE_OPEN;
 
   return PIDD_SUCCESS;
@@ -215,8 +238,10 @@ static long princeton_ioctl(struct file *fp, unsigned int ioctl_command, unsigne
 
   int status;
   struct extension *devicex;
+
   status = PIDD_SUCCESS;						
   devicex = (struct extension *) (fp->private_data);
+  mutex_lock(&devicex->mutex);
   
   switch (ioctl_command) {
   case IOCTL_PCI_GET_PI_INFO:
@@ -242,8 +267,11 @@ static long princeton_ioctl(struct file *fp, unsigned int ioctl_command, unsigne
   case IOCTL_PCI_GET_IRQS:
     princeton_get_irqs((void *) ioctl_param, devicex);
     break;
+  default:
+    status = -ENOTTY;
   }
   
+  mutex_unlock(&devicex->mutex);
   return status;
 }
 	
@@ -398,10 +426,9 @@ void princeton_release_scatter(struct extension *devicex) {
 
   int i;
   
-  if (devicex == NULL) return;		
-  if (devicex->dmainfo.numberofentries == 0) return;  
+  if (devicex == NULL || devicex->dmainfo.numberofentries == 0) return;  
 			
-  for (i=0; i< devicex->dmainfo.numberofentries; i++) {
+  for (i = 0; i < devicex->dmainfo.numberofentries; i++) {
     if (devicex->dmainfo.nodes[i].physaddr != 0) 
       /*      free_pages((int) devicex->dmainfo.nodes[i].virtaddr, IMAGE_ORDER); (JME CHANGE) */
       free_pages((unsigned long) devicex->dmainfo.nodes[i].virtaddr, IMAGE_ORDER);
@@ -450,20 +477,17 @@ int princeton_do_scatter_boot(long size, struct extension *devicex) {
   bsize = PAGE_SIZE * IMAGE_PAGES;		
   nblocks = (size / bsize);
   
-  if ((nblocks * bsize) < size) 
-    nblocks++;
+  if ((nblocks * bsize) < size) nblocks++;
   
-  if (nblocks >= TABLE_SIZE) 
-    return -ENOMEM;
+  if (nblocks >= TABLE_SIZE) return -ENOMEM;
   
   bytes_remaining = size;
   for (i = 0; i < nblocks; i++) {
-    // FIXME: GFP and virt_to_bus() not protable
+    // FIXME: GFP and virt_to_bus() prototype issues
       devicex->dmainfo.nodes[i].virtaddr = (void *) (__get_free_pages(GFP_KERNEL, IMAGE_ORDER));
       devicex->dmainfo.nodes[i].physaddr = (void *) virt_to_bus(devicex->dmainfo.nodes[i].virtaddr);
-      if (devicex->dmainfo.nodes[i].physaddr != 0) {
-	if (bytes_remaining < bsize) 
-	  bsize = bytes_remaining;
+      if (devicex->dmainfo.nodes[i].physaddr) {
+	if (bytes_remaining < bsize) bsize = bytes_remaining;
 	devicex->dmainfo.nodes[i].physsize = bsize;
 	bytes_remaining = bytes_remaining - bsize;
       } else {
@@ -519,31 +543,31 @@ irqreturn_t princeton_handle_irq(int irq, void *devicex) {
   if (driverx->mem_mapped == 1)
     tmp_stat = readl((void *) (driverx->base_address0 + INTCR));
   else		
-    tmp_stat = inl(driverx->base_address0 + INTCR);
+    tmp_stat = inl_p(driverx->base_address0 + INTCR);
 	
   while (tmp_stat & 0xffff0000L) {		
     if (driverx->mem_mapped == 1)
       writel(tmp_stat, (void *) (driverx->base_address0 + INTCR));
     else		
-      outl(tmp_stat, driverx->base_address0 + INTCR);
+      outl_p(tmp_stat, driverx->base_address0 + INTCR);
     /* Read Taxi EPLD IRQ Status */
     if (driverx->mem_mapped == 1)
       status = (unsigned char) readl((void *) (driverx->base_address2 + IRQ_RD_PCI));
     else	
-      status = (unsigned char) inl(driverx->base_address2 + IRQ_RD_PCI);
+      status = (unsigned char) inl_p(driverx->base_address2 + IRQ_RD_PCI);
     
     while (status) { /* stay in loop until all ints serviced */
       if (driverx->mem_mapped == 1)
 	writel(status, (void *) (driverx->base_address2 + IRQ_CLR_WR_PCI));
       else		
-	outl(status, driverx->base_address2 + IRQ_CLR_WR_PCI);
+	outl_p(status, driverx->base_address2 + IRQ_CLR_WR_PCI);
       
       if (status & I_RID1) {             /* controller interrupt data received*/
 	                                 /* read data from TAXI EPLD RID regs */
 	if (driverx->mem_mapped == 1)
 	  rid_stat = (unsigned short) readl((void *) (driverx->base_address2 + RID_RD_PCI));
 	else		
-	  rid_stat = (unsigned short) inl(driverx->base_address2 + RID_RD_PCI);
+	  rid_stat = (unsigned short) inl_p(driverx->base_address2 + RID_RD_PCI);
 
 	if (rid_stat & I_TRIG)
 	  driverx->irqs.triggers++;
@@ -569,18 +593,18 @@ irqreturn_t princeton_handle_irq(int irq, void *devicex) {
 	if (driverx->mem_mapped == 1)
 	  rcd_stat = (unsigned short) readl((void *) (driverx->base_address2 + RCD_RD_PCI));
 	else		
-	  rcd_stat = (unsigned short) inl(driverx->base_address2 + RCD_RD_PCI);
+	  rcd_stat = (unsigned short) inl_p(driverx->base_address2 + RCD_RD_PCI);
       }
 
       if(status & I_VLTN) {              /* Taxi Violation has occured       */
 	if (driverx->mem_mapped == 1) {
-	  ctrl_reg = readl((void *) (driverx->base_address2)); /* get taxi ctrl reg val */			
+	  ctrl_reg = readl((void *) (driverx->base_address2)); /* get taxi ctrl reg val */
 	  writel(ctrl_reg & (~RCV_CLR), (void *) (driverx->base_address2));
 	  writel(ctrl_reg | RCV_CLR, (void *) (driverx->base_address2));
 	} else {
-	  ctrl_reg = inl(driverx->base_address2); /* get taxi ctrl reg val */			
-	  outl(ctrl_reg & (~RCV_CLR), driverx->base_address2);
-	  outl(ctrl_reg | RCV_CLR, driverx->base_address2);
+	  ctrl_reg = inl_p(driverx->base_address2); /* get taxi ctrl reg val */
+	  outl_p(ctrl_reg & (~RCV_CLR), driverx->base_address2);
+	  outl_p(ctrl_reg | RCV_CLR, driverx->base_address2);
 	}
 		  
 	driverx->irqs.violations++;
@@ -588,7 +612,7 @@ irqreturn_t princeton_handle_irq(int irq, void *devicex) {
 	  if (driverx->mem_mapped == 1)
 	    writel(ctrl_reg & (~IRQ_EN), (void *) (driverx->base_address2));
 	  else				
-	    outl(ctrl_reg & (~IRQ_EN), driverx->base_address2);
+	    outl_p(ctrl_reg & (~IRQ_EN), driverx->base_address2);
 	  driverx->irqs.error_occurred = 1;
 	}
       }
@@ -601,14 +625,14 @@ irqreturn_t princeton_handle_irq(int irq, void *devicex) {
       if (driverx->mem_mapped == 1)
 	status = (unsigned char) readl((void *) (driverx->base_address2 + IRQ_RD_PCI));
       else		
-	status = (unsigned char) inl(driverx->base_address2 + IRQ_RD_PCI);
+	status = (unsigned char) inl_p(driverx->base_address2 + IRQ_RD_PCI);
 
     } /* end while */
 	
     if (driverx->mem_mapped == 1)
       tmp_stat = readl((void *) (driverx->base_address0 + INTCR));
     else		
-      tmp_stat = inl(driverx->base_address0 + INTCR);
+      tmp_stat = inl_p(driverx->base_address0 + INTCR);
 
   } /*end tmp_stat */ 
 
