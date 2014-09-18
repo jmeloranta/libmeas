@@ -26,7 +26,7 @@ typedef unsigned long DWORD;
 	
 struct pi_dma_node {
   void *virtaddr;
-  void *physaddr;
+  unsigned long physaddr;   /* This was void * */
   DWORD physsize;
   struct pi_dma_node *next;
 };
@@ -80,6 +80,7 @@ struct extension {
   unsigned int bufferflag;
   struct pi_irqs irqs;
   unsigned int mem_mapped;
+  struct mutex mutex;
 };
 	
 struct pi_pci_info {

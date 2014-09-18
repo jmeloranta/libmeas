@@ -17,34 +17,11 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/*************************************************************
-**************************************************************
-***     Added version info which is available              ***
-***     from modinfo.  Also removed the printing           ***
-***     of "princeton_open".                               ***
-***     DTrent 25 April 2002                               ***
-***     --------------------------------------------       ***
-***	Made change to always include modversions.h        ***
-***     Eliminating unresolved symbols on insmod	   ***
-***     DTrent 8 May 2002				   ***
-***     --------------------------------------------       ***
-***     Added command line parameter to set IRQ            ***
-***     DTrent 25 Nov 2003                                 ***
-***     --------------------------------------------       ***
-***     Many changes for 2.6 kernel                        ***
-***     DTrent 16 Jan 2004                                 ***
-***     --------------------------------------------       ***
-***     More changes for 2.6 Kernel.  Officially           ***
-***     releasing the driver.                              ***
-***     DTrent 27 August 2004                              ***
-***     --------------------------------------------       ***
-***
-***     Modified to work with 3.6 series kernels           ***
-***     ----------------------------------------           ***
-**************************************************************
-*************************************************************/
-	
-/* NOTE: This is modified from the original pipci driver */
+/* 
+ * NOTE: This is modified from the original Princeton pipci driver!
+ *       Use at your own risk!
+ *
+ */
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -62,12 +39,7 @@
 #include <linux/ioctl.h>
 #include "pidriver.h"
 
-#define DRV_VERSION "2.0.1 (jme)"
-#define DRV_RELDATE "17 September 2014"
-
-#ifndef KERNEL_VERSION
-#define KERNEL_VERSION(a,b,c) ((a)*65536+(b)*256+(c))
-#endif	
+/*#define DEBUG   /* Enable command debugging */
 
 /* Global structure holds state of card for all devices */
 static struct extension device[PI_MAX_CARDS];
@@ -125,8 +97,7 @@ static int initialize(void) {
     return -ENODEV;
   } else printk("pipci: %d devices found.\n", devices);
 		
-  // TODO: GFP_KERNEL -> GFP_DMA?
-  if(!(dmanodeshead = (struct pi_dma_node *) (__get_free_pages(GFP_KERNEL, 1)))) {
+  if(!(dmanodeshead = (struct pi_dma_node *) (__get_free_pages(GFP_KERNEL | GFP_DMA, 1)))) {
     printk("pipci: Failed to allocate DMA memory.\n");
     return 1;
   }
@@ -199,12 +170,18 @@ int princeton_find_devices(void) {
 }
 
 static ssize_t princeton_read(struct file *fp, char *buffer, size_t length, loff_t *offset) {
-  
+
+#ifdef DEBUG
+  printk("pipci: call to read() - this is a null function.\n");
+#endif
   return PIDD_SUCCESS;
 }					
   
 static ssize_t  princeton_write(struct file *fp, const char *buffer, size_t length, loff_t *offset) {
 
+#ifdef DEBUG
+  printk("pipci: call to write() - this is a null function.\n");
+#endif
   return PIDD_SUCCESS;
 }		
 	
@@ -221,6 +198,10 @@ static int princeton_open(struct inode *inode, struct file *fp) {
   mutex_init(&device[card].mutex);
   device[card].state = STATE_OPEN;
 
+#ifdef DEBUG
+  printk("pipci: open device.\n");
+#endif
+
   return PIDD_SUCCESS;
 }
 	
@@ -230,6 +211,10 @@ static int princeton_release(struct inode *inode, struct file *fp) {
 
   card = inode->i_rdev & 0x0f;
   device[card].state = STATE_CLOSED;
+
+#ifdef DEBUG
+  printk("pipci: release device.\n");
+#endif
 
   return PIDD_SUCCESS;
 }
@@ -280,30 +265,53 @@ int princeton_output(void *io_object, struct extension *devicex, unsigned int ty
   struct pi_pci_io output;
   int status = 0;
   
-  // TODO: check return value
-  (void) copy_from_user(&output, io_object, sizeof(struct pi_pci_io));
+  if(copy_from_user(&output, io_object, sizeof(struct pi_pci_io))) return -EACCES;
   
   if (devicex->mem_mapped == 0) {
     switch (type) {
     case IOCTL_PCI_WRITE_BYTE:
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_WRITE_BYTE - data = %x, port = %x.\n", 
+	     (unsigned int) output.data.byte_data, (unsigned int) output.port);
+#endif
       outb_p(output.data.byte_data, output.port);
       break;
     case IOCTL_PCI_WRITE_WORD:
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_WRITE_WORD - data = %x, port = %x.\n", 
+	     (unsigned int) output.data.word_data, (unsigned int) output.port);
+#endif
       outw_p(output.data.word_data, output.port);
       break;
     case IOCTL_PCI_WRITE_DWORD:
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_WRITE_DWORD - data = %x, port = %x.\n",
+	     (unsigned int) output.data.dword_data, (unsigned int) output.port);
+#endif
       outl_p(output.data.dword_data, output.port);
       break;
     }
   } else {
     switch(type) {		
     case IOCTL_PCI_WRITE_BYTE:
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_WRITE_BYTE - data = %x, port = %x.\n",
+	     (unsigned int) output.data.byte_data, (unsigned int) output.port);
+#endif
       writeb(output.data.byte_data, (void *) output.port);
       break;
     case IOCTL_PCI_WRITE_WORD:
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_WRITE_WORD - data = %x, port = %x.\n",
+	     (unsigned int) output.data.word_data, (unsigned int) output.port);
+#endif
       writew(output.data.word_data, (void *) output.port);
       break;
     case IOCTL_PCI_WRITE_DWORD:
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_WRITE_DWORD - data = %x, port = %x.\n",
+	     (unsigned int) output.data.dword_data, (unsigned int) output.port);
+#endif
       writel(output.data.dword_data, (void *) output.port);
       break;		
     }
@@ -316,37 +324,59 @@ int princeton_input(void *io_object, struct extension *devicex,	unsigned int typ
   struct pi_pci_io input;
   int status = 0;
   
-  // TODO: check return value
-  (void) copy_from_user(&input, io_object, sizeof(struct pi_pci_io));
+  if(copy_from_user(&input, io_object, sizeof(struct pi_pci_io))) return -EACCES;
   
   if (devicex->mem_mapped == 0) {
     switch (type) {
     case IOCTL_PCI_READ_BYTE:
       input.data.byte_data  = inb_p(input.port);
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_READ_BYTE - data = %x, port = %x.\n", 
+	     (unsigned int) input.data.byte_data, (unsigned int) input.port);
+#endif
       break;
     case IOCTL_PCI_READ_WORD:
       input.data.word_data  = inw_p(input.port);
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_READ_WORD - data = %x, port = %x.\n", 
+	     (unsigned int) input.data.word_data, (unsigned int) input.port);
+#endif
       break;
     case IOCTL_PCI_READ_DWORD:
       input.data.dword_data = inl_p(input.port);
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_READ_DWORD - data = %x, port = %x.\n", 
+	     (unsigned int) input.data.dword_data, (unsigned int) input.port);
+#endif
       break;		
     }
   } else {
     switch (type) {
     case IOCTL_PCI_READ_BYTE:
       input.data.byte_data  = readb((void *) input.port);
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_READ_BYTE - data = %x, port = %x.\n", 
+	     (unsigned int) input.data.byte_data, (unsigned int) input.port);
+#endif
       break;
     case IOCTL_PCI_READ_WORD:
       input.data.word_data  = readw((void *) input.port);
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_READ_WORD - data = %x, port = %x.\n", 
+	     (unsigned int) input.data.word_data, (unsigned int) input.port);
+#endif
       break;
     case IOCTL_PCI_READ_DWORD:
       input.data.dword_data = readl((void *) input.port);
+#ifdef DEBUG
+      printk("pipci: IOCTL_PCI_READ_DWORD - data = %x, port = %x.\n", 
+	     (unsigned int) input.data.dword_data, (unsigned int) input.port);
+#endif
       break;		
     }
   }
   
-  // TODO: check return value
-  (void) __copy_to_user(io_object, &input, sizeof(struct pi_pci_io));
+  if(__copy_to_user(io_object, &input, sizeof(struct pi_pci_io))) return -EACCES;
   
   return status;
 }
@@ -361,21 +391,26 @@ int princeton_get_info(void *info_object, struct extension *devicex) {
   local_info.irq	     = devicex->irq;
   local_info.number_of_cards = cards_found;
 		
-  // TODO: check return value
-  (void) __copy_to_user(info_object, &local_info, sizeof(struct pi_pci_info));
+#ifdef DEBUG
+  printk("pipci: IOCTL_PCI_GET_PI_INFO - Request struct pi_pci_info.\n");
+#endif
+  if(__copy_to_user(info_object, &local_info, sizeof(struct pi_pci_info))) return -EACCES;
   
   return PIDD_SUCCESS;
 }
 	
-int princeton_do_scatter(void *dma_object, struct extension *devicex) {
+int princeton_do_scatter(void *dma_object, struct extension *devicex) {    /* Allocate DMA buffer space */
 
   int nblocks, i;
   unsigned long bytes_remaining, bsize;
 
+#ifdef DEBUG
+  printk("pipci: IOCTL_PCI_ALLOCATE_SG_TABLE (struct pi_usedma_info).\n");
+#endif
+
   /* Buffer Exists Return Its Dma Information */
   if (devicex->dmainfo.numberofentries != 0) {
-    // TODO: check return value
-    (void) __copy_to_user(dma_object, &devicex->dmainfo, sizeof(struct pi_userdma_info));
+    if(__copy_to_user(dma_object, &devicex->dmainfo, sizeof(struct pi_userdma_info))) return -EACCES;
     return PIDD_SUCCESS;
   }
   
@@ -384,8 +419,7 @@ int princeton_do_scatter(void *dma_object, struct extension *devicex) {
 		
   if (devicex == NULL) return -EINVAL;
 			
-  // TODO: check return value
-  copy_from_user(&devicex->dmainfo, dma_object, sizeof(struct pi_userdma_info));
+  if (copy_from_user(&devicex->dmainfo, dma_object, sizeof(struct pi_userdma_info))) return -EACCES;
 		
   if (devicex->dmainfo.size == 0) return -EINVAL;
 
@@ -399,9 +433,9 @@ int princeton_do_scatter(void *dma_object, struct extension *devicex) {
 		
   bytes_remaining = devicex->dmainfo.size;
   for (i = 0; i < nblocks; i++) {
-    // FIXME: GFP and virt_to_bus() not protable
+    /* TODO: Something fishy here: virtual <-> physical */
     devicex->dmainfo.nodes[i].virtaddr = (void *) (__get_free_pages(GFP_KERNEL, IMAGE_ORDER));
-    devicex->dmainfo.nodes[i].physaddr = (void *) virt_to_bus(devicex->dmainfo.nodes[i].virtaddr);
+    devicex->dmainfo.nodes[i].physaddr = virt_to_phys(devicex->dmainfo.nodes[i].virtaddr);
     if (devicex->dmainfo.nodes[i].physaddr != 0) {
       if (bytes_remaining < bsize) bsize = bytes_remaining;
       devicex->dmainfo.nodes[i].physsize = bsize;
@@ -414,15 +448,14 @@ int princeton_do_scatter(void *dma_object, struct extension *devicex) {
   
   devicex->dmainfo.numberofentries = nblocks;
   
-  // TODO: check return value
-  (void) __copy_to_user(dma_object, &devicex->dmainfo, sizeof(struct pi_userdma_info));
+  if(__copy_to_user(dma_object, &devicex->dmainfo, sizeof(struct pi_userdma_info))) return -EACCES;
   
   devicex->bufferflag = 1;
   
   return PIDD_SUCCESS;
 }
 
-void princeton_release_scatter(struct extension *devicex) {
+void princeton_release_scatter(struct extension *devicex) {    /* Release DMA buffer space */
 
   int i;
   
@@ -430,7 +463,6 @@ void princeton_release_scatter(struct extension *devicex) {
 			
   for (i = 0; i < devicex->dmainfo.numberofentries; i++) {
     if (devicex->dmainfo.nodes[i].physaddr != 0) 
-      /*      free_pages((int) devicex->dmainfo.nodes[i].virtaddr, IMAGE_ORDER); (JME CHANGE) */
       free_pages((unsigned long) devicex->dmainfo.nodes[i].virtaddr, IMAGE_ORDER);
     devicex->dmainfo.nodes[i].physaddr = 0;
     devicex->dmainfo.nodes[i].physsize = 0;
@@ -439,26 +471,32 @@ void princeton_release_scatter(struct extension *devicex) {
   devicex->dmainfo.numberofentries = 0;
 }
 
-int princeton_transfer_to_user(void *user_object, struct extension *devicex) {
+int princeton_transfer_to_user(void *user_object, struct extension *devicex) {  /* Transfer DMA data to user */
 
   struct pi_userptr userbuffer;
   struct pi_dma_node *dmanodes;
   void *virtual;
   long bytesleft;
-		
-  // TODO: check return value
-  (void) copy_from_user(&userbuffer, user_object, sizeof(struct pi_userptr));
+
+  if(copy_from_user(&userbuffer, user_object, sizeof(struct pi_userptr))) return -EACCES;
   
+#ifdef DEBUG
+  printk("pipci: IOCTL_PCI_TRANSFER_DATA (struct pi_userptr) - address = %x.\n", (unsigned int) userbuffer.address);
+  printk("pipci: IOCTL_PCI_TRANSFER_DATA - size = %x, nodecount = %x, nodestart = %x, offset = %x.\n",
+	 (unsigned int) userbuffer.size, (unsigned int) userbuffer.nodecount,
+	 (unsigned int) userbuffer.nodestart, (unsigned int) userbuffer.offset);
+  printk("pipci: IOCTL_PCI_TRANSFER_DATA - xfernodes = %x, sizeofnodes = %x.\n", 
+	 (unsigned int) userbuffer.xfernodes, (unsigned int) userbuffer.sizeofnodes);
+#endif
+		
   bytesleft = userbuffer.size;
 
-  // TODO: check return value
-  (void) copy_from_user(dmanodeshead, userbuffer.xfernodes, userbuffer.sizeofnodes);
+  if(copy_from_user(dmanodeshead, userbuffer.xfernodes, userbuffer.sizeofnodes)) return -EACCES;
   dmanodes = dmanodeshead;
   
   while (dmanodes) {
-    virtual = bus_to_virt((unsigned long) dmanodes->physaddr);
-    // TODO: check return value
-    (void) __copy_to_user((caddr_t) userbuffer.address, (caddr_t) virtual, dmanodes->physsize);
+    virtual = phys_to_virt(dmanodes->physaddr);
+    if(__copy_to_user((caddr_t) userbuffer.address, (caddr_t) virtual, dmanodes->physsize)) return -EACCES;
     
     userbuffer.address += dmanodes->physsize;	
     dmanodes = dmanodes->next;
@@ -483,18 +521,18 @@ int princeton_do_scatter_boot(long size, struct extension *devicex) {
   
   bytes_remaining = size;
   for (i = 0; i < nblocks; i++) {
-    // FIXME: GFP and virt_to_bus() prototype issues
-      devicex->dmainfo.nodes[i].virtaddr = (void *) (__get_free_pages(GFP_KERNEL, IMAGE_ORDER));
-      devicex->dmainfo.nodes[i].physaddr = (void *) virt_to_bus(devicex->dmainfo.nodes[i].virtaddr);
-      if (devicex->dmainfo.nodes[i].physaddr) {
-	if (bytes_remaining < bsize) bsize = bytes_remaining;
-	devicex->dmainfo.nodes[i].physsize = bsize;
-	bytes_remaining = bytes_remaining - bsize;
-      } else {
-	printk("pipci: Image allocation failed\n");
-	breakout = 1;
-      }
-      if (breakout) break;
+    /* TODO: Something fishy here: virtual <-> physical */
+    devicex->dmainfo.nodes[i].virtaddr = (void *) (__get_free_pages(GFP_KERNEL, IMAGE_ORDER));
+    devicex->dmainfo.nodes[i].physaddr = virt_to_phys(devicex->dmainfo.nodes[i].virtaddr);
+    if (devicex->dmainfo.nodes[i].physaddr) {
+      if (bytes_remaining < bsize) bsize = bytes_remaining;
+      devicex->dmainfo.nodes[i].physsize = bsize;
+      bytes_remaining = bytes_remaining - bsize;
+    } else {
+      printk("pipci: Image allocation failed\n");
+      breakout = 1;
+    }
+    if (breakout) break;
   }
   
   devicex->dmainfo.numberofentries = i;
@@ -506,8 +544,7 @@ int princeton_do_scatter_boot(long size, struct extension *devicex) {
 	
 int princeton_get_irqs(void *user_object, struct extension *devicex) {
 
-  // TODO: check the return value
-  (void) __copy_to_user(user_object, &devicex->irqs, sizeof(struct pi_irqs));
+  if(__copy_to_user(user_object, &devicex->irqs, sizeof(struct pi_irqs))) return -EACCES;
   devicex->irqs.interrupt_counter = 0;
   return 1;
 }
@@ -535,16 +572,16 @@ irqreturn_t princeton_handle_irq(int irq, void *devicex) {
   unsigned short rid_stat, rcd_stat, ctrl_reg;
   unsigned char status;
   DECLARE_WAIT_QUEUE_HEAD(wq);
-  struct extension *driverx = (struct extension *)devicex;
-
+  struct extension *driverx = (struct extension *) devicex;
+  
   if (!driverx || driverx->irq != irq) return IRQ_NONE;
-
+  
   /* Clear AMCC IRQ source and disable AMCC Interrupts */
   if (driverx->mem_mapped == 1)
     tmp_stat = readl((void *) (driverx->base_address0 + INTCR));
   else		
     tmp_stat = inl_p(driverx->base_address0 + INTCR);
-	
+  
   while (tmp_stat & 0xffff0000L) {		
     if (driverx->mem_mapped == 1)
       writel(tmp_stat, (void *) (driverx->base_address0 + INTCR));
@@ -568,10 +605,9 @@ irqreturn_t princeton_handle_irq(int irq, void *devicex) {
 	  rid_stat = (unsigned short) readl((void *) (driverx->base_address2 + RID_RD_PCI));
 	else		
 	  rid_stat = (unsigned short) inl_p(driverx->base_address2 + RID_RD_PCI);
-
-	if (rid_stat & I_TRIG)
-	  driverx->irqs.triggers++;
-
+	
+	if (rid_stat & I_TRIG) driverx->irqs.triggers++;
+	
 	if (rid_stat & I_SCAN)  {
 	  driverx->irqs.bofs++;
 	  driverx->irqs.nframe_count++;
@@ -595,7 +631,7 @@ irqreturn_t princeton_handle_irq(int irq, void *devicex) {
 	else		
 	  rcd_stat = (unsigned short) inl_p(driverx->base_address2 + RCD_RD_PCI);
       }
-
+      
       if(status & I_VLTN) {              /* Taxi Violation has occured       */
 	if (driverx->mem_mapped == 1) {
 	  ctrl_reg = readl((void *) (driverx->base_address2)); /* get taxi ctrl reg val */
@@ -633,11 +669,11 @@ irqreturn_t princeton_handle_irq(int irq, void *devicex) {
       tmp_stat = readl((void *) (driverx->base_address0 + INTCR));
     else		
       tmp_stat = inl_p(driverx->base_address0 + INTCR);
-
+    
   } /*end tmp_stat */ 
-
+  
   /* Re-Write INTCR interrupt mask */ 
   wake_up_interruptible(&wq);
-
+  
   return IRQ_HANDLED;
 }
