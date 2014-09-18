@@ -33,7 +33,7 @@ int meas_gpib_open(int board, int id) {
   meas_misc_root_on();
   if((fd = ibdev(board, id, 0, MEAS_GPIB_TIMEOUT, MEAS_GPIB_SENDEOI, MEAS_GPIB_EOS)) < 0) {
     meas_misc_root_off();
-    meas_err("meas_gpib_open: Can't open GPIB device.");
+    meas_err("meas_gpib_open: Can't open GPIB device.\nMake sure that the gpib interface is called gpib0 in /etc/gpib.conf rather than violet (default).\n");
   }
   if(board_fd[board] == -1) {
     sprintf(buf, "gpib%1d", board);
