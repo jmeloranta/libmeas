@@ -16,3 +16,11 @@ KERN_INFO Base Address 2 0xa800
 KERN_INFO Nodes allocated 512
 KERN_INFO Number of Devices Found 1
 KERN_INFO Status = 0
+
+Other: To also load PCI NI GPIB drivers:
+
+modprobe tnt4882
+/usr/sbin/gpib_config --minor 0
+
+and make sure to change the default board name
+from violet to gpib0 in /etc/gpib.conf
