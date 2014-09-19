@@ -81,17 +81,15 @@ int main(int argc, char **argv) {
   /* End delay generators */
 
   while(1) {
+    unsigned short maxi;
     meas_pi_max_read(1, img);
+    maxi = 0;
+    for (i = 0; i < 512*512; i++)
+      if(img[i] > maxi) maxi = img[i];
     for(i = 0; i < 512 * 512; i++) {
-#if 1
-      r[i] = img[i] / 128;
-      g[i] = img[i] / 128;
-      b[i] = img[i] / 128;
-#else
-      r[i] = img[i] & 0x3f;          /* Of 16 bit sample, 6 to red, 6 to green and 6 to blue */
-      g[i] = (img[i] >> 6) & 0x3f;
-      b[i] = (img[i] >> 12) & 0x3f;
-#endif
+      r[i] = (unsigned char) ((255.0 / (double) maxi) * (double) img[i]);
+      g[i] = (unsigned char) ((255.0 / (double) maxi) * (double) img[i]);
+      b[i] = (unsigned char) ((255.0 / (double) maxi) * (double) img[i]);
     }
     meas_graphics_update_image(0, r, g, b);
     meas_graphics_update();
