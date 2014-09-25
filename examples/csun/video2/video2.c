@@ -59,15 +59,15 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  if(!(ro = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * NX * NY))) {
+  if(!(ro = (unsigned char *) malloc(SCALE * SCALE * sizeof(unsigned char) * NX * NY))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  if(!(go = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * NX * NY))) {
+  if(!(go = (unsigned char *) malloc(SCALE * SCALE * sizeof(unsigned char) * NX * NY))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  if(!(bo = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * NX * NY))) {
+  if(!(bo = (unsigned char *) malloc(SCALE * SCALE * sizeof(unsigned char) * NX * NY))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
   while(1) {
     meas_pi_max_read(1, img);
     meas_graphics_convert_img_to_rgb(img, 512, 512, ri, gi, bi, 0);
-    meas_graphics_scale_rgb(ri, gi, bi, 512, 512, 2, ro, go, bo);
+    meas_graphics_scale_rgb(ri, gi, bi, 512, 512, SCALE, ro, go, bo);
     meas_graphics_update_image(0, ro, go, bo);
     meas_graphics_update();
     sleep(1);
