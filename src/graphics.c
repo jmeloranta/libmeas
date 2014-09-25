@@ -522,6 +522,14 @@ int meas_graphics_scale_rgb(unsigned char *ri, unsigned char *gi, unsigned char 
   unsigned int i, j, si, sj;
 
   if(sc < 1 || sc > 10) meas_err("meas_graphics_scale_rgb: Illegal scale value.\n");
+  if(sc == 1) {
+    for (i = 0; i < nx*ny; i++) {
+      ro[i] = ri[i];
+      go[i] = gi[i];
+      bo[i] = bi[i];
+    }
+    return 0;
+  }
   for (i = 0; i < nx; i++)
     for (j = 0; j < ny; j++)
       for (si = 0; si < sc; si++)
