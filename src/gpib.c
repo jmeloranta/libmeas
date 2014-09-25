@@ -30,25 +30,29 @@ int meas_gpib_open(int board, int id) {
   int fd;
   char buf[128];
 
+  if(board >= 5) meas_err("meas_gpib_open: Illegal board number.\n");
   meas_misc_root_on();
-  if((fd = ibdev(board, id, 0, MEAS_GPIB_TIMEOUT, MEAS_GPIB_SENDEOI, MEAS_GPIB_EOS)) < 0) {
+  if((fd = ibdev(board, id, 0, MEAS_GPIB_TIMEOUT, MEAS_GPIB_SENDEOI, MEAS_GPIB_EOS)) < 0 ) {
     meas_misc_root_off();
-    meas_err("meas_gpib_open: Can't open GPIB device.\nMake sure that the gpib interface is called gpib0 in /etc/gpib.conf rather than violet (default).\n");
+    meas_err("meas_gpib_open: Can't open GPIB device.");
   }
-  if(board_fd[board] == -1) {
+  if(board_fd[board] == -1) {  
     sprintf(buf, "gpib%1d", board);
-    board_fd[board] = ibfind(buf); /* Board handle for direct communication */
-    if(board_fd[board] == -1) 
-      meas_err("meas_gpib_open: Can't open GPIB board.\n");
-#if 0
-    if(board == 0 && board_fd[board] == -1)
-      board_fd[board] = ibfind("violet"); /* guess: the example gpib.conf */
-#endif
+    if (board == 0) {
+      if ((board_fd[board] = ibfind("violet")) < 0 && (board_fd[board] = ibfind(buf)) < 0) {
+	meas_misc_root_off();
+	meas_err("meas_gpib_open: Can't open GPIB board.\n");
+      }
+    } else {
+      if ((board_fd[board] = ibfind(buf)) < 0) {
+	meas_misc_root_off();
+	meas_err("meas_gpib_open: Can't open GPIB board.\n");
+      }
+    }
     meas_gpib_clear(board);
     usleep(MEAS_GPIB_DELAY); /* TODO: are these waits still needed? */
+    meas_misc_root_off();
   }
-  
-  meas_misc_root_off();
   return fd;
 }
 
@@ -56,15 +60,13 @@ int meas_gpib_open(int board, int id) {
  * Close GPIB device.
  *
  * boad = GPIB board # (0, 1, ...).
- * fd   = ??? (TODO: what is this used for?)
+ * fd   = fd to close.
  *
  */ 
 
 int meas_gpib_close(int board, int fd) {
   
-  if(board_fd[board] == -1) 
-    meas_err("meas_gpib_close: non-existent board.");
-  ibonl(board_fd[board], 0); /* offline */
+  ibonl(fd, 0); /* offline */
   return 0;
 }
 
