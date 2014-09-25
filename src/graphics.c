@@ -526,9 +526,9 @@ int meas_graphics_scale_rgb(unsigned char *ri, unsigned char *gi, unsigned char 
     for (j = 0; j < ny; j++)
       for (si = 0; si < sc; si++)
 	for (sj = 0; sj < sc; sj++) {
-	  ro[(j + sj) * nx * sc + (i + si)] = ri[j * nx + i];
-	  go[(j + sj) * nx * sc + (i + si)] = gi[j * nx + i];
-	  bo[(j + sj) * nx * sc + (i + si)] = bi[j * nx + i];
+	  ro[(j * sc + sj) * nx * sc + (i * sc + si)] = ri[j * nx + i];
+	  go[(j * sc + sj) * nx * sc + (i * sc + si)] = gi[j * nx + i];
+	  bo[(j * sc + sj) * nx * sc + (i * sc + si)] = bi[j * nx + i];
 	}
   return 0;
 }
