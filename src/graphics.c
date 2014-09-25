@@ -465,3 +465,71 @@ void meas_graphics_update_image_contour(int win, double *data) {
   }
 }
 
+/*
+ * Convert pi-max (16 bit unsigned) gray scale to RGB.
+ *
+ * img  = Gray scale image array (16 bit; unsigned short *; length nx * ny; input).
+ * nx   = number of pixels along x (unsigned int; input).
+ * ny   = number of pixels along y (unsigned int; input).
+ * r    = red component (8 bit; unsigned char *; length nx * ny; output).
+ * g    = green component (8 bit; unsigned char *; length nx * ny; output).
+ * b    = blue component (8 bit; unsigned char *; length nx * ny; output).
+ * as   = 0: auto scale, > 0: set image maximum pixel value to as (use as = 65535 for no scaling) (unsigned short).
+ * 
+ * Returns -1 on failure.
+ *
+ */
+
+int meas_graphics_convert_img_to_rgb(unsigned short *img, unsigned int nx, unsigned int ny, unsigned char *r, unsigned char *g, unsigned char *b, unsigned short as) {
+
+  unsigned int i;
+
+  if(!as) {
+    as = 0;
+    for (i = 0; i < nx * ny; i++)
+      if(img[i] > as) as = img[i];
+  }
+
+  for(i = 0; i < nx * ny; i++) {
+    r[i] = (unsigned char) ((255.0 / (double) as) * (double) img[i]);
+    g[i] = (unsigned char) ((255.0 / (double) as) * (double) img[i]);
+    b[i] = (unsigned char) ((255.0 / (double) as) * (double) img[i]);
+  }
+  return 0;
+}
+
+/*
+ * Scale up RGB image.
+ *
+ * ri = Input red component (unsigned char *; input).
+ * gi = Input green component (unsigned char *; input).
+ * bi = Input blue component (unsigned char *; input).
+ * nx = Image size along x (unsigned int; input).
+ * ny = Image size along y (unsigned int; input).
+ * sc = Scale: 1, 2, 3 ... (unsigned int; input).
+ * ro = Output red component (unsigned char *; output). Note size nx * ny * sc.
+ * go = Output green component (unsigned char *; output). Note size nx * ny * sc.
+ * bo = Output blue component (unsigned char *; output). Note size nx * ny * sc.
+ * 
+ * Returns -1 on failure.
+ *
+ * TODO: check array indexing!!!! 
+ *
+ */
+
+int meas_graphics_scale_rgb(unsigned char *ri, unsigned char *gi, unsigned char *bi, unsigned int nx, unsigned int ny, unsigned int sc, unsigned char *ro, unsigned char *go, unsigned char *bo) {
+
+  unsigned int i, j, si, sj;
+
+  if(sc < 1 || sc > 10) meas_err("meas_graphics_scale_rgb: Illegal scale value.\n");
+  for (i = 0; i < nx; i++)
+    for (j = 0; j < ny; j++)
+      for (si = 0; si < sc; si++)
+	for (sj = 0; sj < sc; sj++) {
+	  ro[(j + sj) * nx * sc + (i + si)] = ri[j * nx + i];
+	  go[(j + sj) * nx * sc + (i + si)] = gi[j * nx + i];
+	  bo[(j + sj) * nx * sc + (i + si)] = bi[j * nx + i];
+	}
+  return 0;
+}
+

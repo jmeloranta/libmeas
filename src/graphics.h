@@ -43,3 +43,5 @@ int meas_graphics_autoscale(int);
 void meas_graphics_rgb(double, unsigned char *, unsigned char *, unsigned char*);
 void meas_graphics_update_image_contour(int, double *);
 void meas_video_rgb_to_ppm(FILE *, unsigned char *, unsigned char *, unsigned char *);
+int meas_graphics_convert_img_to_rgb(unsigned short *, unsigned int, unsigned int, unsigned char *, unsigned char *, unsigned char *, unsigned short);
+int meas_graphics_scale_rgb(unsigned char *, unsigned char *, unsigned char *, unsigned int, unsigned int, unsigned int, unsigned char *, unsigned char *, unsigned char *);

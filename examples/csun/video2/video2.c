@@ -22,10 +22,13 @@
 
 #define SCALE 2
 
+#define NX 512
+#define NY 512
+
 int main(int argc, char **argv) {
 
   unsigned short *img;
-  unsigned char *r, *g, *b, gain;
+  unsigned char *ri, *gi, *bi, *ro, *go, *bo, gain;
   int i;
   double delay, gate;
 
@@ -38,21 +41,33 @@ int main(int argc, char **argv) {
   printf("Delay between ablation and CCD (s): ");
   scanf(" %le", &delay);
   meas_pi_max_speed_index(1);
-  meas_pi_max_roi(0, 511, 1, 0, 511, 1);
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 512*SCALE, 512*SCALE, 0, "CCD image");
-  if(!(img = (unsigned short *) malloc(sizeof(unsigned short) * 512 * 512))) {
+  meas_pi_max_roi(0, NX-1, 1, 0, NY-1, 1);
+  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, NX*SCALE, NY*SCALE, 0, "CCD image");
+  if(!(img = (unsigned short *) malloc(sizeof(unsigned short) * NX * NY))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  if(!(r = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * 512 * 512))) {
+  if(!(ri = (unsigned char *) malloc(sizeof(unsigned char) * NX * NY))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  if(!(g = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * 512 * 512))) {
+  if(!(gi = (unsigned char *) malloc(sizeof(unsigned char) * NX * NY))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  if(!(b = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * 512 * 512))) {
+  if(!(bi = (unsigned char *) malloc(sizeof(unsigned char) * NX * NY))) {
+    fprintf(stderr, "Out of memory.\n");
+    exit(1);
+  }
+  if(!(ro = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * NX * NY))) {
+    fprintf(stderr, "Out of memory.\n");
+    exit(1);
+  }
+  if(!(go = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * NX * NY))) {
+    fprintf(stderr, "Out of memory.\n");
+    exit(1);
+  }
+  if(!(bo = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * NX * NY))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
@@ -83,26 +98,16 @@ int main(int argc, char **argv) {
   /* End delay generators */
 
   while(1) {
-    unsigned short maxi;
     meas_pi_max_read(1, img);
-    maxi = 0;
-    for (i = 0; i < 512*512; i++)
-      if(img[i] > maxi) maxi = img[i];
-    for(i = 0; i < 512 * 512; i++) {
-      r[i] = (unsigned char) ((255.0 / (double) maxi) * (double) img[i]);
-      g[i] = (unsigned char) ((255.0 / (double) maxi) * (double) img[i]);
-      b[i] = (unsigned char) ((255.0 / (double) maxi) * (double) img[i]);
-    }
-    meas_graphics_update_image(0, r, g, b);
+    meas_graphics_convert_img_to_rgb(img, 512, 512, ri, gi, bi, 0);
+    meas_graphics_scale_rgb(ri, gi, bi, 512, 512, 2, ro, go, bo);
+    meas_graphics_update_image(0, ro, go, bo);
     meas_graphics_update();
     sleep(1);
   }
 
   //  meas_graphics_close();
   meas_pi_max_close();
-  free(img);
-  free(r);
-  free(g);
-  free(b);
+  free(img); free(ri); free(gi); free(bi); free(ro); free(go); free(bo);
   return 0;
 }
