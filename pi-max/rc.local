@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Directory for the PI-MAX driver
+PIMAX="/home/eloranta/libmeas/pi-max/pci-driver"
+# Directory for the linux gpib package
+GPIB="/home/eloranta/linux-gpib-3.2.20"
+
+# Princeton camera
+modprobe pipci
+if [ $? -ne 0 ]; then 
+  echo "Princeton module load failed -- attemptin recompile"
+  cd $PIMAX
+  make clean
+  make
+  make install
+  modprobe pipci
+fi
+mknod /dev/rspipci0 c 177 0
+# Change this if you don't want everyone to have access to the camera
+chmod 777 /dev/rspipci0
+
+# GPIB board
+modprobe tnt4882
+if [ $? -ne 0 ]; then 
+  echo "Princeton module load failed -- attemptin recompile"
+  cd $GPIB
+  make clean
+  make
+  make install
+  modprobe tnt4882
+fi
+/usr/sbin/gpib_config --minor 0
+# Change this if you don't want everybody to access this
+chmod 777 /dev/gpib*
+exit 0
