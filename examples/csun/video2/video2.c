@@ -20,6 +20,8 @@
 #define DG535  16
 #define BNC565 15
 
+#define SCALE 2
+
 int main(int argc, char **argv) {
 
   unsigned short *img;
@@ -37,20 +39,20 @@ int main(int argc, char **argv) {
   scanf(" %le", &delay);
   meas_pi_max_speed_index(1);
   meas_pi_max_roi(0, 511, 1, 0, 511, 1);
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 512, 512, 0, "CCD image");
+  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 512*SCALE, 512*SCALE, 0, "CCD image");
   if(!(img = (unsigned short *) malloc(sizeof(unsigned short) * 512 * 512))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  if(!(r = (unsigned char *) malloc(sizeof(unsigned char) * 512 * 512))) {
+  if(!(r = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * 512 * 512))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  if(!(g = (unsigned char *) malloc(sizeof(unsigned char) * 512 * 512))) {
+  if(!(g = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * 512 * 512))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  if(!(b = (unsigned char *) malloc(sizeof(unsigned char) * 512 * 512))) {
+  if(!(b = (unsigned char *) malloc(SCALE * sizeof(unsigned char) * 512 * 512))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
