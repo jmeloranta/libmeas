@@ -12,10 +12,10 @@
 #include <math.h>
 
 #define TEMP (-20.0)
-#define QSWITCH 300E-6
+#define QSWITCH 250E-6
 
 #define SURELITE_DELAY 0.380E-6
-#define CCD_DELAY 120E-9
+#define CCD_DELAY 30E-9    /* approx. this varies with the qswitch slightly */
 
 #define DG535  16
 #define BNC565 15
@@ -88,9 +88,14 @@ int main(int argc, char **argv) {
   meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, delay, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_CHA, gate, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-  /* Run without the laser */
-  //  meas_dg535_trigger(0, MEAS_DG535_TRIG_EXT, 1.0, MEAS_DG535_TRIG_FALL, MEAS_DG535_IMP_50);
-  meas_dg535_trigger(0, MEAS_DG535_TRIG_INT, 10.0, MEAS_DG535_TRIG_FALL, MEAS_DG535_IMP_50);
+  /* Run without the laser? */
+#if 1
+  // with
+  meas_dg535_trigger(0, MEAS_DG535_TRIG_EXT, 1.0, MEAS_DG535_TRIG_FALL, MEAS_DG535_IMP_50);
+#else
+  // without
+  //  meas_dg535_trigger(0, MEAS_DG535_TRIG_INT, 10.0, MEAS_DG535_TRIG_FALL, MEAS_DG535_IMP_50);
+#endif
 
   /* Run delay generators */
   meas_dg535_run(0, 1);
