@@ -5,7 +5,10 @@
 #include <meas/meas.h>
 #include "csun.h"
 
+#define SCALE 2
+
 unsigned char r[640 * 480], g[640 * 480], b[640 * 480];
+unsigned char ro[SCALE * SCALE * 640 * 480], go[SCALE * SCALE * 640 * 480], bo[SCALE * SCALE * 640 * 480];
 
 int main(int argc, char **argv) {
 
@@ -25,7 +28,7 @@ int main(int argc, char **argv) {
   printf("Running... press ctrl-c to stop.\n");
   tstep *= 1E-9;
   t0 *= 1E-9;
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 640, 480, 0, "video");
+  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE * 640, SCALE * 480, 0, "video");
   meas_bnc565_init(0, 0, BNC565);
   surelite_qswitch(290E-6);
   minilite_qswitch(157E-6);
@@ -52,7 +55,8 @@ int main(int argc, char **argv) {
     meas_video_start(fd);
     meas_video_read_rgb(fd, r, g, b, aves);
     meas_video_stop(fd);
-    meas_graphics_update_image(0, r, g, b);
+    meas_graphics_scale_rgb(r, g, b, 640, 480, SCALE, ro, go, bo);
+    meas_graphics_update_image(0, ro, go, bo);
     meas_graphics_update();
     sprintf(filename, "%s-%le.img", filebase, delay);
     if(filename[0] != '0') {
