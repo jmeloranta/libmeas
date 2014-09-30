@@ -30,16 +30,16 @@ int main(int argc, char **argv) {
   char filebase[512], filename[512];
   int fd, aves;
   FILE *fp;
-  unsigned char gain;
+  int gain;
 
   printf("Enter output file name (0 = no save): ");
   scanf("%s", filebase);
   printf("Enter Q-switch (microsec; ex. 300): ");
   scanf(" %le", &qsw);
   printf("Enter number of averages (1 - ...): ");
-  scanf("%d", &aves);
+  scanf(" %d", &aves);
   printf("Enter T0 (ns): ");
-  scanf("%le", &t0);
+  scanf(" %le", &t0);
   printf("Enter time step (ns): ");
   scanf(" %le", &tstep);
   tstep *= 1E-9;
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
   /* Init PI-MAX */
   meas_pi_max_init(TEMP);
   printf("Intensifier gain (0 - 255): ");
-  scanf(" %le", &gain);
+  scanf(" %d", &gain);
   meas_pi_max_gain(gain);   /* 0 - 255 */
   printf("Intensifier gate (s): ");
   scanf(" %le", &gate);
