@@ -42,12 +42,9 @@ int main(int argc, char **argv) {
   scanf("%le", &t0);
   printf("Enter time step (ns): ");
   scanf(" %le", &tstep);
-  printf("Running... press ctrl-c to stop.\n");
   tstep *= 1E-9;
   t0 *= 1E-9;
   qsw *= 1E-6;
-
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE * 640, SCALE * 480, 0, "video");
 
   /* Set up delay generators */
   meas_bnc565_init(0, 0, BNC565);   /* sure lite on A & B */
@@ -85,6 +82,8 @@ int main(int argc, char **argv) {
   meas_pi_max_speed_index(1);
   meas_pi_max_roi(0, NX-1, 1, 0, NY-1, 1);
 
+  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE * 640, SCALE * 480, 0, "video");
+  printf("Running... press ctrl-c to stop.\n");
   for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
     meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, delay + CCD_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
