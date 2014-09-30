@@ -84,6 +84,8 @@ int main(int argc, char **argv) {
 
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE * NX, SCALE * NY, 0, "video");
   printf("Running... press ctrl-c to stop.\n");
+  meas_bnc565_run(0, 1);
+  meas_dg535_run(0, 1);
   for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
     meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, delay + CCD_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
@@ -104,4 +106,6 @@ int main(int argc, char **argv) {
       fclose(fp);
     }
   }
+  meas_bnc565_run(0, 0);
+  meas_dg535_run(0, 0);
 }
