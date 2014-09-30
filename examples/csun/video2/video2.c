@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <meas/meas.h>
-#include "csun.h"
 
 #define TEMP (-20.0)
 #define SURELITE_DELAY 0.380E-6
