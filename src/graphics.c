@@ -488,6 +488,7 @@ int meas_graphics_convert_img_to_rgb(unsigned short *img, unsigned int nx, unsig
     as = 0;
     for (i = 0; i < nx * ny; i++)
       if(img[i] > as) as = img[i];
+    printf("libmeas: autoscale by %u\n", as);
   }
 
   for(i = 0; i < nx * ny; i++) {
