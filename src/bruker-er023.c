@@ -18,6 +18,8 @@ static int er023_fd[5] = {-1, -1, -1, -1, -1};
 static int nb[5] = {0, 0, 0, 0, 0}; /* Number of bytes in data */
 static double current_ma[5] = {-1, -1, -1, -1, -1}; /* Current max modulation */
 
+static mode[5] = {0, 0, 0, 0, 0}; /* 0 = CM (continuous), 1 = SM (single) */
+
 /*
  * Initialize instrument.
  *
@@ -95,12 +97,16 @@ int meas_er023_calibrate(int unit, double freq, double ma, double phmax) {
 
 unsigned int meas_er023_read(int unit) {
 
-  unsigned char buf[3];
+  unsigned char buf[4];
 
   if(er023_fd[unit] == -1) meas_err("meas_er023: non-existing signal channel.");
   if(current_ma[unit] == -1) meas_err("meas_er023: uncalibrated signal channel.");
   if(nb[unit] == 0) meas_err("meas_er023: data word size zero.");
-  meas_gpib_write(er023_fd[unit], "SM", MEAS_ER023_CRLF);
+
+  if(!mode[unit])
+    meas_gpib_write(er023_fd[unit], "CM", MEAS_ER023_CRLF);
+  else
+    meas_gpib_write(er023_fd[unit], "SM", MEAS_ER023_CRLF);
   switch (nb[unit]) {
   case 1:
     meas_gpib_read_n(er023_fd[unit], buf, 1);
@@ -224,10 +230,17 @@ int meas_er023_conversiontime(int unit, double ct) {
   char buf[MEAS_GPIB_BUF_SIZE];
 
   if(er023_fd[unit] == -1) meas_err("meas_er023: non-existing signal channel.");
-  ct /= 320.0E-6;
-  if(ct < 1.0) ct = 1.0;
-  if(ct > 9999.0) ct = 9999.0;
-  sprintf(buf, "CT%d", (int) ct);
+  if(ct > 200*320E-6) mode[unit] = 1;   /* 200 * 320E-6 = 64 ms */
+  else mode[unit] = 0;
+  if(ct <= 40E-6) sprintf(buf, "CTA");
+  else if(ct <= 80E-6) sprintf(buf, "CTB");
+  else if(ct <= 160E-6) sprintf(buf, "CTC");
+  else {
+    ct /= 320.0E-6;
+    if(ct < 1.0) ct = 1.0;
+    if(ct > 9999.0) ct = 9999.0;
+    sprintf(buf, "CT%d", (int) ct);
+  }
   meas_gpib_write(er023_fd[unit], buf, MEAS_ER023_CRLF);
   meas_gpib_write(er023_fd[unit], "NB", MEAS_ER023_CRLF);
   meas_gpib_read(er023_fd[unit], buf);

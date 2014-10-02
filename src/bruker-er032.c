@@ -71,7 +71,7 @@ int meas_er032_write(int unit, double field) {
 
   if(er032_fd[unit] == -1)
     meas_err("meas_er032: non-existent field controller.");
-  sprintf(buf, "CF%.2lf", field);
+  sprintf(buf, "CF%.4lf", field);
   meas_gpib_write(er032_fd[unit], buf, MEAS_ER032_CRLF);
   return 0;
 }

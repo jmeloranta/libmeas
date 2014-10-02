@@ -156,17 +156,21 @@ int meas_gpib_read(int fd, char *buf) {
 int meas_gpib_read_n(int fd, char *buf, int nbytes) {
 
   char *tmp;
-  int len, tmp2;
+  int len, tmp2, err;
 
   tmp = buf;
   len = 0;
   while (1) {
     usleep(MEAS_GPIB_DELAY);
-    tmp2 = ibrd(fd, tmp, nbytes);
-    if (tmp2 < 0) {
-      fprintf(stderr, "meas_gpib_read_n: read failed.\n");
-      continue;
-    }
+    ibrd(fd, tmp, nbytes);
+    if(iberr) {
+      if(iberr != EABO) {
+	fprintf(stderr, "meas_gpib_read_n: read failed (err = %d).\n", iberr);
+	continue;
+      }
+      /* Hopefully the device trasferred everything and we can read the data */
+      tmp2 = nbytes;
+    } else tmp2 = ThreadIbcnt();
     tmp += tmp2;
     len += tmp2;
     if(len >= nbytes) break;
@@ -272,5 +276,49 @@ int meas_gpib_old_write(int board, int id, char *buf, int len) {
   meas_gpib_cmd(board_fd[board], 0x20 + id); /* listener = device with id */
   meas_gpib_cmd(board_fd[board], 0x40);      /* talker = board (id 0) */
   ibwrt(board_fd[board], buf, len);
+  return 0;
+}
+
+/*
+ * Read N bytes from GPIB device.
+ *
+ * fd     = GPIB device descriptor.
+ * buf    = Buffer for output.
+ * nbytes = Number of bytes to read.
+ *
+ */
+
+int meas_gpib_async_read_n(int fd, char *buf, int nbytes) {
+
+  ibrda(fd, buf, nbytes);
+  return 0;
+}
+
+/*
+ * Write string to GPIB device (async).
+ *
+ * fd   = GPIB device descriptor.
+ * buf  = Data to write.
+ * crlf = 0: use CR, 1: use CR LF as line end.
+ *
+ */
+
+int meas_gpib_async_write(int fd, char *buf, int crlf) {
+  
+  char tmp[4096];
+  int len;
+
+  if(crlf) { /* CR LF */
+    strcpy(tmp, buf);
+    len = strlen(buf);
+    tmp[len] = '\r';
+    tmp[len+1] = '\n';
+    ibwrta(fd, tmp, len+2);
+  } else {
+    strcpy(tmp, buf);
+    len = strlen(buf);
+    tmp[len] = MEAS_GPIB_EOS;    
+    ibwrta(fd, tmp, len+1);
+  }
   return 0;
 }
