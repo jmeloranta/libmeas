@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
   t0 *= 1E-9;
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE * 640, SCALE * 480, 0, "video");
   meas_bnc565_init(0, 0, BNC565);
-  surelite_qswitch(290E-6);
+  surelite_qswitch(300E-6);
   minilite_qswitch(157E-6);
   fd = meas_video_open("/dev/video0");
   surelite_delay(0.0);
@@ -46,15 +46,14 @@ int main(int argc, char **argv) {
     fprintf(fp, "%d %.15le %.15le\n", aves, t0, tstep);
     fclose(fp);
   }
+  meas_video_start(fd);
   for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
     // need to stop lasers for this?
     surelite_delay(0.0);  // ablation
     minilite_delay(delay);// flash
     laser_set_delays();
-    meas_video_start(fd);
     meas_video_read_rgb(fd, r, g, b, aves);
-    meas_video_stop(fd);
     meas_graphics_scale_rgb(r, g, b, 640, 480, SCALE, ro, go, bo);
     meas_graphics_update_image(0, ro, go, bo);
     meas_graphics_update();
@@ -70,4 +69,5 @@ int main(int argc, char **argv) {
       fclose(fp);
     }
   }
+  meas_video_stop(fd);
 }
