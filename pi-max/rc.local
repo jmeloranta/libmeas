@@ -26,9 +26,10 @@ fi
 # GPIB board
 modprobe $GPIB_DRIVER
 if [ $? -ne 0 ]; then 
-  echo "Princeton module load failed -- attempting recompile"
+  echo "GPIB module load failed -- attempting recompile"
   cd $GPIB
   make clean
+  ./configure --prefix=/usr
   make
   make install
   modprobe $GPIB_DRIVER
