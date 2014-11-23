@@ -19,4 +19,4 @@ video2-view: video2-view.o
 video2-view.o: video2-view.c
 
 clean:
-	-rm -f *.o *~ *.a $(PROGS)
+	-rm -f *.o *~ *.a video2 video2-view
