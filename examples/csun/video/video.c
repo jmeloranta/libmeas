@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
   t0 *= 1E-9;
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE * 640, SCALE * 480, 0, "video");
   meas_bnc565_init(0, 0, BNC565);
-  surelite_qswitch(300E-6);
+  surelite_qswitch(220E-6);
   minilite_qswitch(157E-6);
   fd = meas_video_open("/dev/video0");
   surelite_delay(0.0);

@@ -328,85 +328,90 @@ void meas_video_rgb_to_ppm(FILE *fp, unsigned char *r, unsigned char *g, unsigne
 /*
  * Set automatic white balance.
  *
+ * cd = video device descriptor from meas_video_open().
  * value = 1 (on), 0 (off).
  *
  */
 
-void meas_video_auto_white_balance(int value) {
+int meas_video_auto_white_balance(int cd, int value) {
 
   struct v4l2_control ctrl;
 
   bzero(&ctrl, sizeof(ctrl));
   ctrl.id = V4L2_CID_AUTO_WHITE_BALANCE;
   ctrl.value = value;
-  if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set auto white balance.");
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set auto white balance.");
 }
 
 /*
  * Set automatic exposure.
  *
+ * cd = video device descriptor from meas_video_open().
  * value = 1 (on), 0 (off).
  *
  */
 
-void meas_video_auto_exposure(int value) {
+int meas_video_auto_exposure(int cd, int value) {
 
   struct v4l2_control ctrl;
 
   bzero(&ctrl, sizeof(ctrl));
   ctrl.id = V4L2_CID_EXPOSURE_AUTO;
   ctrl.value = value;
-  if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set auto exposure.");
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set auto exposure.");
 }
 
 /*
  * Set horizontal flip.
  *
+ * cd = video device descriptor from meas_video_open().
  * value = 1 (on), 0 (off).
  *
  */
 
-void meas_video_horizontal_flip(int value) {
+int meas_video_horizontal_flip(int cd, int value) {
 
   struct v4l2_control ctrl;
 
   bzero(&ctrl, sizeof(ctrl));
   ctrl.id = V4L2_CID_HFLIP;
   ctrl.value = value;
-  if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set horizontal flip.");
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set horizontal flip.");
 }
 
 /*
  * Set vertical flip.
  *
+ * cd = video device descriptor from meas_video_open().
  * value = 1 (on), 0 (off).
  *
  */
 
-void meas_video_vertical_flip(int value) {
+int meas_video_vertical_flip(int cd, int value) {
 
   struct v4l2_control ctrl;
 
   bzero(&ctrl, sizeof(ctrl));
   ctrl.id = V4L2_CID_VFLIP;
   ctrl.value = value;
-  if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set vertical flip.");
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set vertical flip.");
 }
 
 /*
  * Set frame rate.
  *
+ * cd = video device descriptor from meas_video_open().
  * fps = frame rate.
  *
  */
 
-void meas_video_set_frame_rate(int fps) {
+int meas_video_set_frame_rate(int cd, int fps) {
   
   struct v4l2_streamparm sparm;
   bzero(&sparm, sizeof(sparm));
   sparm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  if (ioctl(fd, VIDIOC_G_PARM, &sparm) < 0) meas_err("video: read frame rate failed.");
+  if (ioctl(devices[cd].fd, VIDIOC_G_PARM, &sparm) < 0) meas_err("video: read frame rate failed.");
   sparm.parm.capture.timeperframe.numerator = 1;
   sparm.parm.capture.timeperframe.denominator = fps;
-  if (ioctl(fd, VIDIOC_S_PARM, &sparm) < 0) mea_err("video: set frame rate failed.");
+  if (ioctl(devices[cd].fd, VIDIOC_S_PARM, &sparm) < 0) mea_err("video: set frame rate failed.");
 }
