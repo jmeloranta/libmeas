@@ -324,3 +324,89 @@ void meas_video_rgb_to_ppm(FILE *fp, unsigned char *r, unsigned char *g, unsigne
     fwrite((void *) &b[i], sizeof(unsigned char), 1, fp);
   }
 }
+
+/*
+ * Set automatic white balance.
+ *
+ * value = 1 (on), 0 (off).
+ *
+ */
+
+void meas_video_auto_white_balance(int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_AUTO_WHITE_BALANCE;
+  ctrl.value = value;
+  if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set auto white balance.");
+}
+
+/*
+ * Set automatic exposure.
+ *
+ * value = 1 (on), 0 (off).
+ *
+ */
+
+void meas_video_auto_exposure(int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_EXPOSURE_AUTO;
+  ctrl.value = value;
+  if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set auto exposure.");
+}
+
+/*
+ * Set horizontal flip.
+ *
+ * value = 1 (on), 0 (off).
+ *
+ */
+
+void meas_video_horizontal_flip(int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_HFLIP;
+  ctrl.value = value;
+  if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set horizontal flip.");
+}
+
+/*
+ * Set vertical flip.
+ *
+ * value = 1 (on), 0 (off).
+ *
+ */
+
+void meas_video_vertical_flip(int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_VFLIP;
+  ctrl.value = value;
+  if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set vertical flip.");
+}
+
+/*
+ * Set frame rate.
+ *
+ * fps = frame rate.
+ *
+ */
+
+void meas_video_set_frame_rate(int fps) {
+  
+  struct v4l2_streamparm sparm;
+  bzero(&sparm, sizeof(sparm));
+  sparm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  if (ioctl(fd, VIDIOC_G_PARM, &sparm) < 0) meas_err("video: read frame rate failed.");
+  sparm.parm.capture.timeperframe.numerator = 1;
+  sparm.parm.capture.timeperframe.denominator = fps;
+  if (ioctl(fd, VIDIOC_S_PARM, &sparm) < 0) mea_err("video: set frame rate failed.");
+}
