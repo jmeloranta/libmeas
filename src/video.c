@@ -410,7 +410,7 @@ EXPORT int meas_video_gain(int cd, int value) {
     ctrl.id = V4L2_CID_GAIN;
     ctrl.value = value;
   }
-  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set exposure time.");
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set gain.");
 }
 
 
