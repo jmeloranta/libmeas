@@ -69,14 +69,13 @@
 #include <math.h>
 #include <string.h>
 #include "lpt-ttl.h"
-#include "aspect.h"
 
 /*
  * Initialize the serial bus.
  *
  */
 
-int meas_sl_init() {
+EXPORT int meas_sl_init() {
 
   meas_lpt_init(0);
   meas_lpt_init(1);
@@ -93,7 +92,7 @@ int meas_sl_init() {
  * 
  */
 
-int meas_sl_write(unsigned int address, unsigned int data) {
+EXPORT int meas_sl_write(unsigned int address, unsigned int data) {
 
   unsigned char p1, p2;
 
@@ -116,7 +115,7 @@ int meas_sl_write(unsigned int address, unsigned int data) {
  *
  */
 
-int meas_sl_close() {
+EXPORT int meas_sl_close() {
 
   meas_lpt_strobe(0, 1);      /* LPT1 low */
   meas_lpt_strobe(1, 1);      /* LPT2 low */
@@ -154,7 +153,8 @@ static inline unsigned int digits(double value, int digit) {
  *
  */
 
-int meas_sl_pts(double value) { /* set freq (MHz) (PTS160) */
+EXPORT int meas_sl_pts(double value) {
+  /* set freq (MHz) (PTS160) */
 
   unsigned int word;
   
@@ -179,7 +179,8 @@ int meas_sl_pts(double value) { /* set freq (MHz) (PTS160) */
  *
  */
 
-int meas_sl_wtk(double value) { /* freq (MHz) (Wavetek 3000) */
+EXPORT int meas_sl_wtk(double value) {
+  /* freq (MHz) (Wavetek 3000) */
 
   unsigned int word;
 
@@ -203,7 +204,8 @@ int meas_sl_wtk(double value) { /* freq (MHz) (Wavetek 3000) */
  *
  */
 
-int meas_sl_attn1(unsigned int value) { /* attenuator 1 (dB) (wtk) */
+EXPORT int meas_sl_attn1(unsigned int value) {
+  /* attenuator 1 (dB) (wtk) */
 
   meas_sl_write(0x12, ~value);
   return 0;
@@ -216,7 +218,8 @@ int meas_sl_attn1(unsigned int value) { /* attenuator 1 (dB) (wtk) */
  *
  */
 
-int meas_sl_attn2(unsigned int value) { /* attenuator 1 (dB) (pts) */
+EXPORT int meas_sl_attn2(unsigned int value) {
+  /* attenuator 1 (dB) (pts) */
 
   meas_sl_write(0x13, ~value);
   return 0;
@@ -229,7 +232,8 @@ int meas_sl_attn2(unsigned int value) { /* attenuator 1 (dB) (pts) */
  *
  */
 
-int meas_sl_attn3(unsigned int value) { /* attenuator 1 (dB) (common) */
+EXPORT int meas_sl_attn3(unsigned int value) {
+  /* attenuator 1 (dB) (common) */
 
   meas_sl_write(0x14, ~value);
   return 0;
@@ -247,7 +251,8 @@ int meas_sl_attn3(unsigned int value) { /* attenuator 1 (dB) (common) */
  *
  */
 
-int meas_sl_relays(unsigned int value) { /* relays */
+EXPORT int meas_sl_relays(unsigned int value) {
+  /* relays */
 
   meas_sl_write(0x15, value); /* three bits (1 on, 0 off) */
   return 0;
@@ -260,7 +265,8 @@ int meas_sl_relays(unsigned int value) { /* relays */
  *
  */
 
-int meas_sl_wtk_mod(unsigned int value) { /* modulation (kHz) */
+EXPORT int meas_sl_wtk_mod(unsigned int value) {
+  /* modulation (kHz) */
 
   double tmp;
   unsigned int value2;

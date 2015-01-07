@@ -92,7 +92,7 @@ int meas_newport_is_size() {
  * 
  */
 
-int meas_newport_is_init() {
+EXPORT int meas_newport_is_init() {
 
   struct usb_bus *busses, *bus;
   struct usb_device *dev;
@@ -160,7 +160,7 @@ int meas_newport_is_init() {
  *
  */
 
-int meas_newport_is_read(double exp, int ext, int ave, double *dst) {
+EXPORT int meas_newport_is_read(double exp, int ext, int ave, double *dst) {
 
   unsigned short exposure;
   unsigned short buf2[1024];
@@ -223,7 +223,7 @@ int meas_newport_is_read(double exp, int ext, int ave, double *dst) {
  *
  */
 
-int meas_newport_is_close() {
+EXPORT int meas_newport_is_close() {
 
   meas_misc_root_on();
   if(udev) usb_close(udev);
@@ -242,8 +242,7 @@ int meas_newport_is_close() {
  *
  */
 
-
-double meas_newport_is_calib(int pixel) {
+EXPORT double meas_newport_is_calib(int pixel) {
 
   return (MEAS_NEWPORT_IS_A + MEAS_NEWPORT_IS_B * ((double) pixel));
 }

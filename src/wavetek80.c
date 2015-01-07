@@ -18,7 +18,7 @@
 /* Up to 5 devices supported */
 static int wavetek80_fd[5] = {-1, -1, -1, -1, -1};
 
-int meas_wavetek80_init(int unit, int board, int dev) {
+EXPORT int meas_wavetek80_init(int unit, int board, int dev) {
   
   if(wavetek80_fd[unit] == -1) {
     wavetek80_fd[unit] = meas_gpib_open(board, dev);
@@ -39,7 +39,7 @@ int meas_wavetek80_init(int unit, int board, int dev) {
  *
  */
 
-int meas_wavetek80_operating_mode(int unit, int mode) {
+EXPORT int meas_wavetek80_operating_mode(int unit, int mode) {
 
   char buf[256];
 
@@ -62,7 +62,7 @@ int meas_wavetek80_operating_mode(int unit, int mode) {
  *
  */
 
-int meas_wavetek80_sweep_direction(int unit, int dir) {
+EXPORT int meas_wavetek80_sweep_direction(int unit, int dir) {
 
   char buf[256];
 
@@ -87,7 +87,7 @@ int meas_wavetek80_sweep_direction(int unit, int dir) {
  *
  */
 
-int meas_wavetek80_trigger_mode(int unit, int mode) {
+EXPORT int meas_wavetek80_trigger_mode(int unit, int mode) {
 
   char buf[256];
 
@@ -111,7 +111,7 @@ int meas_wavetek80_trigger_mode(int unit, int mode) {
  *
  */
 
-int meas_wavetek80_control_mode(int unit, int mode) {
+EXPORT int meas_wavetek80_control_mode(int unit, int mode) {
 
   char buf[256];
 
@@ -136,7 +136,7 @@ int meas_wavetek80_control_mode(int unit, int mode) {
  *
  */
 
-int meas_wavetek80_output_waveform(int unit, int mode) {
+EXPORT int meas_wavetek80_output_waveform(int unit, int mode) {
 
   char buf[256];
 
@@ -157,7 +157,7 @@ int meas_wavetek80_output_waveform(int unit, int mode) {
  *
  */
 
-int meas_wavetek80_output_mode(int unit, int mode) {
+EXPORT int meas_wavetek80_output_mode(int unit, int mode) {
 
   char buf[256];
 
@@ -175,7 +175,7 @@ int meas_wavetek80_output_mode(int unit, int mode) {
  *
  */
 
-int meas_wavetek80_set_frequency(int unit, double freq) {
+EXPORT int meas_wavetek80_set_frequency(int unit, double freq) {
 
   char buf[256];
 
@@ -192,7 +192,7 @@ int meas_wavetek80_set_frequency(int unit, double freq) {
  *
  */
 
-double meas_wavetek80_get_frequency(int unit) {
+EXPORT double meas_wavetek80_get_frequency(int unit) {
 
   char buf[256];
 
@@ -208,7 +208,7 @@ double meas_wavetek80_get_frequency(int unit) {
  *
  */
 
-int meas_wavetek80_set_amplitude(int unit, double ampl) {
+EXPORT int meas_wavetek80_set_amplitude(int unit, double ampl) {
 
   char buf[256];
 
@@ -225,7 +225,7 @@ int meas_wavetek80_set_amplitude(int unit, double ampl) {
  *
  */
 
-double meas_wavetek80_get_amplitude(int unit) {
+EXPORT double meas_wavetek80_get_amplitude(int unit) {
 
   char buf[256];
 
@@ -241,7 +241,7 @@ double meas_wavetek80_get_amplitude(int unit) {
  *
  */
 
-int meas_wavetek80_set_offset(int unit, double offset) {
+EXPORT int meas_wavetek80_set_offset(int unit, double offset) {
 
   char buf[256];
 
@@ -258,7 +258,7 @@ int meas_wavetek80_set_offset(int unit, double offset) {
  *
  */
 
-double meas_wavetek80_get_offset(int unit) {
+EXPORT double meas_wavetek80_get_offset(int unit) {
 
   char buf[256];
 
@@ -274,7 +274,7 @@ double meas_wavetek80_get_offset(int unit) {
  *
  */
 
-int meas_wavetek80_set_phase_lock_offset(int unit, double offset) {
+EXPORT int meas_wavetek80_set_phase_lock_offset(int unit, double offset) {
 
   char buf[256];
 
@@ -291,7 +291,7 @@ int meas_wavetek80_set_phase_lock_offset(int unit, double offset) {
  *
  */
 
-double meas_wavetek80_get_phase_lock_offset(int unit) {
+EXPORT double meas_wavetek80_get_phase_lock_offset(int unit) {
 
   char buf[256];
 
@@ -307,7 +307,7 @@ double meas_wavetek80_get_phase_lock_offset(int unit) {
  *
  */
 
-int meas_wavetek80_set_internal_trigger_interval(int unit, double ival) {
+EXPORT int meas_wavetek80_set_internal_trigger_interval(int unit, double ival) {
 
   char buf[256];
 
@@ -324,7 +324,7 @@ int meas_wavetek80_set_internal_trigger_interval(int unit, double ival) {
  *
  */
 
-double meas_wavetek80_get_internal_trigger_interval(int unit) {
+EXPORT double meas_wavetek80_get_internal_trigger_interval(int unit) {
 
   char buf[256];
 
@@ -340,7 +340,7 @@ double meas_wavetek80_get_internal_trigger_interval(int unit) {
  *
  */
 
-int meas_wavetek80_set_counted_burst(int unit, int nburst) {
+EXPORT int meas_wavetek80_set_counted_burst(int unit, int nburst) {
 
   char buf[256];
 
@@ -357,7 +357,7 @@ int meas_wavetek80_set_counted_burst(int unit, int nburst) {
  *
  */
 
-double meas_wavetek80_get_counted_burst(int unit) {
+EXPORT double meas_wavetek80_get_counted_burst(int unit) {
 
   char buf[256];
 
@@ -374,7 +374,7 @@ double meas_wavetek80_get_counted_burst(int unit) {
  *
  */
 
-int meas_wavetek80_set_trigger_level(int unit, double level) {
+EXPORT int meas_wavetek80_set_trigger_level(int unit, double level) {
 
   char buf[256];
 
@@ -391,7 +391,7 @@ int meas_wavetek80_set_trigger_level(int unit, double level) {
  *
  */
 
-double meas_wavetek80_get_trigger_level(int unit) {
+EXPORT double meas_wavetek80_get_trigger_level(int unit) {
 
   char buf[256];
 
@@ -407,7 +407,7 @@ double meas_wavetek80_get_trigger_level(int unit) {
  *
  */
 
-int meas_wavetek80_set_trigger_phase_offset(int unit, double offset) {
+EXPORT int meas_wavetek80_set_trigger_phase_offset(int unit, double offset) {
 
   char buf[256];
 
@@ -424,7 +424,7 @@ int meas_wavetek80_set_trigger_phase_offset(int unit, double offset) {
  *
  */
 
-double meas_wavetek80_get_trigger_phase_offset(int unit) {
+EXPORT double meas_wavetek80_get_trigger_phase_offset(int unit) {
 
   char buf[256];
 
@@ -441,7 +441,7 @@ double meas_wavetek80_get_trigger_phase_offset(int unit) {
  *
  */
 
-int meas_wavetek80_set_output_level(int unit, double level) {
+EXPORT int meas_wavetek80_set_output_level(int unit, double level) {
 
   char buf[256];
 
@@ -458,7 +458,7 @@ int meas_wavetek80_set_output_level(int unit, double level) {
  *
  */
 
-double meas_wavetek80_get_output_level(int unit) {
+EXPORT double meas_wavetek80_get_output_level(int unit) {
 
   char buf[256];
 
@@ -475,7 +475,7 @@ double meas_wavetek80_get_output_level(int unit) {
  *
  */
 
-int meas_wavetek80_set_log_sweep_stop(int unit, double value) {
+EXPORT int meas_wavetek80_set_log_sweep_stop(int unit, double value) {
 
   char buf[256];
 
@@ -492,7 +492,7 @@ int meas_wavetek80_set_log_sweep_stop(int unit, double value) {
  *
  */
 
-double meas_wavetek80_get_log_sweep_stop(int unit) {
+EXPORT double meas_wavetek80_get_log_sweep_stop(int unit) {
 
   char buf[256];
 
@@ -508,7 +508,7 @@ double meas_wavetek80_get_log_sweep_stop(int unit) {
  *
  */
 
-int meas_wavetek80_set_sweep_time(int unit, double value) {
+EXPORT int meas_wavetek80_set_sweep_time(int unit, double value) {
 
   char buf[256];
 
@@ -525,7 +525,7 @@ int meas_wavetek80_set_sweep_time(int unit, double value) {
  *
  */
 
-double meas_wavetek80_get_sweep_time(int unit) {
+EXPORT double meas_wavetek80_get_sweep_time(int unit) {
 
   char buf[256];
 
@@ -541,7 +541,7 @@ double meas_wavetek80_get_sweep_time(int unit) {
  *
  */
 
-int meas_wavetek80_set_log_sweep_marker(int unit, double value) {
+EXPORT int meas_wavetek80_set_log_sweep_marker(int unit, double value) {
 
   char buf[256];
 
@@ -558,7 +558,7 @@ int meas_wavetek80_set_log_sweep_marker(int unit, double value) {
  *
  */
 
-double meas_wavetek80_get_log_sweep_marker(int unit) {
+EXPORT double meas_wavetek80_get_log_sweep_marker(int unit) {
 
   char buf[256];
 
@@ -574,7 +574,7 @@ double meas_wavetek80_get_log_sweep_marker(int unit) {
  *
  */
 
-int meas_wavetek80_set_sweep_stop(int unit, int value) {
+EXPORT int meas_wavetek80_set_sweep_stop(int unit, int value) {
 
   char buf[256];
 
@@ -591,7 +591,7 @@ int meas_wavetek80_set_sweep_stop(int unit, int value) {
  *
  */
 
-int meas_wavetek80_get_sweep_stop(int unit) {
+EXPORT int meas_wavetek80_get_sweep_stop(int unit) {
 
   char buf[256];
 
@@ -607,7 +607,7 @@ int meas_wavetek80_get_sweep_stop(int unit) {
  *
  */
 
-int meas_wavetek80_set_sweep_marker(int unit, int value) {
+EXPORT int meas_wavetek80_set_sweep_marker(int unit, int value) {
 
   char buf[256];
 
@@ -624,7 +624,7 @@ int meas_wavetek80_set_sweep_marker(int unit, int value) {
  *
  */
 
-int meas_wavetek80_get_sweep_marker(int unit) {
+EXPORT int meas_wavetek80_get_sweep_marker(int unit) {
 
   char buf[256];
 

@@ -23,9 +23,3 @@
 /* operating mode */
 #define MEAS_BNC565_MODE_SS   0  /* single shot */
 #define MEAS_BNC565_MODE_DC   1  /* duty cycle */
-
-/* Prototypes */
-int meas_bnc565_init(int, int, int), meas_bnc565_set(int, int, int, double, double, double, int);
-int meas_bnc565_trigger(int, int, double, int), meas_bnc565_run(int, int);
-int meas_bnc565_mode(int, int, int, int, int), meas_bnc565_enable(int, int, int);
-int meas_bnc565_do_trigger(int);

@@ -31,7 +31,7 @@ static int srmode[5] = {0, 0, 0, 0, 0};
  *
  */
 
-int meas_sr810_init(int unit, int board, int dev, char *serial) {
+EXPORT int meas_sr810_init(int unit, int board, int dev, char *serial) {
 
   if(unit < 0 || unit > 4)
     meas_err("meas_sr810_init: Illegal units number.");
@@ -59,7 +59,7 @@ int meas_sr810_init(int unit, int board, int dev, char *serial) {
  *
  */
 
-int meas_sr810_set_refphase(int unit, double phase) {
+EXPORT int meas_sr810_set_refphase(int unit, double phase) {
 
   char buf[512];
 
@@ -84,7 +84,7 @@ int meas_sr810_set_refphase(int unit, double phase) {
  *
  */
 
-double meas_sr810_get_refphase(int unit) {
+EXPORT double meas_sr810_get_refphase(int unit) {
 
   char buf[512];
 
@@ -114,7 +114,7 @@ double meas_sr810_get_refphase(int unit) {
  *
  */
 
-int meas_sr810_set_refsource(int unit, int source) {
+EXPORT int meas_sr810_set_refsource(int unit, int source) {
 
   char buf[512];
 
@@ -142,7 +142,7 @@ int meas_sr810_set_refsource(int unit, int source) {
  *
  */
 
-double meas_sr810_get_refsource(int unit) {
+EXPORT double meas_sr810_get_refsource(int unit) {
 
   char buf[512];
 
@@ -171,7 +171,7 @@ double meas_sr810_get_refsource(int unit) {
  *
  */
 
-int meas_sr810_set_reffreq(int unit, double freq) {
+EXPORT int meas_sr810_set_reffreq(int unit, double freq) {
 
   char buf[512];
 
@@ -200,7 +200,7 @@ int meas_sr810_set_reffreq(int unit, double freq) {
  *
  */
 
-double meas_sr810_get_reffreq(int unit) {
+EXPORT double meas_sr810_get_reffreq(int unit) {
 
   char buf[512];
 
@@ -231,7 +231,7 @@ double meas_sr810_get_reffreq(int unit) {
  *
  */
 
-int meas_sr810_set_reftrig(int unit, int trig) {
+EXPORT int meas_sr810_set_reftrig(int unit, int trig) {
 
   char buf[512];
 
@@ -273,7 +273,7 @@ int meas_sr810_set_reftrig(int unit, int trig) {
  *
  */
 
-int meas_sr810_get_reftrig(int unit) {
+EXPORT int meas_sr810_get_reftrig(int unit) {
 
   char buf[512];
 
@@ -311,7 +311,7 @@ int meas_sr810_get_reftrig(int unit) {
  *
  */
 
-int meas_sr810_set_harmonic(int unit, int harm) {
+EXPORT int meas_sr810_set_harmonic(int unit, int harm) {
 
   char buf[512];
 
@@ -338,7 +338,7 @@ int meas_sr810_set_harmonic(int unit, int harm) {
  *
  */
 
-int meas_sr810_get_harmonic(int unit) {
+EXPORT int meas_sr810_get_harmonic(int unit) {
 
   char buf[512];
 
@@ -367,7 +367,7 @@ int meas_sr810_get_harmonic(int unit) {
  *
  */
 
-int meas_sr810_set_sinelevel(int unit, double level) {
+EXPORT int meas_sr810_set_sinelevel(int unit, double level) {
 
   char buf[512];
 
@@ -394,7 +394,7 @@ int meas_sr810_set_sinelevel(int unit, double level) {
  *
  */
 
-double meas_sr810_get_sinelevel(int unit) {
+EXPORT double meas_sr810_get_sinelevel(int unit) {
 
   char buf[512];
 

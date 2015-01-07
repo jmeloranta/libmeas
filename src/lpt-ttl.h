@@ -7,7 +7,3 @@
 #define MEAS_LPT_LPT2 1
 
 #define MEAS_LPT_BUF_SIZE 4096
-
-/* Prototypes */
-int meas_lpt_init(int), meas_lpt_close(int), meas_lpt_write(int, unsigned char);
-int meas_lpt_read(int), meas_lpt_strobe(int, unsigned char);

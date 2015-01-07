@@ -1,6 +1,6 @@
 include ../make.conf
+CFLAGS += -DEXPORT=""
 
-INCLUDE = meas.h
 OBJS = aspect.o bnc565.o bruker-er023.o bruker-er032.o dg535.o dk240.o \
        fl3000.o gpib.o graphics.o hp-34401a.o hp-53131a.o hp-5350b.o \
        hp-5384a.o itc503.o lpt-ttl.o matrix.o matrixwrapper.o mettler.o \
@@ -9,10 +9,17 @@ OBJS = aspect.o bnc565.o bruker-er023.o bruker-er032.o dg535.o dk240.o \
 
 all: libmeas.a
 
-libmeas.a: $(OBJS)
+libmeas.a: prototypes $(OBJS)
 	ar cr libmeas.a $(OBJS)
 
-%.o:	%.c %.h $(INCLUDE)
+prototypes:
+	egrep -h \^EXPORT *.c | tr \{ \; | sed -e "s/EXPORT //g" > proto.h
+	ls *.h | grep -v meas.h | awk -e '{print "#include <" $$1 ">"}' > meas.h
+
+%.o:	%.c %.h
+	cc -c $(CFLAGS) $< 
+
+%.o:	%.c
 	cc -c $(CFLAGS) $< 
 
 install: libmeas.a
@@ -22,4 +29,4 @@ install: libmeas.a
 	cp -f *.h $(ROOT)/include/meas
 
 clean:
-	-rm -f *.o *~ *.a $(PROGS)
+	-rm -f *.o *~ *.a proto.h meas.h $(PROGS)

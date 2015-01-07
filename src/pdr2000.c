@@ -6,7 +6,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "pdr2000.h"
 #include "serial.h"
 #include "misc.h"
 
@@ -21,7 +20,7 @@ static int pdr2000_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
 
-int meas_pdr2000_init(int unit, char *dev) {
+EXPORT int meas_pdr2000_init(int unit, char *dev) {
 
   if(unit < 0 || unit > 4)
     meas_err("meas_pdr2000_init: Non-existing unit.");
@@ -40,7 +39,7 @@ int meas_pdr2000_init(int unit, char *dev) {
  *
  */
 
-double meas_pdr2000_read(int unit, int chan) {
+EXPORT double meas_pdr2000_read(int unit, int chan) {
 
   char buf[512];
   double p1, p2;
@@ -66,7 +65,7 @@ double meas_pdr2000_read(int unit, int chan) {
  *
  */
 
-int meas_pdr2000_close(int unit) {
+EXPORT int meas_pdr2000_close(int unit) {
 
   if(pdr2000_fd[unit] == -1) return;
   meas_rs232_close(pdr2000_fd[unit]);

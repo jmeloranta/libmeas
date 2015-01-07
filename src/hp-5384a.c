@@ -23,7 +23,7 @@ static int hp5384_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
 
-int meas_hp5384_init(int unit, int board, int dev) {
+EXPORT int meas_hp5384_init(int unit, int board, int dev) {
   
   if(hp5384_fd[unit] == -1) {
     hp5384_fd[unit] = meas_gpib_open(board, dev);
@@ -42,7 +42,7 @@ int meas_hp5384_init(int unit, int board, int dev) {
  *
  */
 
-double meas_hp5384_read(int unit, int channel) {
+EXPORT double meas_hp5384_read(int unit, int channel) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -71,7 +71,7 @@ double meas_hp5384_read(int unit, int channel) {
  *
  */
 
-int meas_hp5384_attn(int unit, int attn) {
+EXPORT int meas_hp5384_attn(int unit, int attn) {
 
   if(hp5384_fd[unit] == -1)
     meas_err("meas_hp5384_attn: Non-existent unit.");
@@ -96,7 +96,7 @@ int meas_hp5384_attn(int unit, int attn) {
  *
  */
 
-int meas_hp5384_filt(int unit, int filt) {
+EXPORT int meas_hp5384_filt(int unit, int filt) {
 
   if(hp5384_fd[unit] == -1) meas_err("meas_hp5384_filt: Non-existent unit.");
   switch(filt) {
@@ -121,7 +121,7 @@ int meas_hp5384_filt(int unit, int filt) {
  *
  */
 
-int meas_hp5384_level(int unit, int level) {
+EXPORT int meas_hp5384_level(int unit, int level) {
 
   if(hp5384_fd[unit] == -1) 
     meas_err("meas_hp5384_level: Non-existent unit.");
@@ -147,7 +147,7 @@ int meas_hp5384_level(int unit, int level) {
  *
  */
 
-int meas_hp5384_gate(int unit, int gate) {
+EXPORT int meas_hp5384_gate(int unit, int gate) {
 
   if(hp5384_fd[unit] == -1) 
     meas_err("meas_hp5384_gate: Non-existent unit.");
@@ -174,7 +174,7 @@ int meas_hp5384_gate(int unit, int gate) {
  *
  */
 
-int meas_hp5384_reset(int unit) {
+EXPORT int meas_hp5384_reset(int unit) {
 
   if(hp5384_fd[unit] == -1)
     meas_err("meas_hp5384_reset: Non-existent unit.");
@@ -189,7 +189,7 @@ int meas_hp5384_reset(int unit) {
  *
  */
 
-int meas_hp5384_error(int unit) {
+EXPORT int meas_hp5384_error(int unit) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 

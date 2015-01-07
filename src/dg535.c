@@ -21,7 +21,7 @@ static int trigger_source[5] = {MEAS_DG535_TRIG_EXT, MEAS_DG535_TRIG_EXT, MEAS_D
 static double reprate[5] = {1.0, 1.0, 1.0, 1.0, 1.0};
 
 /* Initialize the DAC interface */
-int meas_dg535_init(int unit, int board, int dev) {
+EXPORT int meas_dg535_init(int unit, int board, int dev) {
 
   char buf[512];
   int i;
@@ -53,7 +53,7 @@ int meas_dg535_init(int unit, int board, int dev) {
  *
  */
 
-int meas_dg535_set(int unit, int channel, int origin, double delay, double level, int polarity, int imp) {
+EXPORT int meas_dg535_set(int unit, int channel, int origin, double delay, double level, int polarity, int imp) {
 
   char buf[512];
 
@@ -93,7 +93,7 @@ int meas_dg535_set(int unit, int channel, int origin, double delay, double level
 }
 
 /* Enable/disable given channel (set output voltage to zero) */
-int meas_dg535_enable(int unit, int channel, int status) {
+EXPORT int meas_dg535_enable(int unit, int channel, int status) {
 
   char buf[512];
 
@@ -126,7 +126,7 @@ int meas_dg535_enable(int unit, int channel, int status) {
  *
  */
 
-int meas_dg535_trigger(int unit, int source, double data, int edge, int imp) {
+EXPORT int meas_dg535_trigger(int unit, int source, double data, int edge, int imp) {
 
   char buf[512];
 
@@ -161,7 +161,7 @@ int meas_dg535_trigger(int unit, int source, double data, int edge, int imp) {
  *
  */
 
-int meas_dg535_run(int unit, int mode) {
+EXPORT int meas_dg535_run(int unit, int mode) {
 
   if(mode == 1) /* run */
     meas_dg535_mode(unit, MEAS_DG535_MODE_SS, 0, 0);
@@ -184,7 +184,7 @@ int meas_dg535_run(int unit, int mode) {
  *
  */
 
-int meas_dg535_mode(int unit, int mode, int bc, int bp) {
+EXPORT int meas_dg535_mode(int unit, int mode, int bc, int bp) {
 
   char buf[512];
 
@@ -209,7 +209,7 @@ int meas_dg535_mode(int unit, int mode, int bc, int bp) {
 }
 
 /* Cause software trigger */
-int meas_dg535_do_trigger(int unit) {
+EXPORT int meas_dg535_do_trigger(int unit) {
 
   char buf[512];
 
@@ -217,4 +217,3 @@ int meas_dg535_do_trigger(int unit) {
   meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);  
   return 0;
 }
-

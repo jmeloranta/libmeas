@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "varian-e500.h"
 #include "gpib.h"
 #include "misc.h"
 
@@ -26,7 +25,7 @@ static int e500_dev[5];
  *
  */
 
-int meas_e500_init(int unit, int board, int dev) {
+EXPORT int meas_e500_init(int unit, int board, int dev) {
   
   if(e500_fd[unit] == -1) {
     e500_fd[unit] = meas_gpib_open(board, dev);
@@ -47,7 +46,7 @@ int meas_e500_init(int unit, int board, int dev) {
  *
  */
 
-double meas_e500_read(int unit) {
+EXPORT double meas_e500_read(int unit) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
   double field = 0.0, last_field;

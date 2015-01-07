@@ -16,7 +16,7 @@ static int been_here_root = 0;
 static struct timeval reference = {0, 0};
 
 /* Enable root privs - requires setuid root */
-void meas_misc_root_on() {
+EXPORT void meas_misc_root_on() {
 
   if(!been_here_root) {
     real_uid = getuid();
@@ -27,7 +27,7 @@ void meas_misc_root_on() {
 }
 
 /* Disable root privs */
-void meas_misc_root_off() {
+EXPORT void meas_misc_root_off() {
 
   if(!been_here_root) {
     real_uid = getuid();
@@ -38,7 +38,7 @@ void meas_misc_root_off() {
 }
 
 /* nanosecond resolution sleep function */
-void meas_misc_nsleep(time_t sec, long nsec) {
+EXPORT void meas_misc_nsleep(time_t sec, long nsec) {
 
   struct timespec sl;
 
@@ -50,13 +50,13 @@ void meas_misc_nsleep(time_t sec, long nsec) {
 static struct timespec tp;
 
 /* set timer */
-void meas_misc_set_time() {
+EXPORT void meas_misc_set_time() {
 
   clock_gettime(CLOCK_MONOTONIC, &tp);
 }
 
 /* sleep for the time = sleep time - (current time - set timer) */
-void meas_misc_sleep_rest(time_t sec, long nsec) {
+EXPORT void meas_misc_sleep_rest(time_t sec, long nsec) {
 
   struct timespec cur, sl;
 
@@ -73,25 +73,25 @@ void meas_misc_sleep_rest(time_t sec, long nsec) {
 }
 
 /* disable signals */
-void meas_misc_disable_signals() {
+EXPORT void meas_misc_disable_signals() {
 
   signal(SIGINT, SIG_IGN);
 }
 
 /* enable signals */
-void meas_misc_enable_signals() {
+EXPORT void meas_misc_enable_signals() {
 
   signal(SIGINT, SIG_DFL);
 }
 
 /* set time reference */
-void meas_misc_set_reftime() {
+EXPORT void meas_misc_set_reftime() {
 
   (void) gettimeofday(&reference, NULL);
 }
 
 /* return time in seconds vs. reference */
-double meas_misc_get_reftime() {
+EXPORT double meas_misc_get_reftime() {
 
   struct timeval cur;
   double ti;

@@ -15,7 +15,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "mettler.h"
 #include "serial.h"
 #include "misc.h"
 
@@ -31,7 +30,7 @@ static int mettler_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
 
-int meas_mettler_init(int unit, char *dev) {
+EXPORT int meas_mettler_init(int unit, char *dev) {
 
   if(mettler_fd[unit] == -1)
     mettler_fd[unit] = meas_rs232_open(dev, MEAS_B19200);
@@ -47,7 +46,7 @@ int meas_mettler_init(int unit, char *dev) {
  *
  */
 
-double meas_mettler_read(int unit) {
+EXPORT double meas_mettler_read(int unit) {
 
   char buf[512], un[5];
   double t;

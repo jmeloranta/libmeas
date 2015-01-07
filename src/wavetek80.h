@@ -40,27 +40,3 @@
 /* Output modes */
 #define MEAS_WAVETEK80_OUTPUT_NORMAL   0
 #define MEAS_WAVETEK80_OUTPUT_DISABLED 1
-
-/* Prototypes */
-
-int meas_wavetek80_init(int, int, int), meas_wavetek80_operating_mode(int, int);
-int meas_wavetek80_sweep_direction(int, int), meas_wavetek80_trigger_mode(int, int);
-int meas_wavetek80_control_mode(int, int), meas_wavetek80_output_waveform(int, int);
-int meas_wavetek80_output_mode(int, int), meas_wavetek80_set_frequency(int, double);
-double meas_wavetek80_get_frequency(int), meas_wavetek80_get_amplitude(int);
-int meas_wavetek80_set_amplitude(int, double), meas_wavetek80_set_offset(int, double);
-double meas_wavetek80_get_offset(int), meas_wavetek80_get_phase_lock_offset(int);
-int meas_wavetek80_set_phase_lock_offset(int, double), meas_wavetek80_set_internal_trigger_interval(int, double);
-double meas_wavetek80_get_internal_trigger_interval(int), meas_wavetek80_get_counted_burst(int);
-int meas_wavetek80_set_counted_burst(int, int), meas_wavetek80_set_trigger_level(int, double);
-double meas_wavetek80_get_trigger_level(int), meas_wavetek80_get_trigger_phase_offset(int);
-int meas_wavetek80_set_trigger_phase_offset(int, double), meas_wavetek80_set_output_level(int, double);
-double meas_wavetek80_get_output_level(int), meas_wavetek80_get_log_sweep_stop(int);
-int meas_wavetek80_set_log_sweep_stop(int, double), meas_wavetek80_set_sweep_time(int, double);
-double meas_wavetek80_get_sweep_time(int), meas_wavetek80_get_log_sweep_marker(int);
-int meas_wavetek80_set_log_sweep_marker(int, double), meas_wavetek80_set_sweep_stop(int, int);
-int meas_wavetek80_get_sweep_stop(int);
-int meas_wavetek80_get_sweep_marker(int);
-int meas_wavetek80_set_sweep_marker(int, int);
-
-

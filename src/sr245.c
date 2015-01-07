@@ -31,7 +31,7 @@ static int srmode[5] = {0, 0, 0, 0, 0};
  *
  */
 
-int meas_sr245_init(int unit, int board, int dev, char *serial) {
+EXPORT int meas_sr245_init(int unit, int board, int dev, char *serial) {
 
   if(unit < 0 || unit > 4)
     meas_err("meas_sr245_init: Illegal units number.");
@@ -58,7 +58,7 @@ int meas_sr245_init(int unit, int board, int dev, char *serial) {
  *
  */
 
-int meas_sr245_disable_trigger(int unit) {
+EXPORT int meas_sr245_disable_trigger(int unit) {
 
   if(sr245_fd[unit] == -1) 
     meas_err("meas_sr245_disable_trigger: Non-existent unit.");
@@ -78,7 +78,7 @@ int meas_sr245_disable_trigger(int unit) {
  *
  */
 
-int meas_sr245_enable_trigger(int unit) {
+EXPORT int meas_sr245_enable_trigger(int unit) {
 
   if(sr245_fd[unit] == -1)
     meas_err("meas_sr245_enable_trigger: Non-existent unit.");
@@ -99,7 +99,7 @@ int meas_sr245_enable_trigger(int unit) {
  *
  */
 
-int meas_sr245_mode(int unit, int mode) {
+EXPORT int meas_sr245_mode(int unit, int mode) {
 
   if(sr245_fd[unit] == -1)
     meas_err("meas_sr245_mode: Non-existent unit.");
@@ -139,7 +139,7 @@ int meas_sr245_mode(int unit, int mode) {
  *
  */
 
-int meas_sr245_ports(int unit, int n) {
+EXPORT int meas_sr245_ports(int unit, int n) {
 
   char buf[512];
 
@@ -166,7 +166,7 @@ int meas_sr245_ports(int unit, int n) {
  *
  */
 
-double meas_sr245_read(int unit, int port) {
+EXPORT double meas_sr245_read(int unit, int port) {
 
   char buf[512];
   double val;
@@ -209,7 +209,7 @@ double meas_sr245_read(int unit, int port) {
  *
  */
 
-int meas_sr245_write(int unit, int port, double val) {
+EXPORT int meas_sr245_write(int unit, int port, double val) {
 
   char buf[512];
 
@@ -236,7 +236,7 @@ int meas_sr245_write(int unit, int port, double val) {
  *
  */
 
-int meas_sr245_ttl_mode(int unit, int port, int mode) {
+EXPORT int meas_sr245_ttl_mode(int unit, int port, int mode) {
 
   char buf[512];
 
@@ -266,7 +266,7 @@ int meas_sr245_ttl_mode(int unit, int port, int mode) {
  *
  */
 
-int meas_sr245_ttl_read(int unit, int port) {
+EXPORT int meas_sr245_ttl_read(int unit, int port) {
 
   char buf[512];
   int val;
@@ -301,7 +301,7 @@ int meas_sr245_ttl_read(int unit, int port) {
  *
  */
 
-int meas_sr245_ttl_write(int unit, int port, int val) {
+EXPORT int meas_sr245_ttl_write(int unit, int port, int val) {
 
   char buf[512];
 
@@ -328,7 +328,7 @@ int meas_sr245_ttl_write(int unit, int port, int val) {
  *
  */
 
-int meas_sr245_ttl_trigger(int unit, int port, long ttime) {
+EXPORT int meas_sr245_ttl_trigger(int unit, int port, long ttime) {
 
   if(sr245_fd[unit] == -1) 
     meas_err("meas_sr245_ttl_trigger: Non-existent unit.");
@@ -352,7 +352,7 @@ int meas_sr245_ttl_trigger(int unit, int port, long ttime) {
  *
  */
 
-int meas_sr245_reset(int unit) {
+EXPORT int meas_sr245_reset(int unit) {
 
   if(sr245_fd[unit] == -1)
     meas_err("meas_sr245_reset: Non-existent unit.");
@@ -379,7 +379,7 @@ int meas_sr245_reset(int unit) {
  *
  */
 
-int meas_sr245_scan_read(int unit, int *ports, int nports, double *points, int npoints) {
+EXPORT int meas_sr245_scan_read(int unit, int *ports, int nports, double *points, int npoints) {
 
   char buf[512], buf3[128];
   unsigned char buf2[65535];

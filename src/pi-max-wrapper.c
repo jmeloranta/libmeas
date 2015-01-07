@@ -36,7 +36,7 @@ static rgn_type region;
  *
  */
 
-int meas_pi_max_size() {
+EXPORT int meas_pi_max_size() {
 
 #if 0
   unsigned short x;
@@ -57,7 +57,7 @@ int meas_pi_max_size() {
  *
  */
 
-int meas_pi_max_temperature(double temp) {
+EXPORT int meas_pi_max_temperature(double temp) {
 
   int16 value = (int16) (temp * 100.0), cvalue;
   int first = 1;
@@ -84,7 +84,7 @@ int meas_pi_max_temperature(double temp) {
  *
  */
 
-double meas_pi_max_get_temperature() {
+EXPORT double meas_pi_max_get_temperature() {
 
   int16 cvalue;
 
@@ -100,7 +100,7 @@ double meas_pi_max_get_temperature() {
  *
  */
 
-int meas_pi_max_gain_index(int m) {
+EXPORT int meas_pi_max_gain_index(int m) {
 
   if(!pl_set_param(hCam, PARAM_GAIN_INDEX, (void *) &m))
     meas_err("meas_pi_max_gain_index: Error setting gain index.");
@@ -114,7 +114,7 @@ int meas_pi_max_gain_index(int m) {
  *
  */
 
-int meas_pi_max_speed_index(int m) {
+EXPORT int meas_pi_max_speed_index(int m) {
 
   if(!pl_set_param(hCam, PARAM_SPDTAB_INDEX, (void *) &m))
     meas_err("meas_pi_max_speed_index: Error setting camera speed index.");
@@ -128,7 +128,7 @@ int meas_pi_max_speed_index(int m) {
  *
  */
 
-int meas_pi_max_trigger_mode(int m) {
+EXPORT int meas_pi_max_trigger_mode(int m) {
 
   switch(m) {
   case 0:
@@ -157,7 +157,7 @@ int meas_pi_max_trigger_mode(int m) {
  *
  */
 
-int meas_pi_max_clear_mode(int m) {
+EXPORT int meas_pi_max_clear_mode(int m) {
 
   enum {CLEAR_NEVER, CLEAR_PRE_EXPOSURE, CLEAR_PRE_SEQUENCE, 
 	CLEAR_POST_SEQUENCE, CLEAR_PRE_POST_SEQUENCE, 
@@ -203,7 +203,7 @@ int meas_pi_max_clear_mode(int m) {
  *
  */
 
-int meas_pi_max_shutter_open_mode(int m) {
+EXPORT int meas_pi_max_shutter_open_mode(int m) {
 
   enum { OPEN_NEVER, OPEN_PRE_EXPOSURE, OPEN_PRE_SEQUENCE, OPEN_PRE_TRIGGER, OPEN_NO_CHANGE} mode;
   
@@ -242,7 +242,7 @@ int meas_pi_max_shutter_open_mode(int m) {
  *
  */
 
-int meas_pi_max_gate_mode(int m) {
+EXPORT int meas_pi_max_gate_mode(int m) {
 
   enum {INTENSIFIER_SAFE = 0, INTENSIFIER_GATING, INTENSIFIER_SHUTTER } mode;
 
@@ -279,7 +279,7 @@ int meas_pi_max_gate_mode(int m) {
  *
  */
 
-int meas_pi_max_exposure_mode(int mode) {
+EXPORT int meas_pi_max_exposure_mode(int mode) {
 
   enum {
     TIMED_MODE,
@@ -327,7 +327,7 @@ int meas_pi_max_exposure_mode(int mode) {
  *
  */
 
-int meas_pi_max_pmode(int mode) {
+EXPORT int meas_pi_max_pmode(int mode) {
 
   enum {PMODE_NORMAL,
 	      PMODE_FT,
@@ -360,7 +360,7 @@ int meas_pi_max_pmode(int mode) {
  *
  */
 
-int meas_pi_max_gain(int gain) {
+EXPORT int meas_pi_max_gain(int gain) {
 
   int16 value = gain;
 
@@ -381,7 +381,7 @@ int meas_pi_max_gain(int gain) {
  *
  */
 
-int meas_pi_max_roi(int s1, int s2, int sbin, int p1, int p2, int pbin) {
+EXPORT int meas_pi_max_roi(int s1, int s2, int sbin, int p1, int p2, int pbin) {
 
   uns16 x, y;
 
@@ -406,7 +406,7 @@ int meas_pi_max_roi(int s1, int s2, int sbin, int p1, int p2, int pbin) {
  *
  */
 
-int meas_pi_max_init(double temperature) {
+EXPORT int meas_pi_max_init(double temperature) {
 
   uns16 x, y;
 
@@ -452,7 +452,7 @@ int meas_pi_max_init(double temperature) {
  *
  */
 
-int meas_pi_max_read(int ave, unsigned short *dst) {
+EXPORT int meas_pi_max_read(int ave, unsigned short *dst) {
 
 /* Binning: wavelength along x, average along y (one pixel width) */
 /* TODO: Additional params required: gate gain, gate mode */
@@ -511,7 +511,7 @@ int meas_pi_max_read(int ave, unsigned short *dst) {
  *
  */
 
-int meas_pi_max_read2(int ave, double *dst) {
+EXPORT int meas_pi_max_read2(int ave, double *dst) {
 
 /* Binning: wavelength along x, average along y (one pixel width) */
 /* TODO: Additional params required: gate gain, gate mode */
@@ -564,7 +564,7 @@ int meas_pi_max_read2(int ave, double *dst) {
  *
  */
 
-int meas_pi_max_close() {
+EXPORT int meas_pi_max_close() {
 
   pl_cam_close(hCam);
   pl_pvcam_uninit();

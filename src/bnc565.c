@@ -18,7 +18,7 @@
 static int bnc565_fd[5] = {-1, -1, -1, -1, -1};
 
 /* Initialize the DAC interface */
-int meas_bnc565_init(int unit, int board, int dev) {
+EXPORT int meas_bnc565_init(int unit, int board, int dev) {
 
   /* remember to put in single shot mode initially */
   /* both the system timer and each channel */
@@ -47,7 +47,7 @@ int meas_bnc565_init(int unit, int board, int dev) {
  * 
  */
 
-int meas_bnc565_set(int unit, int channel, int origin, double delay, double width, double level, int polarity) {
+EXPORT int meas_bnc565_set(int unit, int channel, int origin, double delay, double width, double level, int polarity) {
 
   char buf[512], *src;
 
@@ -101,7 +101,7 @@ int meas_bnc565_set(int unit, int channel, int origin, double delay, double widt
  *
  */
 
-int meas_bnc565_trigger(int unit, int source, double data, int edge) {
+EXPORT int meas_bnc565_trigger(int unit, int source, double data, int edge) {
 
   char buf[512];
   
@@ -130,7 +130,7 @@ int meas_bnc565_trigger(int unit, int source, double data, int edge) {
  *
  */
 
-int meas_bnc565_run(int unit, int mode) {
+EXPORT int meas_bnc565_run(int unit, int mode) {
 
   char buf[512];
 
@@ -158,7 +158,7 @@ int meas_bnc565_run(int unit, int mode) {
  *
  */
 
-int meas_bnc565_mode(int unit, int channel, int mode, int on, int off) {
+EXPORT int meas_bnc565_mode(int unit, int channel, int mode, int on, int off) {
 
   char buf[512];
 
@@ -187,7 +187,7 @@ int meas_bnc565_mode(int unit, int channel, int mode, int on, int off) {
  *
  */
 
-int meas_bnc565_enable(int unit, int channel, int status) {
+EXPORT int meas_bnc565_enable(int unit, int channel, int status) {
 
   char buf[512];
 
@@ -206,7 +206,7 @@ int meas_bnc565_enable(int unit, int channel, int status) {
  *
  */
 
-int meas_bnc565_do_trigger(int unit) {
+EXPORT int meas_bnc565_do_trigger(int unit) {
 
   /* TODO */
   return -1;

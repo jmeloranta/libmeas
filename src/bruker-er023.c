@@ -29,7 +29,7 @@ static mode[5] = {0, 0, 0, 0, 0}; /* 0 = CM (continuous), 1 = SM (single) */
  *
  */
 
-int meas_er023_init(int unit, int board, int dev) {
+EXPORT int meas_er023_init(int unit, int board, int dev) {
   
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -61,7 +61,7 @@ int meas_er023_init(int unit, int board, int dev) {
  *
  */
 
-int meas_er023_calibrate(int unit, double freq, double ma, double phmax) {
+EXPORT int meas_er023_calibrate(int unit, double freq, double ma, double phmax) {
 
   int i;
   char buf[MEAS_GPIB_BUF_SIZE];
@@ -95,7 +95,7 @@ int meas_er023_calibrate(int unit, double freq, double ma, double phmax) {
  *
  */
 
-unsigned int meas_er023_read(int unit) {
+EXPORT unsigned int meas_er023_read(int unit) {
 
   unsigned char buf[4];
 
@@ -133,7 +133,7 @@ unsigned int meas_er023_read(int unit) {
  *
  */
 
-int meas_er023_modulation_amp(int unit, double amp) {
+EXPORT int meas_er023_modulation_amp(int unit, double amp) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -154,7 +154,7 @@ int meas_er023_modulation_amp(int unit, double amp) {
  *
  */
 
-int meas_er023_harmonic(int unit, int harm) {
+EXPORT int meas_er023_harmonic(int unit, int harm) {
 
   switch (harm) {
   case 1:
@@ -177,7 +177,7 @@ int meas_er023_harmonic(int unit, int harm) {
  *
  */
 
-int meas_er023_gain(int unit, double gain) {
+EXPORT int meas_er023_gain(int unit, double gain) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -200,7 +200,7 @@ int meas_er023_gain(int unit, double gain) {
  *
  */
 
-int meas_er023_timeconstant(int unit, double tc) {
+EXPORT int meas_er023_timeconstant(int unit, double tc) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -225,7 +225,7 @@ int meas_er023_timeconstant(int unit, double tc) {
  *
  */ 
 
-int meas_er023_conversiontime(int unit, double ct) {
+EXPORT int meas_er023_conversiontime(int unit, double ct) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -256,7 +256,7 @@ int meas_er023_conversiontime(int unit, double ct) {
  *
  */
 
-int meas_er023_resonator(int unit, int resonator) {
+EXPORT int meas_er023_resonator(int unit, int resonator) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -283,7 +283,7 @@ int meas_er023_resonator(int unit, int resonator) {
  *
  */
 
-int meas_er023_phase(int unit, double phase) {
+EXPORT int meas_er023_phase(int unit, double phase) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -305,7 +305,7 @@ int meas_er023_phase(int unit, double phase) {
  *
  */
 
-int meas_er023_reclevel(int unit) {
+EXPORT int meas_er023_reclevel(int unit) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -322,7 +322,7 @@ int meas_er023_reclevel(int unit) {
  *
  */
 
-int meas_er023_reset(int unit) {
+EXPORT int meas_er023_reset(int unit) {
 
   if(er023_fd[unit] == -1) meas_err("meas_er023: non-existing signal channel.");
   meas_gpib_write(er023_fd[unit], "INIT", MEAS_ER023_CRLF);
@@ -338,7 +338,7 @@ int meas_er023_reset(int unit) {
  *
  */
 
-int meas_er023_status(int unit) {
+EXPORT int meas_er023_status(int unit) {
   
   char buf[MEAS_GPIB_BUF_SIZE];
   int st;
@@ -359,7 +359,7 @@ int meas_er023_status(int unit) {
  *
  */
 
-int meas_er023_calibrated(int unit) {
+EXPORT int meas_er023_calibrated(int unit) {
 
   if(current_ma[unit] == -1) return 0;
   else return 1;

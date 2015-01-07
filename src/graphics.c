@@ -49,7 +49,7 @@ static struct window {
  *
  */
 
-int meas_graphics_init(int win, int type, int nx, int ny, int maxns, char *title) {
+EXPORT int meas_graphics_init(int win, int type, int nx, int ny, int maxns, char *title) {
 
   static int been_here = 0;
   char *av[1] = {""};
@@ -125,7 +125,7 @@ int meas_graphics_init(int win, int type, int nx, int ny, int maxns, char *title
  *
  */
 
-int meas_graphics_xscale(int win, double begin, double end) {
+EXPORT int meas_graphics_xscale(int win, double begin, double end) {
 
   if(win < 0 || win >= MEAS_GRAPHICS_MAX_WIN)
     meas_err("meas_graphics_xscale: Illegal window id.");
@@ -147,7 +147,7 @@ int meas_graphics_xscale(int win, double begin, double end) {
  *
  */
 
-int meas_graphics_yscale(int win, double begin, double end) {
+EXPORT int meas_graphics_yscale(int win, double begin, double end) {
 
   if(win < 0 || win >= MEAS_GRAPHICS_MAX_WIN)
     meas_err("meas_graphics_yscale: Illegal window id.");
@@ -165,7 +165,7 @@ int meas_graphics_yscale(int win, double begin, double end) {
  *
  */
 
-int meas_graphics_clear(int win) {
+EXPORT int meas_graphics_clear(int win) {
 
   float x, y;
 
@@ -198,7 +198,7 @@ int meas_graphics_clear(int win) {
  *
  */
 
-int meas_graphics_xtitle(int win, char *str) {
+EXPORT int meas_graphics_xtitle(int win, char *str) {
 
   if(win < 0 || win >= MEAS_GRAPHICS_MAX_WIN)
     meas_err("meas_graphics_xtitle: Illegal window id.");  
@@ -216,7 +216,7 @@ int meas_graphics_xtitle(int win, char *str) {
  *
  */
 
-int meas_graphics_ytitle(int win, char *str) {
+EXPORT int meas_graphics_ytitle(int win, char *str) {
 
   if(win < 0 || win >= MEAS_GRAPHICS_MAX_WIN)
     meas_err("meas_graphics_ytitle: Illegal window id.");  
@@ -231,7 +231,7 @@ int meas_graphics_ytitle(int win, char *str) {
  *
  */
 
-int meas_graphics_update() {
+EXPORT int meas_graphics_update() {
 
   int i;
 
@@ -253,7 +253,7 @@ int meas_graphics_update() {
  *
  */
 
-int meas_graphics_update_xy(int win, double *xdata, double *ydata, int ns) {
+EXPORT int meas_graphics_update_xy(int win, double *xdata, double *ydata, int ns) {
 
   int i;
 
@@ -293,7 +293,7 @@ int meas_graphics_update_xy(int win, double *xdata, double *ydata, int ns) {
  *
  */
 
-int meas_graphics_update_image(int win, unsigned char *r, unsigned char *g, unsigned char *b) {
+EXPORT int meas_graphics_update_image(int win, unsigned char *r, unsigned char *g, unsigned char *b) {
 
   int i, k;
 
@@ -321,7 +321,7 @@ int meas_graphics_update_image(int win, unsigned char *r, unsigned char *g, unsi
  *
  */
 
-int meas_graphics_xautoscale(int win) {
+EXPORT int meas_graphics_xautoscale(int win) {
 
   int i;
   double xmin = 1E99, xmax = -xmin;
@@ -354,7 +354,7 @@ int meas_graphics_xautoscale(int win) {
  *
  */
 
-int meas_graphics_yautoscale(int win) {
+EXPORT int meas_graphics_yautoscale(int win) {
 
   int i;
   double ymin = 1E99, ymax = -ymin;
@@ -388,7 +388,7 @@ int meas_graphics_yautoscale(int win) {
  *
  */
 
-int meas_graphics_autoscale(int win) {
+EXPORT int meas_graphics_autoscale(int win) {
 
   meas_graphics_xautoscale(win);
   meas_graphics_yautoscale(win);  
@@ -400,7 +400,7 @@ int meas_graphics_autoscale(int win) {
  *
  */
 
-int meas_graphics_close() {
+EXPORT int meas_graphics_close() {
 
   int i;
 
@@ -423,7 +423,7 @@ int meas_graphics_close() {
  *
  */
 
-void meas_graphics_rgb(double value, unsigned char *r, unsigned char *g, unsigned char *b) {
+EXPORT void meas_graphics_rgb(double value, unsigned char *r, unsigned char *g, unsigned char *b) {
 
   if(value < 0.0) value = 0.0;
   if(value > 1.0) value = 1.0;
@@ -447,7 +447,7 @@ void meas_graphics_rgb(double value, unsigned char *r, unsigned char *g, unsigne
  *
  */
 
-void meas_graphics_update_image_contour(int win, double *data) {
+EXPORT void meas_graphics_update_image_contour(int win, double *data) {
 
   int i, j;
   double mi = 1E99, ma = -1E99;
@@ -480,7 +480,7 @@ void meas_graphics_update_image_contour(int win, double *data) {
  *
  */
 
-int meas_graphics_convert_img_to_rgb(unsigned short *img, unsigned int nx, unsigned int ny, unsigned char *r, unsigned char *g, unsigned char *b, unsigned short as) {
+EXPORT int meas_graphics_convert_img_to_rgb(unsigned short *img, unsigned int nx, unsigned int ny, unsigned char *r, unsigned char *g, unsigned char *b, unsigned short as) {
 
   unsigned int i;
 
@@ -518,7 +518,7 @@ int meas_graphics_convert_img_to_rgb(unsigned short *img, unsigned int nx, unsig
  *
  */
 
-int meas_graphics_scale_rgb(unsigned char *ri, unsigned char *gi, unsigned char *bi, unsigned int nx, unsigned int ny, unsigned int sc, unsigned char *ro, unsigned char *go, unsigned char *bo) {
+EXPORT int meas_graphics_scale_rgb(unsigned char *ri, unsigned char *gi, unsigned char *bi, unsigned int nx, unsigned int ny, unsigned int sc, unsigned char *ro, unsigned char *go, unsigned char *bo) {
 
   unsigned int i, j, si, sj;
 
@@ -541,4 +541,3 @@ int meas_graphics_scale_rgb(unsigned char *ri, unsigned char *gi, unsigned char 
 	}
   return 0;
 }
-

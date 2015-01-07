@@ -77,7 +77,7 @@ static unsigned int parse(char *str, int len) {
  *
  */
 
-int meas_fl3000_init(int unit, int board, int dev) {
+EXPORT int meas_fl3000_init(int unit, int board, int dev) {
 
   char buf[512];
   
@@ -110,11 +110,13 @@ static double calib(double realwl) {
  *
  */
 
-int meas_fl3000_setwl(int unit, double wl) {
+EXPORT int meas_fl3000_setwl(int unit, double wl) {
 
   char buf[128];
   unsigned int grating, etalon, crystal, reserve = 0, cur_etalon;
   double cur_wl, dl, orig_wl, tmp, prev_wl;
+  double meas_fl3000_getwl(int);
+  unsigned meas_fl3000_getetalon(int);
 
   if(fl3000_board[unit] == -1)
     meas_err("meas_fl3000_setwl: non-existing unit.");
@@ -197,7 +199,7 @@ int meas_fl3000_setwl(int unit, double wl) {
  *
  */
 
-double meas_fl3000_getwl(int unit) {
+EXPORT double meas_fl3000_getwl(int unit) {
 
   char buf[128];
   double wl;
@@ -232,7 +234,7 @@ double meas_fl3000_getwl(int unit) {
  *
  */
 
-unsigned meas_fl3000_getetalon(int unit) {
+EXPORT unsigned meas_fl3000_getetalon(int unit) {
 
   char buf[128];
   double wl;
@@ -263,7 +265,7 @@ unsigned meas_fl3000_getetalon(int unit) {
  *
  */
 
-int meas_fl3000_grating(int unit, int x) {
+EXPORT int meas_fl3000_grating(int unit, int x) {
 
   if(x < 0 || x > 8) meas_err("meas_fl3000_grating: Invalid grating order.");
   grating_order = x;

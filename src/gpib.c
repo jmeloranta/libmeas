@@ -25,7 +25,7 @@ static int board_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
 
-int meas_gpib_open(int board, int id) {
+EXPORT int meas_gpib_open(int board, int id) {
 
   int fd;
   char buf[128];
@@ -64,7 +64,7 @@ int meas_gpib_open(int board, int id) {
  *
  */ 
 
-int meas_gpib_close(int board, int fd) {
+EXPORT int meas_gpib_close(int board, int fd) {
   
   ibonl(fd, 0); /* offline */
   return 0;
@@ -83,7 +83,7 @@ int meas_gpib_close(int board, int fd) {
  *
  */
 
-int meas_gpib_set(int fd, int mode) {
+EXPORT int meas_gpib_set(int fd, int mode) {
 
   (void) ibeos(fd, mode);
   return 0;
@@ -97,7 +97,7 @@ int meas_gpib_set(int fd, int mode) {
  *
  */
 
-int meas_gpib_timeout(int fd, double value) {
+EXPORT int meas_gpib_timeout(int fd, double value) {
 
   int val;
   
@@ -133,7 +133,7 @@ int meas_gpib_timeout(int fd, double value) {
  *
  */
 
-int meas_gpib_read(int fd, char *buf) {
+EXPORT int meas_gpib_read(int fd, char *buf) {
 
   char *tmp;
 
@@ -153,7 +153,7 @@ int meas_gpib_read(int fd, char *buf) {
  *
  */
 
-int meas_gpib_read_n(int fd, char *buf, int nbytes) {
+EXPORT int meas_gpib_read_n(int fd, char *buf, int nbytes) {
 
   char *tmp;
   int len, tmp2, err;
@@ -187,7 +187,7 @@ int meas_gpib_read_n(int fd, char *buf, int nbytes) {
  *
  */
 
-int meas_gpib_write(int fd, char *buf, int crlf) {
+EXPORT int meas_gpib_write(int fd, char *buf, int crlf) {
   
   char tmp[4096];
   int len;
@@ -221,7 +221,7 @@ int meas_gpib_write(int fd, char *buf, int crlf) {
  *
  */
 
-int meas_gpib_cmd(int fd, char cmd) {
+EXPORT int meas_gpib_cmd(int fd, char cmd) {
 
   ibcmd(fd, &cmd, 1);
   return 0;
@@ -234,7 +234,7 @@ int meas_gpib_cmd(int fd, char cmd) {
  *
  */
 
-int meas_gpib_clear(int board) {
+EXPORT int meas_gpib_clear(int board) {
 
   if(board_fd[board] == -1)
     meas_err("meas_gpib_clear: non-existent board.");
@@ -251,7 +251,7 @@ int meas_gpib_clear(int board) {
  *
  */
 
-int meas_gpib_old_read(int board, int id, char *buf, int len) {
+EXPORT int meas_gpib_old_read(int board, int id, char *buf, int len) {
 
   if(board_fd[board] == -1)
     meas_err("meas_gpib_old_read: non-existent board.");
@@ -268,7 +268,7 @@ int meas_gpib_old_read(int board, int id, char *buf, int len) {
  *
  */
 
-int meas_gpib_old_write(int board, int id, char *buf, int len) {
+EXPORT int meas_gpib_old_write(int board, int id, char *buf, int len) {
 
   if(board_fd[board] == -1)
     meas_err("meas_gpib_old_write: non-existent board.");
@@ -288,7 +288,7 @@ int meas_gpib_old_write(int board, int id, char *buf, int len) {
  *
  */
 
-int meas_gpib_async_read_n(int fd, char *buf, int nbytes) {
+EXPORT int meas_gpib_async_read_n(int fd, char *buf, int nbytes) {
 
   ibrda(fd, buf, nbytes);
   return 0;
@@ -303,7 +303,7 @@ int meas_gpib_async_read_n(int fd, char *buf, int nbytes) {
  *
  */
 
-int meas_gpib_async_write(int fd, char *buf, int crlf) {
+EXPORT int meas_gpib_async_write(int fd, char *buf, int crlf) {
   
   char tmp[4096];
   int len;

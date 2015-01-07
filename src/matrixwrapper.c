@@ -15,7 +15,7 @@
  *
  */
 
-int meas_matrix_init() {
+EXPORT int meas_matrix_init() {
 
   matrix_module_init();
   return 0;
@@ -28,7 +28,7 @@ int meas_matrix_init() {
  *
  */
 
-int meas_matrix_temperature(double temp) {
+EXPORT int meas_matrix_temperature(double temp) {
 
   matrix_set_CCD_temp(temp);
   return 0;
@@ -39,7 +39,7 @@ int meas_matrix_temperature(double temp) {
  *
  */
 
-int meas_matrix_size() {
+EXPORT int meas_matrix_size() {
   
   unsigned short width, height;
 
@@ -59,7 +59,7 @@ int meas_matrix_size() {
  *
  */
 
-int meas_matrix_read(double exp, int ave, double *dst) {
+EXPORT int meas_matrix_read(double exp, int ave, double *dst) {
 
   int i, j;
   unsigned int npts, data_size;
@@ -122,7 +122,7 @@ int meas_matrix_read(double exp, int ave, double *dst) {
  *
  */
 
-int meas_matrix_close() {
+EXPORT int meas_matrix_close() {
 
   matrix_module_close();
   return 0;
@@ -133,7 +133,7 @@ int meas_matrix_close() {
  *
  */
 
-int meas_matrix_status() {
+EXPORT int meas_matrix_status() {
 
   matrix_print_info();
   return 0;
@@ -150,7 +150,7 @@ int meas_matrix_status() {
  *
  */
 
-double meas_matrix_calib(int pixel) {
+EXPORT double meas_matrix_calib(int pixel) {
 
   return (MEAS_MATRIX_A + MEAS_MATRIX_B * ((double) pixel));
 }

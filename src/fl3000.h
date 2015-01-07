@@ -22,8 +22,3 @@ extern double meas_etalon_wl_scale2;
 extern double meas_etalon_wl_p1;
 extern double meas_etalon_wl_p2;
 extern double meas_etalon_wl_p3;
-
-/* Prototypes */
-int meas_fl3000_init(int, int, int), meas_fl3000_setwl(int, double), meas_fl3000_grating(int, int);
-unsigned int meas_fl3000_getetalon(int);
-double meas_fl3000_getwl(int);

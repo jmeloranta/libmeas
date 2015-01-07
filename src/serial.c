@@ -23,7 +23,7 @@
  *
  */
 
-int meas_rs232_open(char *dev, int speed) {
+EXPORT int meas_rs232_open(char *dev, int speed) {
 
   struct termios newtio;
   int fd;
@@ -77,7 +77,7 @@ int meas_rs232_open(char *dev, int speed) {
  *
  */
 
-int meas_rs232_close(int fd) {
+EXPORT int meas_rs232_close(int fd) {
 
   meas_misc_root_on();
   close(fd);
@@ -93,7 +93,7 @@ int meas_rs232_close(int fd) {
  *
  */
 
-int meas_rs232_readnl(int fd, char *buf) {
+EXPORT int meas_rs232_readnl(int fd, char *buf) {
 
   int i = 0;
 
@@ -117,7 +117,7 @@ int meas_rs232_readnl(int fd, char *buf) {
  *
  */
 
-int meas_rs232_readeot(int fd, char *buf, char *eot) {
+EXPORT int meas_rs232_readeot(int fd, char *buf, char *eot) {
 
   int i = 0, len;
 
@@ -145,7 +145,7 @@ int meas_rs232_readeot(int fd, char *buf, char *eot) {
  *
  */
 
-int meas_rs232_readeot2(int fd, char *buf, char *eot1, char *eot2) {
+EXPORT int meas_rs232_readeot2(int fd, char *buf, char *eot1, char *eot2) {
 
   int i = 0, len1, len2, which;
 
@@ -178,7 +178,7 @@ int meas_rs232_readeot2(int fd, char *buf, char *eot1, char *eot2) {
  *
  */
 
-int meas_rs232_read(int fd, char *buf, int len) {
+EXPORT int meas_rs232_read(int fd, char *buf, int len) {
 
   int len2 = 0;
 
@@ -200,7 +200,7 @@ int meas_rs232_read(int fd, char *buf, int len) {
  *
  */
 
-int meas_rs232_write(int fd, char *buf, int len) {
+EXPORT int meas_rs232_write(int fd, char *buf, int len) {
 
   int len2 = 0;
 
@@ -221,7 +221,7 @@ int meas_rs232_write(int fd, char *buf, int len) {
  *
  */
 
-int meas_rs232_writeb(int fd, unsigned char byte) {
+EXPORT int meas_rs232_writeb(int fd, unsigned char byte) {
 
   meas_misc_root_on();
   meas_rs232_write(fd, &byte, 1);

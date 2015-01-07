@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "hp-53131a.h"
 #include "gpib.h"
 #include "misc.h"
 
@@ -23,7 +22,7 @@ static int hp53131_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
  
-int meas_hp53131_init(int unit, int board, int dev) {
+EXPORT int meas_hp53131_init(int unit, int board, int dev) {
   
   if(hp53131_fd[unit] == -1) {
     hp53131_fd[unit] = meas_gpib_open(board, dev);
@@ -40,7 +39,7 @@ int meas_hp53131_init(int unit, int board, int dev) {
  *
  */
 
-double meas_hp53131_read(int unit, int channel) {
+EXPORT double meas_hp53131_read(int unit, int channel) {
 
   double freq;
   char buf[MEAS_GPIB_BUF_SIZE];

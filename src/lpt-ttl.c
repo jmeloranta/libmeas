@@ -31,7 +31,7 @@ static unsigned ports[] = {0x378, 0x278}; /* lpt1 and lpt2 */
  *
  */
 
-int meas_lpt_init(int unit) {
+EXPORT int meas_lpt_init(int unit) {
 
   /* could add here detection for parallel port presence */
   return 0;
@@ -46,7 +46,7 @@ int meas_lpt_init(int unit) {
  *
  */
 
-int meas_lpt_read(int unit) {
+EXPORT int meas_lpt_read(int unit) {
 
   unsigned char a;
 
@@ -68,7 +68,7 @@ int meas_lpt_read(int unit) {
  *
  */
 
-int meas_lpt_write(int unit, unsigned char a) {
+EXPORT int meas_lpt_write(int unit, unsigned char a) {
 
   if(unit < MEAS_LPT_LPT1 || unit > MEAS_LPT_LPT2)
     meas_err("meas_lpt_write: Invalid parallel port.\n");
@@ -89,7 +89,7 @@ int meas_lpt_write(int unit, unsigned char a) {
  *
  */
 
-int meas_lpt_strobe(int unit, unsigned char value) {
+EXPORT int meas_lpt_strobe(int unit, unsigned char value) {
 
   meas_misc_root_on();
   ioperm(ports[unit], 3, 1);
@@ -107,7 +107,7 @@ int meas_lpt_strobe(int unit, unsigned char value) {
  *
  */
 
-int meas_lpt_close(int unit) {
+EXPORT int meas_lpt_close(int unit) {
 
   return 0;
 }
@@ -120,7 +120,7 @@ int meas_lpt_close(int unit) {
  *
  */
 
-int meas_lpt_init(int unit) {
+EXPORT int meas_lpt_init(int unit) {
 
   char buf[MEAS_LPT_BUF_SIZE];
   unsigned int mode = IEEE1284_MODE_BYTE;
@@ -145,7 +145,7 @@ int meas_lpt_init(int unit) {
  *
  */
 
-int meas_lpt_close(int unit) {
+EXPORT int meas_lpt_close(int unit) {
 
   if(fds[unit] == -1)
     meas_err("meas_lpt_close: Unit already closed.");
@@ -163,7 +163,7 @@ int meas_lpt_close(int unit) {
  *
  */
 
-int meas_lpt_read(int unit) {
+EXPORT int meas_lpt_read(int unit) {
 
   unsigned char a;
   unsigned int dir = 1;
@@ -184,7 +184,7 @@ int meas_lpt_read(int unit) {
  *
  */
 
-int meas_lpt_write(int unit, unsigned char a) {
+EXPORT int meas_lpt_write(int unit, unsigned char a) {
 
   unsigned int dir = 0;
   struct timespec ts;
@@ -206,7 +206,7 @@ int meas_lpt_write(int unit, unsigned char a) {
  *
  */
 
-int meas_lpt_strobe(int unit, unsigned char value) {
+EXPORT int meas_lpt_strobe(int unit, unsigned char value) {
 
   unsigned int dir = 0;
   struct timespec ts;

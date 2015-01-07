@@ -27,9 +27,3 @@
 static double calib_x[] = {190.0, 253.6521, 265.369, 275.278, 289.3601, 296.7278, 302.1504, 312.5674, 334.1484, 365.0158, 365.4840, 404.6565,407.7837, 435.8335, 546.0750, 576.9610, 579.0670}; 
 /* mono = real - offset */
 static double calib_y[] = {0.6521, 0.6521, 0.369, 0.278, 0.8601, 0.7278, 0.6504, 0.0674, 0.6484, 1.0158, -0.0160, 0.6565, 0.7837, 0.3335, 0.5750, 1.461, 1.0670};
-
-/* Prototypes */
-int meas_dk240_init(int, char *), meas_dk240_setwl(int, double), meas_dk240_set_slits(int, double, double), meas_dk240_reset(int), meas_dk240_serial(int), meas_dk240_nvram_clear(int);
-int meas_dk240_get_slits(int, double *, double *), meas_dk240_grating_info(int, int *, int *, int *, int *), meas_dk240_grating_select(int, int), meas_dk240_grating_calibrate(int, double), meas_dk240_grating_zero(int);
-int meas_dk240_slew_start(int, int), meas_dk240_slew_stop(int), meas_dk240_step_down(int), meas_dk240_step_up(int);
-double meas_dk240_getwl(int), meas_dk240_calib(double);

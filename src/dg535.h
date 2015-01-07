@@ -33,7 +33,3 @@
 #define MEAS_DG535_TRIG_FALL 0
 #define MEAS_DG535_TRIG_RISE 1
 
-/* Prototypes */
-int meas_dg535_init(int, int, int), meas_dg565_set(int, int, int, double, double, int, int), meas_dg535_enable(int, int, int), meas_dg535_trigger(int, int, double, int, int);
-int meas_dg535_run(int, int), meas_dg535_mode(int, int, int, int), meas_dg535_do_trigger(int);
-

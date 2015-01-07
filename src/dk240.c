@@ -23,7 +23,7 @@ static int dk240_fd[5] = {-1, -1, -1, -1, -1};
  * 
  */
 
-int meas_dk240_init(int unit, char *dev) {
+EXPORT int meas_dk240_init(int unit, char *dev) {
 
   char resp;
 
@@ -48,7 +48,7 @@ int meas_dk240_init(int unit, char *dev) {
  *
  */
 
-int meas_dk240_setwl(int unit, double wl) {
+EXPORT int meas_dk240_setwl(int unit, double wl) {
 
   unsigned char buf[3], tmp;
   unsigned int wll;
@@ -88,7 +88,7 @@ int meas_dk240_setwl(int unit, double wl) {
  *
  */
 
-double meas_dk240_getwl(int unit) {
+EXPORT double meas_dk240_getwl(int unit) {
 
   unsigned char buf[3];
   double wl;
@@ -124,7 +124,7 @@ double meas_dk240_getwl(int unit) {
  *
  */
 
-int meas_dk240_set_slits(int unit, double input, double output) {
+EXPORT int meas_dk240_set_slits(int unit, double input, double output) {
 
   unsigned char buf[2];
 
@@ -169,7 +169,7 @@ int meas_dk240_set_slits(int unit, double input, double output) {
  *
  */
 
-int meas_dk240_get_slits(int unit, double *input, double *output) {
+EXPORT int meas_dk240_get_slits(int unit, double *input, double *output) {
 
   unsigned char buf[4];
 
@@ -209,7 +209,7 @@ int meas_dk240_get_slits(int unit, double *input, double *output) {
  * 
  */
 
-double meas_dk240_calib(double real_wl) {
+EXPORT double meas_dk240_calib(double real_wl) {
 
   int i;
   double offset, x;
@@ -236,7 +236,7 @@ double meas_dk240_calib(double real_wl) {
  *
  */
  
-int meas_dk240_grating_info(int unit, int *ngratings, int *cur_grating, int *ruling, int *blaze) {
+EXPORT int meas_dk240_grating_info(int unit, int *ngratings, int *cur_grating, int *ruling, int *blaze) {
 
   unsigned char buf[5];
 
@@ -273,7 +273,7 @@ int meas_dk240_grating_info(int unit, int *ngratings, int *cur_grating, int *rul
  *
  */
 
-int meas_dk240_grating_select(int unit, int grating) {
+EXPORT int meas_dk240_grating_select(int unit, int grating) {
 
   unsigned char buf[5];
 
@@ -304,7 +304,7 @@ int meas_dk240_grating_select(int unit, int grating) {
  *
  */
 
-int meas_dk240_reset(int unit) {
+EXPORT int meas_dk240_reset(int unit) {
 
   if(dk240_fd[unit] == -1)
     meas_err("meas_dk240: non-existent unit.");
@@ -326,7 +326,7 @@ int meas_dk240_reset(int unit) {
  *
  */
 
-int meas_dk240_serial(int unit) {
+EXPORT int meas_dk240_serial(int unit) {
 
   unsigned char buf[5];
 
@@ -355,7 +355,7 @@ int meas_dk240_serial(int unit) {
  * 
  */
 
-int meas_dk240_nvram_clear(int unit) {
+EXPORT int meas_dk240_nvram_clear(int unit) {
 
   unsigned char buf[5];
 
@@ -384,7 +384,7 @@ int meas_dk240_nvram_clear(int unit) {
  *
  */
 
-int meas_dk240_grating_zero(int unit) {
+EXPORT int meas_dk240_grating_zero(int unit) {
 
   unsigned char buf[5];
 
@@ -420,7 +420,7 @@ int meas_dk240_grating_zero(int unit) {
  * 
  */
 
-int meas_dk240_grating_calibrate(int unit, double wl) {
+EXPORT int meas_dk240_grating_calibrate(int unit, double wl) {
 
   unsigned char buf[5];
   unsigned int wll;
@@ -461,7 +461,7 @@ int meas_dk240_grating_calibrate(int unit, double wl) {
 
 static int slew_active[5] = {0, 0, 0, 0, 0};
 
-int meas_dk240_slew_start(int unit, int direction) {
+EXPORT int meas_dk240_slew_start(int unit, int direction) {
 
   unsigned char buf[5];
 
@@ -491,7 +491,7 @@ int meas_dk240_slew_start(int unit, int direction) {
  *
  */
 
-int meas_dk240_slew_stop(int unit) {
+EXPORT int meas_dk240_slew_stop(int unit) {
   
   unsigned char buf[5];
 
@@ -519,7 +519,7 @@ int meas_dk240_slew_stop(int unit) {
  *
  */
 
-int meas_dk240_step_down(int unit) {
+EXPORT int meas_dk240_step_down(int unit) {
 
   unsigned char buf[5];
   
@@ -547,7 +547,7 @@ int meas_dk240_step_down(int unit) {
  *
  */
 
-int meas_dk240_step_up(int unit) {
+EXPORT int meas_dk240_step_up(int unit) {
 
   unsigned char buf[5];
   

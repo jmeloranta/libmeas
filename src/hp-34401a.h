@@ -81,11 +81,3 @@
 
 /* trigger delay */
 #define MEAS_HP34401A_TRIGGER_AUTO (-1.0)
-
-/* prototypes */
-int meas_hp34401a_init(int, int, int), meas_hp34401a_set_ac_filter(int, int), meas_hp34401a_set_autoscale(int, int, int), 
-  meas_hp34401a_set_impedance(int, int), meas_hp34401a_set_resolution(int, int, int, double), meas_hp34401a_set_integration_time(int, int, int),
-  meas_hp34401a_autozero(int, int), meas_hp34401a_set_mode(int, int), meas_hp34401a_set_trigger_source(int, int), 
-  meas_hp34401a_set_trigger_dealy(int, double), meas_hp34401a_set_trigger_sample_count(int, int), meas_hp34401a_set_trigger_count(int, int);
-double meas_hp34401a_complete_read(int), meas_hp34401a_read_auto(int);
-int meas_hp34401a_initiate_read(int);

@@ -27,7 +27,7 @@ static char *setmodes[] = {"SENS:FUNC \"VOLT:AC\"", "SENS:FUNC \"VOLT:DC\"", "SE
 static char *trigger_sources[] = {"BUS", "IMM", "EXT", 0};
 
 /* Initialize instrument (dev = GPIB id) */
-int meas_hp34401a_init(int unit, int board, int dev) {
+EXPORT int meas_hp34401a_init(int unit, int board, int dev) {
 
   if(hp34401a_fd[unit] == -1) {
     hp34401a_fd[unit] = meas_gpib_open(board, dev);
@@ -49,7 +49,7 @@ int meas_hp34401a_init(int unit, int board, int dev) {
  *
  */
 
-int meas_hp34401a_set_ac_filter(int unit, int freq) {
+EXPORT int meas_hp34401a_set_ac_filter(int unit, int freq) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -90,7 +90,7 @@ int meas_hp34401a_set_ac_filter(int unit, int freq) {
  *
  */
 
-int meas_hp34401a_set_autoscale(int unit, int autos, int setting) {
+EXPORT int meas_hp34401a_set_autoscale(int unit, int autos, int setting) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -115,7 +115,7 @@ int meas_hp34401a_set_autoscale(int unit, int autos, int setting) {
  *   
  */
 
-int meas_hp34401a_set_impedance(int unit, int autos) {
+EXPORT int meas_hp34401a_set_impedance(int unit, int autos) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -179,7 +179,7 @@ int meas_hp34401a_set_impedance(int unit, int autos) {
  *
  */
 
-int meas_hp34401a_set_resolution(int unit, int what, int scale, double resol) {
+EXPORT int meas_hp34401a_set_resolution(int unit, int what, int scale, double resol) {
 
   char buf[MEAS_GPIB_BUF_SIZE], res[MEAS_GPIB_BUF_SIZE];
 
@@ -231,7 +231,7 @@ int meas_hp34401a_set_resolution(int unit, int what, int scale, double resol) {
  *
  */
 
-int meas_hp34401a_set_integration_time(int unit, int what, int it) {
+EXPORT int meas_hp34401a_set_integration_time(int unit, int what, int it) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -254,7 +254,7 @@ int meas_hp34401a_set_integration_time(int unit, int what, int it) {
  *
  */
 
-int meas_hp34401a_autozero(int unit, int setting) {
+EXPORT int meas_hp34401a_autozero(int unit, int setting) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -291,7 +291,7 @@ int meas_hp34401a_autozero(int unit, int setting) {
  *
  */
 
-int meas_hp34401a_set_mode(int unit, int what) {
+EXPORT int meas_hp34401a_set_mode(int unit, int what) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -313,7 +313,7 @@ int meas_hp34401a_set_mode(int unit, int what) {
  */
 
 
-int meas_hp34401a_initiate_read(int unit) {
+EXPORT int meas_hp34401a_initiate_read(int unit) {
   
   if(hp34401a_fd[unit] == -1)
     meas_err("meas_hp34401a_initiate_read: Non-existent unit.");
@@ -321,7 +321,7 @@ int meas_hp34401a_initiate_read(int unit) {
   return 0;
 }
 
-double meas_hp34401a_complete_read(int unit) {
+EXPORT double meas_hp34401a_complete_read(int unit) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -337,7 +337,7 @@ double meas_hp34401a_complete_read(int unit) {
  *
  */
 
-double meas_hp34401a_read_auto(int unit) {
+EXPORT double meas_hp34401a_read_auto(int unit) {
   
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -358,7 +358,7 @@ double meas_hp34401a_read_auto(int unit) {
  *
  */
 
-int meas_hp34401a_set_trigger_source(int unit, int source){
+EXPORT int meas_hp34401a_set_trigger_source(int unit, int source){
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -379,7 +379,7 @@ int meas_hp34401a_set_trigger_source(int unit, int source){
  *
  */
 
-int meas_hp34401a_set_trigger_delay(int unit, double delay){
+EXPORT int meas_hp34401a_set_trigger_delay(int unit, double delay){
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -404,7 +404,7 @@ int meas_hp34401a_set_trigger_delay(int unit, double delay){
  *
  */
 
-int meas_hp34401a_set_trigger_sample_count(int unit, int count) {
+EXPORT int meas_hp34401a_set_trigger_sample_count(int unit, int count) {
   
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -424,7 +424,7 @@ int meas_hp34401a_set_trigger_sample_count(int unit, int count) {
  *
  */
 
-int meas_hp34401a_set_trigger_count(int unit, int count) {
+EXPORT int meas_hp34401a_set_trigger_count(int unit, int count) {
   
   char buf[MEAS_GPIB_BUF_SIZE];
 

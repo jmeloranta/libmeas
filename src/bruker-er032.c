@@ -23,7 +23,7 @@ static int er032_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
 
-int meas_er032_init(int unit, int board, int dev) {
+EXPORT int meas_er032_init(int unit, int board, int dev) {
   
   if(er032_fd[unit] == -1) {
     er032_fd[unit] = meas_gpib_open(board, dev);
@@ -46,7 +46,7 @@ int meas_er032_init(int unit, int board, int dev) {
  *
  */
 
-double meas_er032_read(int unit) {
+EXPORT double meas_er032_read(int unit) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 
@@ -65,7 +65,7 @@ double meas_er032_read(int unit) {
  * 
  */
 
-int meas_er032_write(int unit, double field) {
+EXPORT int meas_er032_write(int unit, double field) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
 

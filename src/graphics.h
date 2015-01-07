@@ -30,18 +30,3 @@
 #define MEAS_GRAPHICS_EMPTY  0
 #define MEAS_GRAPHICS_XY     1      /* regular X-Y plot */
 #define MEAS_GRAPHICS_IMAGE  2      /* color image */
-
-/* Prototypes */
-int meas_graphics_init(int, int, int, int, int, char *), meas_graphics_xscale(int, double, double);
-int meas_graphics_yscale(int, double, double), meas_graphics_clear(int);
-int meas_graphics_xtitle(int, char *), meas_graphics_ytitle(int, char *);
-int meas_graphics_update();
-int meas_graphics_update_xy(int, double *, double *, int);
-int meas_graphics_update_image(int, unsigned char *, unsigned char *, unsigned char *);
-int meas_graphics_xautoscale(int), meas_graphics_yautoscale(int), meas_graphics_close();
-int meas_graphics_autoscale(int);
-void meas_graphics_rgb(double, unsigned char *, unsigned char *, unsigned char*);
-void meas_graphics_update_image_contour(int, double *);
-void meas_video_rgb_to_ppm(FILE *, unsigned char *, unsigned char *, unsigned char *);
-int meas_graphics_convert_img_to_rgb(unsigned short *, unsigned int, unsigned int, unsigned char *, unsigned char *, unsigned char *, unsigned short);
-int meas_graphics_scale_rgb(unsigned char *, unsigned char *, unsigned char *, unsigned int, unsigned int, unsigned int, unsigned char *, unsigned char *, unsigned char *);

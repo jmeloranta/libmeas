@@ -35,7 +35,7 @@ static int dye_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
 
-int meas_scanmate_pro_init(int unit, char *dev) {
+EXPORT int meas_scanmate_pro_init(int unit, char *dev) {
 
   if(dye_fd[unit] == -1)
     dye_fd[unit] = meas_rs232_open(dev, MEAS_B57600);
@@ -50,7 +50,7 @@ int meas_scanmate_pro_init(int unit, char *dev) {
  *
  */
 
-int meas_scanmate_pro_grating(int unit, int x) {
+EXPORT int meas_scanmate_pro_grating(int unit, int x) {
 
   char buf[512];
 
@@ -74,7 +74,7 @@ static void scanmate_pro_signal(int x) {
  *
  */
 
-int meas_scanmate_pro_setwl(int unit, double wl) {
+EXPORT int meas_scanmate_pro_setwl(int unit, double wl) {
 
   char buf[512];
   int i;
@@ -118,7 +118,7 @@ int meas_scanmate_pro_setwl(int unit, double wl) {
  *
  */
 
-double meas_scanmate_pro_getwl(int unit) {
+EXPORT double meas_scanmate_pro_getwl(int unit) {
 
   double wl;
   char buf[512];
@@ -141,7 +141,7 @@ double meas_scanmate_pro_getwl(int unit) {
  *
  */
 
-int meas_scanmate_pro_getstp(int unit, int what) {
+EXPORT int meas_scanmate_pro_getstp(int unit, int what) {
 
   char m, buf[512];
   int val;
@@ -183,7 +183,7 @@ int meas_scanmate_pro_getstp(int unit, int what) {
  *
  */
 
-int meas_scanmate_pro_setstp(int unit, int what, unsigned int value) {
+EXPORT int meas_scanmate_pro_setstp(int unit, int what, unsigned int value) {
 
   char m, buf[512];
   int val;
@@ -225,7 +225,7 @@ int meas_scanmate_pro_setstp(int unit, int what, unsigned int value) {
  *
  */
 
-int meas_scanmate_pro_sfg_sync(int unit, int onoff) {
+EXPORT int meas_scanmate_pro_sfg_sync(int unit, int onoff) {
 
   char *buf;
 
@@ -249,7 +249,7 @@ int meas_scanmate_pro_sfg_sync(int unit, int onoff) {
  *
  */
 
-int meas_scanmate_pro_shg_sync(int unit, int onoff) {
+EXPORT int meas_scanmate_pro_shg_sync(int unit, int onoff) {
 
   char *buf;
 

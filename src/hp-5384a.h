@@ -21,7 +21,3 @@
 #define MEAS_HP5384_GATE_100MS  0   /* 0.1 s gate time */
 #define MEAS_HP5384_GATE_1S     1   /* 1 s gate time */
 #define MEAS_HP5384_GATE_10S    2   /* 10 s gate time */
-
-/* Prototypes */
-int meas_hp5384_init(int, int, int), meas_hp5384_attn(int, int), meas_hp5384_filt(int, int), meas_hp5384_level(int, int), meas_hp5384_gate(int, int), meas_hp5384_reset(int), meas_hp5384_error(int);
-double meas_hp5384_read(int, int);

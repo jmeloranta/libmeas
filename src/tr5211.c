@@ -26,7 +26,7 @@ static int tr5211_board[5];
  *
  */
 
-int meas_tr5211_init(int unit, int board, int dev) {
+EXPORT int meas_tr5211_init(int unit, int board, int dev) {
   
   if(tr5211_fd[unit] == -1) {
     tr5211_fd[unit] = meas_gpib_open(board, dev);
@@ -45,7 +45,7 @@ int meas_tr5211_init(int unit, int board, int dev) {
  *
  */
 
-double meas_tr5211_read(int unit) {
+EXPORT double meas_tr5211_read(int unit) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
   double freq;
