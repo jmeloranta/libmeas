@@ -7,8 +7,11 @@
 
 #define SCALE 2
 
-unsigned char r[640 * 480], g[640 * 480], b[640 * 480];
-unsigned char ro[SCALE * SCALE * 640 * 480], go[SCALE * SCALE * 640 * 480], bo[SCALE * SCALE * 640 * 480];
+#define HEIGHT 640
+#define WIDTH 480
+
+unsigned char r[HEIGHT * WIDTH], g[HEIGHT * WIDTH], b[HEIGHT * WIDTH];
+unsigned char ro[SCALE * SCALE * HEIGHT * WIDTH], go[SCALE * SCALE * HEIGHT * WIDTH], bo[SCALE * SCALE * HEIGHT * WIDTH];
 
 int main(int argc, char **argv) {
 
@@ -28,11 +31,11 @@ int main(int argc, char **argv) {
   printf("Running... press ctrl-c to stop.\n");
   tstep *= 1E-9;
   t0 *= 1E-9;
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE * 640, SCALE * 480, 0, "video");
+  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE * HEIGHT, SCALE * WIDTH, 0, "video");
   meas_bnc565_init(0, 0, BNC565);
   surelite_qswitch(220E-6);
   minilite_qswitch(157E-6);
-  fd = meas_video_open("/dev/video0");
+  fd = meas_video_open("/dev/video0", WIDTH, HEIGHT);
   surelite_delay(0.0);
   minilite_delay(delay);
   laser_set_delays();
@@ -54,7 +57,7 @@ int main(int argc, char **argv) {
     minilite_delay(delay);// flash
     laser_set_delays();
     meas_video_read_rgb(fd, r, g, b, aves);
-    meas_graphics_scale_rgb(r, g, b, 640, 480, SCALE, ro, go, bo);
+    meas_graphics_scale_rgb(r, g, b, HEIGHT, WIDTH, SCALE, ro, go, bo);
     meas_graphics_update_image(0, ro, go, bo);
     meas_graphics_update();
     sprintf(filename, "%s-%le.img", filebase, delay);
@@ -63,9 +66,9 @@ int main(int argc, char **argv) {
 	fprintf(stderr, "Error writing file.\n");
 	exit(1);
       }
-      fwrite((void *) r, sizeof(unsigned char) * 640 * 480, 1, fp);
-      fwrite((void *) g, sizeof(unsigned char) * 640 * 480, 1, fp);
-      fwrite((void *) b, sizeof(unsigned char) * 640 * 480, 1, fp);
+      fwrite((void *) r, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
+      fwrite((void *) g, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
+      fwrite((void *) b, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
       fclose(fp);
     }
   }

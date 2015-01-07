@@ -15,7 +15,10 @@
 #define LENGTH 20E-6
 #endif
 
-unsigned char r[640 * 480], g[640 * 480], b[640 * 480];
+#define HEIGHT 640
+#define WIDTH 480
+
+unsigned char r[HEIGHT * WIDTH], g[HEIGHT * WIDTH], b[HEIGHT * WIDTH];
 
 int main(int argc, char **argv) {
 
@@ -38,12 +41,12 @@ int main(int argc, char **argv) {
   tstep *= 1E-9;
   t0 *= 1E-9;
   laser_delay *= 1E-9;
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 640, 480, 0, "video");
+  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, HEIGHT, WIDTH, 0, "video");
   meas_bnc565_init(0, 0, BNC565);
   meas_dg535_init(0, 0, DG535);
   surelite_qswitch(290E-6);
   minilite_qswitch(157E-6);
-  fd = meas_video_open("/dev/video0");
+  fd = meas_video_open("/dev/video0", WIDTH, HEIGHT);
   surelite_delay(0.0);
   minilite_delay(laser_delay);
   laser_set_delays();
@@ -81,9 +84,9 @@ int main(int argc, char **argv) {
 	fprintf(stderr, "Error writing file.\n");
 	exit(1);
       }
-      fwrite((void *) r, sizeof(unsigned char) * 640 * 480, 1, fp);
-      fwrite((void *) g, sizeof(unsigned char) * 640 * 480, 1, fp);
-      fwrite((void *) b, sizeof(unsigned char) * 640 * 480, 1, fp);
+      fwrite((void *) r, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
+      fwrite((void *) g, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
+      fwrite((void *) b, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
       fclose(fp);
     }
   }

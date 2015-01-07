@@ -6,7 +6,10 @@
 #include <meas/meas.h>
 #include "csun.h"
 
-unsigned char r[640 * 480], g[640 * 480], b[640 * 480];
+#define HEIGHT 640
+#define WIDTH 480
+
+unsigned char r[HEIGHT * WIDTH], g[HEIGHT * WIDTH], b[HEIGHT * WIDTH];
 
 int main(int argc, char **argv) {
 
@@ -24,7 +27,7 @@ int main(int argc, char **argv) {
   }
   fscanf(fp , " %*d %le %le", &t0, &tstep);
   fclose(fp);
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 640, 480, 0, "video");
+  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, HEIGHT, WIDTH, 0, "video");
   for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
     sprintf(filename, "%s-%le.img", filebase, delay);
@@ -32,9 +35,9 @@ int main(int argc, char **argv) {
       fprintf(stderr, "Error reading file.\n");
       exit(1);
     }
-    fread((void *) r, sizeof(unsigned char) * 640 * 480, 1, fp);
-    fread((void *) g, sizeof(unsigned char) * 640 * 480, 1, fp);
-    fread((void *) b, sizeof(unsigned char) * 640 * 480, 1, fp);
+    fread((void *) r, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
+    fread((void *) g, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
+    fread((void *) b, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
     fclose(fp);
     meas_graphics_update_image(0, r, g, b);
     meas_graphics_update();
@@ -43,7 +46,7 @@ int main(int argc, char **argv) {
       fprintf(stderr, "Error writing file.\n");
       exit(1);
     }
-    meas_video_rgb_to_ppm(fp, r, g, b);
+    meas_video_rgb_to_ppm(fp, r, g, b, WIDTH, HEIGHT);
     fclose(fp);
     //sleep(1);
   }
