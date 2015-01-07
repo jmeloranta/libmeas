@@ -18,7 +18,6 @@ main() {
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE*WIDTH, SCALE*HEIGHT, 0, "test");
   fd = meas_video_open("/dev/video0", WIDTH, HEIGHT);
   meas_video_start(fd);
-  meas_video_set_frame_rate(fd, 2);
   while (1) {
     meas_video_read_rgb(fd, ri, gi, bi, 1);
     meas_graphics_scale_rgb(ri, gi, bi, WIDTH, HEIGHT, SCALE, ro, go, bo);
