@@ -3,11 +3,13 @@
  *
  * TODO: This assumes that the MMAP interface is available for the camera.
  *
+ * Not all cameras support all settings provided here. See v4l2-ctl --all -d /dev/video0
+ * for supported options for your camera.
+ *
  */
 
 #include "video.h"
 #include "misc.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -461,10 +463,139 @@ EXPORT int meas_video_vertical_flip(int cd, int value) {
 EXPORT int meas_video_set_frame_rate(int cd, int fps) {
   
   struct v4l2_streamparm sparm;
+
   bzero(&sparm, sizeof(sparm));
   sparm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   if (ioctl(devices[cd].fd, VIDIOC_G_PARM, &sparm) < 0) meas_err("video: read frame rate failed.");
   sparm.parm.capture.timeperframe.numerator = 1;
   sparm.parm.capture.timeperframe.denominator = fps;
   if (ioctl(devices[cd].fd, VIDIOC_S_PARM, &sparm) < 0) meas_err("video: set frame rate failed.");
+}
+
+/*
+ * Set brightness.
+ *
+ * cd    = video device.
+ * value = brightness value (see v4l2-ctl --all -d /dev/video0 for range).
+ *
+ * TODO: perhaps scale between 0 and 100 so that this would camera independent?
+ *
+ */
+
+EXPORT int meas_video_set_brightness(int cd, int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_BRIGHTNESS;
+  ctrl.value = value;
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set brightness.");
+}
+
+/*
+ * Set contrast.
+ *
+ * cd    = video device.
+ * value = contrast value (see v4l2-ctl --all -d /dev/video0 for range).
+ *
+ */
+
+EXPORT int meas_video_set_contrast(int cd, int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_CONTRAST;
+  ctrl.value = value;
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set contrast.");
+}
+
+/*
+ * Set saturation.
+ *
+ * cd    = video device.
+ * value = saturation value (see v4l2-ctl --all -d /dev/video0 for range).
+ *
+ */
+
+EXPORT int meas_video_set_saturation(int cd, int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_SATURATION;
+  ctrl.value = value;
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set saturation.");
+}
+
+/*
+ * Set hue.
+ *
+ * cd    = video device.
+ * value = hue value (see v4l2-ctl --all -d /dev/video0 for range).
+ *
+ */
+
+EXPORT int meas_video_set_hue(int cd, int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_HUE;
+  ctrl.value = value;
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set hue.");
+}
+
+/*
+ * Set gamma.
+ *
+ * cd    = video device.
+ * value = gamma value (see v4l2-ctl --all -d /dev/video0 for range).
+ *
+ */
+
+EXPORT int meas_video_set_gamma(int cd, int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_GAMMA;
+  ctrl.value = value;
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set gamma.");
+}
+
+/*
+ * Set power line frequency (flicker).
+ *
+ * cd    = video device.
+ * value = frequency value (see v4l2-ctl --all -d /dev/video0 for range).
+ *
+ */
+
+EXPORT int meas_video_set_power_line_frequency(int cd, int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_POWER_LINE_FREQUENCY;
+  ctrl.value = value;
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set power line frequency.");
+}
+
+/*
+ * Set sharpness.
+ *
+ * cd    = video device.
+ * value = sharpness value (see v4l2-ctl --all -d /dev/video0 for range).
+ *
+ */
+
+EXPORT int meas_video_set_sharpness(int cd, int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_SHARPNESS;
+  ctrl.value = value;
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set sharpness.");
 }
