@@ -466,5 +466,5 @@ EXPORT int meas_video_set_frame_rate(int cd, int fps) {
   if (ioctl(devices[cd].fd, VIDIOC_G_PARM, &sparm) < 0) meas_err("video: read frame rate failed.");
   sparm.parm.capture.timeperframe.numerator = 1;
   sparm.parm.capture.timeperframe.denominator = fps;
-  if (ioctl(devices[cd].fd, VIDIOC_S_PARM, &sparm) < 0) mea_err("video: set frame rate failed.");
+  if (ioctl(devices[cd].fd, VIDIOC_S_PARM, &sparm) < 0) meas_err("video: set frame rate failed.");
 }
