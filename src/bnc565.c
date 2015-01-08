@@ -182,7 +182,7 @@ EXPORT int meas_bnc565_do_trigger(int unit) {
  * channel = which channel (MEAS_BNC565_CHA, MEAS_BNC565_CHB, MEAS_BNC565_CHC, MEAS_BNC565_CHD)
  * mode = MEAS_BNC565_MODE_CONTINUOUS, MEAS_BNC565_MODE_DUTY_CYCLE, MEAS_BNC565_MODE_BURST, MEAS_BNC565_MODE_SINGLE_SHOT.
  * data1 = for MEAS_BNC565_MODE_DUTY_CYCLE: number of ON pulses; for MEAS_BNC565_MODE_BURST: number of pulses in burst; for others no value needed.
- * data2 = for MEAS_BNC565_MODE_DUTY_CYCLE: number of OFF pulses; for others no value needed.
+ * data2 = for MEAS_BNC565_MODE_DUTY_CYCLE: number of OFF pulses; for MEAS_BNC565_MODE_BURST: maximum number of pulses in burst; for others no value needed.
  * data3 = for MEAS_BNC565_MODE_BURST: delay between pulses in burst (= period); for others no value needed.
  * 
  * Note: The burst mode works only with external triggering.
@@ -200,6 +200,7 @@ EXPORT int meas_bnc565_mode(int unit, int channel, int mode, int data1, int data
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
     break;
   case MEAS_BNC565_MODE_DUTY_CYCLE:
+    /* TODO: there are probably some surprises here - just like in the burst mode - NOT TESTED! */
     sprintf(buf, ":PULSE%d:CMODE DCYC", channel);
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
     sprintf(buf, ":PULSE%d:PCO %d", channel, data1);
@@ -210,11 +211,17 @@ EXPORT int meas_bnc565_mode(int unit, int channel, int mode, int data1, int data
   case MEAS_BNC565_MODE_BURST: /* force ext trigger & set period */
     meas_gpib_write(bnc565_fd[unit], ":PULSE0:EXT:MODE TRIGGER", MEAS_BNC565_TERM); /* external triggering - just for safety as we set the period. Use meas_bnc565_trigger() to set the triggering parameters */
     sprintf(buf, ":PULSE0:PERIOD %lf", 1.0 / data3); /* %lf? */
+    data1 *= 2; data2 *= 2;                          /* Strange - the actual number of pulses output is only half */
+    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
+    sprintf(buf, ":PULSE0:CMODE BURS");
+    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);    
+    sprintf(buf, ":PULSE0:BCO %d", data2);           /* maximum number of pulses possible in burst */
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
     sprintf(buf, ":PULSE%d:CMODE BURS", channel);
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
-    sprintf(buf, ":PULSE%d:BCO %d", channel, data1);
+    sprintf(buf, ":PULSE%d:BCO %d", channel, data1);           /* number of pulses in a burst for a given channel */
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
+    /* Note: To get a channel which outputs only one pulse, set it to burst and the # of pulses to 1 */
     break;
   case MEAS_BNC565_MODE_SINGLE_SHOT:
     sprintf(buf, ":PULSE%d:CMODE SING", channel);
