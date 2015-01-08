@@ -3,7 +3,7 @@
  *
  */
 
-/* Lasers on BNC565 */
+/* Lasers on BNC565 A/B = surelite, C/D = minilite */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,12 +50,12 @@ int main(int argc, char **argv) {
   meas_bnc565_init(0, 0, BNC565);   /* sure lite on A & B */
   meas_dg535_init(0, 0, DG535);     /* PI-MAX on A, B, AB */
   /* 1. Ablation laser (Surelite) */
-  meas_bnc565_set(0, 1, 0, 0.0, 10.0E-6, 5.0, 1);        // Ch A
-  meas_bnc565_set(0, 2, 1, qsw, 10.0E-6, 5.0, 1);        // Ch B
-  meas_bnc565_enable(0, 1, 1);
-  meas_bnc565_enable(0, 2, 1);
-  meas_bnc565_mode(0, 1, 0, 0, 0); /* regular single shot */
-  meas_bnc565_mode(0, 2, 0, 0, 0); /* regular single shot */  
+  meas_bnc565_set(0, MEAS_BNC565_CHA, 0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);        // Ch A
+  meas_bnc565_set(0, MEAS_BNC565_CHB, 0, qsw, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);        // Ch B
+  meas_bnc565_enable(0, MEAS_BNC565_CHA, MEAS_BNC565_CHANNEL_ENABLE);
+  meas_bnc565_enable(0, MEAS_BNC565_CHB, MEAS_BNC565_CHANNEL_ENABLE);
+  meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0); /* regular single shot */
+  meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0); /* regular single shot */  
   meas_bnc565_trigger(0, MEAS_BNC565_TRIG_INT, 10.0, 0); /* 10 Hz (master) */
   /* 2. CCD */
   meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, 1E-6 + CCD_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
@@ -85,8 +85,8 @@ int main(int argc, char **argv) {
 
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE * NX, SCALE * NY, 0, "video");
   printf("Running... press ctrl-c to stop.\n");
-  meas_bnc565_run(0, 1);
-  meas_dg535_run(0, 1);
+  meas_bnc565_run(0, MEAS_BNC565_RUN);
+  meas_dg535_run(0, MEAS_DG535_RUN);
   for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
     meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, delay + CCD_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
@@ -107,6 +107,6 @@ int main(int argc, char **argv) {
       fclose(fp);
     }
   }
-  meas_bnc565_run(0, 0);
-  meas_dg535_run(0, 0);
+  meas_bnc565_run(0, MEAS_BNC565_STOP);
+  meas_dg535_run(0, MEAS_DG535_STOP);
 }

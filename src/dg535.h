@@ -33,3 +33,6 @@
 #define MEAS_DG535_TRIG_FALL 0
 #define MEAS_DG535_TRIG_RISE 1
 
+/* Run/Stop state */
+#define MEAS_DG535_STOP 0
+#define MEAS_DG535_RUN  1

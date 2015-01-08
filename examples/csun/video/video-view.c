@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <meas/meas.h>
-#include "csun.h"
 
 #define HEIGHT 640
 #define WIDTH 480

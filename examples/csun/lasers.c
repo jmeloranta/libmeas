@@ -5,11 +5,6 @@
  *
  */
 
-#include <stdio.h>
-#include <math.h>
-#include "csun.h"
-#include <meas/meas.h>
-
 static double surelite_qswitch_val = 300.0E-6; /* sec */
 static double surelite_delay_val = 0.0; /* sec */
 static double minilite_qswitch_val = 300.0E-6; /* sec */
@@ -48,14 +43,14 @@ void minilite_delay(double x) {
 
 void laser_stop() {
 
-  meas_bnc565_run(0, 0);
+  meas_bnc565_run(0, MEAS_BNC565_STOP);
 }
 
 void laser_start() {
 
   /* Program the external trigger */
-  meas_bnc565_trigger(0, 0, 1.0, 0); /* Trigger at 2.0 V and rising edge */
-  meas_bnc565_run(0, 1);
+  meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 1.0, MEAS_BNC565_TRIG_RISE); /* Trigger at 1.0 V and rising edge */
+  meas_bnc565_run(0, MEAS_BNC565_RUN);
 }
 
 void laser_set_delays() {
@@ -69,27 +64,27 @@ void laser_set_delays() {
 
   if(tot_minilite > tot_surelite) { /* minilite goes first */
     /* Surelite */
-    meas_bnc565_set(0, 1, 0, diff, 10.0E-6, 5.0, 1); /* negative logic / TTL */
-    meas_bnc565_set(0, 2, 1, surelite_qswitch_val, 10.0E-6, 5.0, 1);
+    meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, diff, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
+    meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, surelite_qswitch_val, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
     /* Minilite */
-    meas_bnc565_set(0, 3, 0, 0.0, 10.0E-6, 5.0, 0); /* positive logic / TTL */
-    meas_bnc565_set(0, 4, 3, minilite_qswitch_val, 10.0E-6, 5.0, 0);    
+    meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
+    meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_CHC, minilite_qswitch_val, 10.0E-6, 5.0, MEAS_BNC565_POL_NORM);
   } else { /* Surelite goes first */
     /* Surelite */
-    meas_bnc565_set(0, 1, 0, 0.0, 10.0E-6, 5.0, 1); /* negative logic / TTL */
-    meas_bnc565_set(0, 2, 1, surelite_qswitch_val, 10.0E-6, 5.0, 1);
+    meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
+    meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, surelite_qswitch_val, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
     /* Minilite */
-    meas_bnc565_set(0, 3, 0, diff, 10.0E-6, 5.0, 0); /* positive logic / TTL */
-    meas_bnc565_set(0, 4, 3, minilite_qswitch_val, 10.0E-6, 5.0, 0);    
+    meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, diff, 10.0E-6, 5.0, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
+    meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_CHC, minilite_qswitch_val, 10.0E-6, 5.0, MEAS_BNC565_POL_NORM);
   }
   /* Enable channels */
-  meas_bnc565_enable(0, 1, 1);
-  meas_bnc565_enable(0, 2, 1);
-  meas_bnc565_enable(0, 3, 1);
-  meas_bnc565_enable(0, 4, 1);
+  meas_bnc565_enable(0, MEAS_BNC565_CHA, MEAS_BNC565_CHANNEL_ENABLE);
+  meas_bnc565_enable(0, MEAS_BNC565_CHB, MEAS_BNC565_CHANNEL_ENABLE);
+  meas_bnc565_enable(0, MEAS_BNC565_CHC, MEAS_BNC565_CHANNEL_ENABLE);
+  meas_bnc565_enable(0, MEAS_BNC565_CHD, MEAS_BNC565_CHANNEL_ENABLE);
   /* modes */
-  meas_bnc565_mode(0, 1, 0, 0, 0); /* regular single shot */
-  meas_bnc565_mode(0, 2, 0, 0, 0); /* regular single shot */
-  meas_bnc565_mode(0, 3, 0, 0, 0); /* regular single shot */
-  meas_bnc565_mode(0, 4, 0, 0, 0); /* regular single shot */
+  meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0); /* regular single shot */
+  meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0); /* regular single shot */
+  meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0); /* regular single shot */
+  meas_bnc565_mode(0, MEAS_BNC565_CHD, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0); /* regular single shot */
 }

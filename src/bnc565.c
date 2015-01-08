@@ -51,7 +51,7 @@ EXPORT int meas_bnc565_set(int unit, int channel, int origin, double delay, doub
 
   char buf[512], *src;
 
-  if(bnc565_fd[unit] == -1 || channel < MEAS_BNC565_CHA || channel > MEAS_BNC565_CHD) meas_err("meas_bnc565: non-existent unit.");
+  if(bnc565_fd[unit] == -1 || channel < MEAS_BNC565_CHA || channel > MEAS_BNC565_CHD) meas_err("meas_bnc565: non-existent unit or illegal channel.");
   switch(origin) {
   case 0: src = "T0"; break;
   case 1: src = "CHA"; break;
@@ -141,43 +141,6 @@ EXPORT int meas_bnc565_run(int unit, int mode) {
 }
 
 /*
- * Set number of triggers the channel is on & off (i.e., the duty cycle mode).
- *
- * 1 = A, 2 = B, 3 = C, 4 = D.
- * 
- * unit    = Unit to be addressed.
- * channel = Channel (MEAS_BNC565_CHA, MEAS_BNC565_CHB, MEAS_BNC565_CHC,
- *           MEAS_BNC565_CHD).
- * mode    = operation mode; MEAS_BNC565_SS = single shot,
- *           MEAS_BNC565_DC = duty cycle on/off.
- * on      = # of cycles on.
- * off     = # of cycles off.
- *
- * Note that this behaves differently from DG535 function.
- * TODO: Add software trigger
- *
- */
-
-EXPORT int meas_bnc565_mode(int unit, int channel, int mode, int on, int off) {
-
-  char buf[512];
-
-  if(bnc565_fd[unit] == -1) meas_err("meas_bnc565: non-existent unit.");
-  if(mode == MEAS_BNC565_MODE_SS) { /* regular single shot */
-    sprintf(buf, ":PULSE%d:CMODE NORMAL", channel);
-    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
-  } else { /* duty cycle with on/off */
-    sprintf(buf, ":PULSE%d:CMODE DCYCLE", channel);
-    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
-    sprintf(buf, ":PULSE%d:PCO %d", channel, on);
-    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
-    sprintf(buf, ":PULSE%d:OCO %d", channel, off);
-    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
-  }
-  return 0;
-}
-
-/*
  * Enable or disable a given channel.
  *
  * unit    = Unit to be addressed.
@@ -211,3 +174,55 @@ EXPORT int meas_bnc565_do_trigger(int unit) {
   /* TODO */
   return -1;
 }
+
+/*
+ * Program channel mode.
+ *
+ * unit = Unit to be set up.
+ * channel = which channel (MEAS_BNC565_CHA, MEAS_BNC565_CHB, MEAS_BNC565_CHC, MEAS_BNC565_CHD)
+ * mode = MEAS_BNC565_MODE_CONTINUOUS, MEAS_BNC565_MODE_DUTY_CYCLE, MEAS_BNC565_MODE_BURST, MEAS_BNC565_MODE_SINGLE_SHOT.
+ * data1 = for MEAS_BNC565_MODE_DUTY_CYCLE: number of ON pulses; for MEAS_BNC565_MODE_BURST: number of pulses in burst; for others no value needed.
+ * data2 = for MEAS_BNC565_MODE_DUTY_CYCLE: number of OFF pulses; for others no value needed.
+ * data3 = for MEAS_BNC565_MODE_BURST: delay between pulses in burst (= period); for others no value needed.
+ * 
+ * Note: The burst mode works only with external triggering.
+ *
+ */
+
+EXPORT int meas_bnc565_mode(int unit, int channel, int mode, int data1, int data2, double data3) {
+
+  char buf[512];
+
+  if(bnc565_fd[unit] == -1 || channel < MEAS_BNC565_CHA || channel > MEAS_BNC565_CHD) meas_err("meas_bnc565: non-existent unit or illegal channel.");
+  switch(mode) {
+  case MEAS_BNC565_MODE_CONTINUOUS:
+    sprintf(buf, ":PULSE%d:CMODE NORM", channel);
+    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
+    break;
+  case MEAS_BNC565_MODE_DUTY_CYCLE:
+    sprintf(buf, ":PULSE%d:CMODE DCYC", channel);
+    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
+    sprintf(buf, ":PULSE%d:PCO %d", channel, data1);
+    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
+    sprintf(buf, ":PULSE%d:OCO %d", channel, data2);
+    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
+    break;
+  case MEAS_BNC565_MODE_BURST: /* force ext trigger & set period */
+    meas_gpib_write(bnc565_fd[unit], ":PULSE0:EXT:MODE TRIGGER", MEAS_BNC565_TERM); /* external triggering - just for safety as we set the period. Use meas_bnc565_trigger() to set the triggering parameters */
+    sprintf(buf, ":PULSE0:PERIOD %lf", 1.0 / data3); /* %lf? */
+    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
+    sprintf(buf, ":PULSE%d:CMODE BURS", channel);
+    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
+    sprintf(buf, ":PULSE%d:BCO %d", channel, data1);
+    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
+    break;
+  case MEAS_BNC565_MODE_SINGLE_SHOT:
+    sprintf(buf, ":PULSE%d:CMODE SING", channel);
+    meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
+    break;
+  default:
+    meas_err("meas_bnc565: illegal channel mode.");
+  }
+  return 0;
+}
+

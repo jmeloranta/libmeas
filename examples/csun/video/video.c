@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <meas/meas.h>
-#include "csun.h"
+#include "conf.h"
+
+#include "../lasers.c"
 
 #define SCALE 2
 
