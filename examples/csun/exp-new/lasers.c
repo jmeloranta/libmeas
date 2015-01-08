@@ -103,8 +103,8 @@ void laser_set_delays() {
   meas_bnc565_enable(0, 3, 1);
   meas_bnc565_enable(0, 4, 1);
   /* modes */
-  meas_bnc565_mode(0, 1, 0, 0, 0); /* regular single shot */
-  meas_bnc565_mode(0, 2, 0, 0, 0); /* regular single shot */
-  meas_bnc565_mode(0, 3, 0, 0, 0); /* regular single shot */
-  meas_bnc565_mode(0, 4, 0, 0, 0); /* regular single shot */
+  meas_bnc565_mode(0, 1, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0); /* regular single shot */
+  meas_bnc565_mode(0, 2, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0); /* regular single shot */
+  meas_bnc565_mode(0, 3, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0); /* regular single shot */
+  meas_bnc565_mode(0, 4, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0); /* regular single shot */
 }
