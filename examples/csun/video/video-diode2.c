@@ -44,6 +44,7 @@ int main(int argc, char **argv) {
   scanf(" %d", &diode_npulses);
   printf("Delay between diode pulses (microsec.): ");
   scanf(" %le", &diode_delay);
+  diode_delay *= 1E-6;
 
   printf("Running... press ctrl-c to stop.\n");
 
@@ -54,8 +55,8 @@ int main(int argc, char **argv) {
   meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 2.0, MEAS_BNC565_TRIG_RISE); /* external trigger (2 V) - 10 Hz from wavetek */
 
   meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
-  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHB, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
-  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_CHB, SURELITE_QSWITCH + SURELITE_DELAY, 1.0E-6, 5.0, MEAS_BNC565_POL_NORM);
+  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_T0, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
+  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, SURELITE_QSWITCH + SURELITE_DELAY, diode_length, 5.0, MEAS_BNC565_POL_NORM);
 
   meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_BURST, 1, diode_npulses, diode_delay);
   meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_BURST, 1, diode_npulses, diode_delay);
@@ -75,7 +76,7 @@ int main(int argc, char **argv) {
   }
   for(cur_time = t0; ; cur_time += tstep) {
     printf("Diode delay = %le s.\n", cur_time);
-    meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_CHB, SURELITE_QSWITCH + SURELITE_DELAY + cur_time, 1.0E-6, 5.0, MEAS_BNC565_POL_NORM);
+    meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, SURELITE_QSWITCH + SURELITE_DELAY + cur_time, diode_length, 5.0, MEAS_BNC565_POL_NORM);
     meas_video_start(fd);
     meas_video_read_rgb(fd, r, g, b, 1);
     meas_video_stop(fd);

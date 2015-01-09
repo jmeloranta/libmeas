@@ -210,7 +210,7 @@ EXPORT int meas_bnc565_mode(int unit, int channel, int mode, int data1, int data
     break;
   case MEAS_BNC565_MODE_BURST: /* force ext trigger & set period */
     meas_gpib_write(bnc565_fd[unit], ":PULSE0:EXT:MODE TRIGGER", MEAS_BNC565_TERM); /* external triggering - just for safety as we set the period. Use meas_bnc565_trigger() to set the triggering parameters */
-    sprintf(buf, ":PULSE0:PERIOD %lf", 1.0 / data3); /* %lf? */
+    sprintf(buf, ":PULSE0:PERIOD %lf", data3); /* %lf? */
     /*    data1 *= 2; data2 *= 2; */
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
     sprintf(buf, ":PULSE0:CMODE BURS");
