@@ -1,9 +1,10 @@
 /* 
  * Ablation laser on A/B @ BNC565.
- * Diode on C.
+ * Burst trigger output on C (-> DG535 burst generation).
+ * BNC565 driven by external trigger (pulse generator).
  *
- * BNC565 driven by external trigger (pulse generator)
- * so that pulse bursts can be generated on C.
+ * DG535 trigger in from BNC565 channel C. Generates a burst
+ * of flash pulses on A+B.
  *
  */
 
@@ -49,20 +50,34 @@ int main(int argc, char **argv) {
   printf("Running... press ctrl-c to stop.\n");
 
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, HEIGHT, WIDTH, 0, "video");
+
   meas_bnc565_init(0, 0, BNC565);
-  meas_bnc565_run(0, MEAS_BNC565_STOP); /* stop unit */
+  meas_dg535_init(0, 0, DG535);
 
-  meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 2.0, MEAS_BNC565_TRIG_RISE); /* external trigger (2 V) - 10 Hz from wavetek */
+  meas_bnc565_run(0, MEAS_BNC565_STOP);
+  meas_dg535_run(0, MEAS_DG535_STOP);
 
-  meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
-  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_T0, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
-  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, SURELITE_QSWITCH + SURELITE_DELAY, diode_length, 5.0, MEAS_BNC565_POL_NORM);
+  /* DG535 is the master clock at 10 Hz */
+  meas_dg535_trigger(0, MEAS_DG535_TRIG_INT, 10.0, 0, MEAS_DG535_IMP_50);
 
-  meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_BURST, 1, diode_npulses, diode_delay);
-  meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_BURST, 1, diode_npulses, diode_delay);
-  meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_BURST, diode_npulses, diode_npulses, diode_delay);
+  /* Surelite triggering */
+  meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, 0.0, 5.0, MEAS_DG535_POL_INV, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_CHA, 10E-6, 5.0, MEAS_DG535_POL_INV, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, 5.0, MEAS_DG535_POL_INV, MEAS_DG535_IMP_50);
+
+  /* BNC565 triggering */
+  meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, SURELITE_QSWITCH + SURELITE_DELAY + t0, 5.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_CHC, 10E-6, 5.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHCD, 0, 0.0, 5.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+
+  /* BNC565 to external trigger */
+  meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 2.0, MEAS_BNC565_TRIG_RISE);
+
+  meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
+  meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_BURST, diode_npulses, diode_npulses, diode_delay);
 
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
+  meas_dg535_run(0, MEAS_DG535_RUN); /* start unit */
 
   fd = meas_video_open("/dev/video0", WIDTH, HEIGHT);
   if(filename[0] != '0') {
@@ -76,8 +91,8 @@ int main(int argc, char **argv) {
   }
   for(cur_time = t0; ; cur_time += tstep) {
     printf("Diode delay = %le s.\n", cur_time);
-    meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, SURELITE_QSWITCH + SURELITE_DELAY + cur_time, diode_length, 5.0, MEAS_BNC565_POL_NORM);
-    meas_video_start(fd);
+    meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, SURELITE_QSWITCH + SURELITE_DELAY + cur_time, 5.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+     meas_video_start(fd);
     meas_video_read_rgb(fd, r, g, b, 1);
     meas_video_stop(fd);
     meas_graphics_update_image(0, r, g, b);

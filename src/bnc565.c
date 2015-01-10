@@ -213,9 +213,9 @@ EXPORT int meas_bnc565_mode(int unit, int channel, int mode, int data1, int data
     sprintf(buf, ":PULSE0:PERIOD %lf", data3); /* %lf? */
     /*    data1 *= 2; data2 *= 2; */
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
-    sprintf(buf, ":PULSE0:CMODE BURS");
+    sprintf(buf, ":CMODE BURS");
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);    
-    sprintf(buf, ":PULSE0:BCO %d", data2);           /* maximum number of pulses possible in burst */
+    sprintf(buf, ":BCO %d", data2);           /* maximum number of pulses possible in burst */
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
     sprintf(buf, ":PULSE%d:CMODE BURS", channel);
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
@@ -232,4 +232,3 @@ EXPORT int meas_bnc565_mode(int unit, int channel, int mode, int data1, int data
   }
   return 0;
 }
-
