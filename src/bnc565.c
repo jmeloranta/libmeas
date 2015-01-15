@@ -115,7 +115,7 @@ EXPORT int meas_bnc565_trigger(int unit, int source, double data, int edge) {
     meas_gpib_write(bnc565_fd[unit], ":PULSE0:EXT:MODE TRIGGER", MEAS_BNC565_TERM); /* external triggering */
     sprintf(buf, ":PULSE0:EXT:LEVEL %lf", data); /* trigger level (V) */
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
-    sprintf(buf, ":PULSE0:EXT:EDGE %s", edge?"FALLING":"RISING");
+    sprintf(buf, ":PULSE0:EXT:EDGE %s", (edge==MEAS_BNC565_TRIG_FALL)?"FALLING":"RISING");
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
     meas_gpib_write(bnc565_fd[unit], ":PULSE0:EXT:POLARITY HIGH", MEAS_BNC565_TERM);
   }
@@ -213,9 +213,9 @@ EXPORT int meas_bnc565_mode(int unit, int channel, int mode, int data1, int data
     sprintf(buf, ":PULSE0:PERIOD %lf", data3); /* %lf? */
     /*    data1 *= 2; data2 *= 2; */
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
-    sprintf(buf, ":CMODE BURS");
+    sprintf(buf, ":PULSE0:MODE BURS");
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);    
-    sprintf(buf, ":BCO %d", data2);           /* maximum number of pulses possible in burst */
+    sprintf(buf, ":PULSE0:BCO %d", data2);           /* maximum number of pulses possible in burst */
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
     sprintf(buf, ":PULSE%d:CMODE BURS", channel);
     meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);

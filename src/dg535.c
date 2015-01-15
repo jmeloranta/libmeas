@@ -72,23 +72,22 @@ EXPORT int meas_dg535_set(int unit, int channel, int origin, double delay, doubl
   if(level > 5.1)
     meas_err("meas_dg535_set: Output level greater than 5 V requested! Won't do.");
 #endif
-  sprintf(buf, "OA %d,+%.1lf", channel, level);
+  sprintf(buf, "TZ %d,%d", channel, imp);   /* impedance */
+  meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
+  sprintf(buf, "OM %d,3", channel);    /* variable mode */
+  meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
+  sprintf(buf, "OO %d,0", channel);    /* offset = 0 V */
+  meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
+  sprintf(buf, "OA %d,+%.1lf", channel, level);   /* output level (V) (maximum 4 volts?) */
   meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
   vals[unit][channel] = level;
-  sprintf(buf, "OO %d,0", channel);
-  meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
-  sprintf(buf, "OM %d,3", channel);
-  meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
-  
+
   /* Polarity */
   if(channel != MEAS_DG535_T0 && channel != MEAS_DG535_CHAB && channel != MEAS_DG535_CHCD) {
     sprintf(buf, "OP %d,%d", channel, polarity);
     meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);  
   }
 
-  /* Impedance */
-  sprintf(buf, "TZ %d,%d", channel, imp);
-  meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
   return 0;
 }
 

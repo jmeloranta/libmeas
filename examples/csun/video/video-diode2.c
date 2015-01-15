@@ -61,14 +61,14 @@ int main(int argc, char **argv) {
   meas_dg535_trigger(0, MEAS_DG535_TRIG_INT, 10.0, 0, MEAS_DG535_IMP_50);
 
   /* Surelite triggering */
-  meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, 0.0, 5.0, MEAS_DG535_POL_INV, MEAS_DG535_IMP_50);
-  meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_CHA, 10E-6, 5.0, MEAS_DG535_POL_INV, MEAS_DG535_IMP_50);
-  meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, 5.0, MEAS_DG535_POL_INV, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, 0.0, 4.0, MEAS_DG535_POL_INV, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_CHA, 10E-6, 4.0, MEAS_DG535_POL_INV, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, 4.0, MEAS_DG535_POL_INV, MEAS_DG535_IMP_50);
 
   /* BNC565 triggering */
-  meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, SURELITE_QSWITCH + SURELITE_DELAY + t0, 5.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-  meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_CHC, 10E-6, 5.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-  meas_dg535_set(0, MEAS_DG535_CHCD, 0, 0.0, 5.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, SURELITE_QSWITCH + SURELITE_DELAY + t0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_CHC, 10E-6, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHCD, 0, 0.0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
 
   /* BNC565 to external trigger */
   meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 2.0, MEAS_BNC565_TRIG_RISE);
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
   }
   for(cur_time = t0; ; cur_time += tstep) {
     printf("Diode delay = %le s.\n", cur_time);
-    meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, SURELITE_QSWITCH + SURELITE_DELAY + cur_time, 5.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+    meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, SURELITE_QSWITCH + SURELITE_DELAY + cur_time, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
      meas_video_start(fd);
     meas_video_read_rgb(fd, r, g, b, 1);
     meas_video_stop(fd);
