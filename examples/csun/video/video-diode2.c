@@ -6,6 +6,9 @@
  * DG535 trigger in from BNC565 channel C. Generates a burst
  * of flash pulses on A+B.
  *
+ * Note: Surelite q-switch is set automagically by the laser.
+ *       This means that it will output at full power!
+ *
  */
 
 #include <stdio.h>
@@ -14,7 +17,7 @@
 #include <meas/meas.h>
 #include "conf.h"
 
-#define SURELITE_QSWITCH 290E-6 
+#define SURELITE_FIRE_DELAY 180.0E-6
 
 #define HEIGHT 640
 #define WIDTH 480
@@ -66,7 +69,7 @@ int main(int argc, char **argv) {
   meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, 4.0, MEAS_DG535_POL_INV, MEAS_DG535_IMP_50);
 
   /* BNC565 triggering */
-  meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, SURELITE_QSWITCH + SURELITE_DELAY + t0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, SURELITE_FIRE_DELAY + t0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_CHC, 10E-6, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   meas_dg535_set(0, MEAS_DG535_CHCD, 0, 0.0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
 
@@ -91,7 +94,7 @@ int main(int argc, char **argv) {
   }
   for(cur_time = t0; ; cur_time += tstep) {
     printf("Diode delay = %le s.\n", cur_time);
-    meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, SURELITE_QSWITCH + SURELITE_DELAY + cur_time, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+    meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, SURELITE_FIRE_DELAY + cur_time, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
      meas_video_start(fd);
     meas_video_read_rgb(fd, r, g, b, 1);
     meas_video_stop(fd);
