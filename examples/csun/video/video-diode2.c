@@ -17,7 +17,7 @@
 #include <meas/meas.h>
 #include "conf.h"
 
-#define SURELITE_FIRE_DELAY 180.0E-6
+#define SURELITE_FIRE_DELAY 205.5E-6
 
 #define HEIGHT 640
 #define WIDTH 480
