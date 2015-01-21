@@ -14,21 +14,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <signal.h>
 #include <meas/meas.h>
 #include "conf.h"
 
-#define SURELITE_FIRE_DELAY 205.5E-6
+#define SURELITE_FIRE_DELAY 189.9E-6
 
 #define HEIGHT 640
 #define WIDTH 480
 
 unsigned char r[HEIGHT * WIDTH], g[HEIGHT * WIDTH], b[HEIGHT * WIDTH];
 
+static void sig_handler(int x) {
+
+  meas_bnc565_run(0, MEAS_BNC565_STOP);
+  meas_dg535_run(0, MEAS_DG535_STOP);
+  exit(0);
+}
+
 int main(int argc, char **argv) {
 
   double tstep, cur_time, t0, diode_drive, diode_length, diode_delay;
   char filebase[512], filename[512];
-  int fd, diode_npulses;
+  int fd, diode_npulses, nimg = 0, brightness;
   FILE *fp;
 
   printf("Enter output file name (0 = no save): ");
@@ -49,6 +57,8 @@ int main(int argc, char **argv) {
   printf("Delay between diode pulses (microsec.): ");
   scanf(" %le", &diode_delay);
   diode_delay *= 1E-6;
+  printf("Camera brightness (-16 to 16): ");
+  scanf(" %d", &brightness);
 
   printf("Running... press ctrl-c to stop.\n");
 
@@ -83,7 +93,10 @@ int main(int argc, char **argv) {
   meas_dg535_run(0, MEAS_DG535_RUN); /* start unit */
 
   fd = meas_video_open("/dev/video0", WIDTH, HEIGHT);
-  if(filename[0] != '0') {
+  meas_video_set_exposure_mode(fd, 1);  /* manual exposure */
+  meas_video_exposure_time(fd, 1250);  /* exposure time (removes the scanline artefact) */
+  meas_video_set_brightness(fd, brightness);
+  if(filebase[0] != '0') {
     sprintf(filename, "%s.info", filebase);
     if(!(fp = fopen(filename, "w"))) {
       fprintf(stderr, "Can't open file for writing.\n");
@@ -92,16 +105,23 @@ int main(int argc, char **argv) {
     fprintf(fp, "%.15le %.15le %lf %.15le %d %.15le\n", t0, tstep, diode_drive, diode_length, diode_npulses, diode_delay);
     fclose(fp);
   }
+  printf("Hit ctrl-C to exit...\n");
+
+  signal(SIGINT, &sig_handler);
+
   for(cur_time = t0; ; cur_time += tstep) {
     printf("Diode delay = %le s.\n", cur_time);
     meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, SURELITE_FIRE_DELAY + cur_time, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-     meas_video_start(fd);
+    meas_video_start(fd);
     meas_video_read_rgb(fd, r, g, b, 1);
     meas_video_stop(fd);
     meas_graphics_update_image(0, r, g, b);
     meas_graphics_update();
-    sprintf(filename, "%s-%le.img", filebase, diode_delay);
-    if(filename[0] != '0') {
+    if(filebase[0] != '0') {
+      if(tstep != 0.0) 
+	sprintf(filename, "%s-%le.img", filebase, diode_delay);
+      else
+	sprintf(filename, "%s-%le-%d.img", filebase, diode_delay, nimg);
       if(!(fp = fopen(filename, "w"))) {
 	fprintf(stderr, "Error writing file.\n");
 	exit(1);
@@ -109,6 +129,16 @@ int main(int argc, char **argv) {
       fwrite((void *) r, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
       fwrite((void *) g, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
       fwrite((void *) b, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
+      fclose(fp);
+      if(tstep != 0.0) 
+	sprintf(filename, "%s-%le.ppm", filebase, diode_delay);
+      else
+	sprintf(filename, "%s-%le-%d.ppm", filebase, diode_delay, nimg++);
+      if(!(fp = fopen(filename, "w"))) {
+	fprintf(stderr, "Error writing file.\n");
+	exit(1);
+      }
+      meas_video_rgb_to_ppm(fp, r, g, b, WIDTH, HEIGHT);
       fclose(fp);
     }
   }

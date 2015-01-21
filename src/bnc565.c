@@ -80,8 +80,10 @@ EXPORT int meas_bnc565_set(int unit, int channel, int origin, double delay, doub
 
   /* Level (remove if necessary - just for safety) */
   /* TODO: add a global variable that can be used to override this */
+#if 0
   if(level > 5.1)
     meas_err("meas_bnc565: Output level greater than 5 V requested! Won't do.");
+#endif
   sprintf(buf, ":PULSE%d:OUTPUT:MODE ADJUSTABLE", channel);
   meas_gpib_write(bnc565_fd[unit], buf, MEAS_BNC565_TERM);
   sprintf(buf, ":PULSE%d:OUTPUT:AMPLITUDE %lf", channel, level);

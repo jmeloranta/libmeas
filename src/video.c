@@ -358,10 +358,28 @@ EXPORT int meas_video_auto_white_balance(int cd, int value) {
 }
 
 /*
+ * Set exposure mode.
+ *
+ * cd = video device descriptor from meas_video_open().
+ * value = 0 - 3 (see your camera docs).
+ *
+ */
+
+EXPORT int meas_video_set_exposure_mode(int cd, int value) {
+
+  struct v4l2_control ctrl;
+
+  bzero(&ctrl, sizeof(ctrl));
+  ctrl.id = V4L2_CID_EXPOSURE_AUTO;
+  ctrl.value = value;
+  if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set exposure mode.");
+}
+
+/*
  * Set exposure time.
  *
  * cd = video device descriptor from meas_video_open().
- * value = -1 (auto on), -2 (auto off), other values are exposure time.
+ * value = exposure time.
  *
  */
 
@@ -370,19 +388,8 @@ EXPORT int meas_video_exposure_time(int cd, int value) {
   struct v4l2_control ctrl;
 
   bzero(&ctrl, sizeof(ctrl));
-  switch(value) {
-  case -1:
-    ctrl.id = V4L2_CID_EXPOSURE_AUTO;
-    ctrl.value = 1;
-    break;
-  case -2:
-    ctrl.id = V4L2_CID_EXPOSURE_AUTO;
-    ctrl.value = 0;
-    break;
-  default:
-    ctrl.id = V4L2_CID_EXPOSURE;
-    ctrl.value = value;
-  }
+  ctrl.id = V4L2_CID_EXPOSURE_ABSOLUTE;   /* What is the difference between V4L2_CID_EXPOSURE and V4L2_CID_EXPOSURE_ABSOLUTE ? */
+  ctrl.value = value;
   if (ioctl(devices[cd].fd, VIDIOC_S_CTRL, &ctrl) < 0) meas_err("video: could not set exposure time.");
 }
 
