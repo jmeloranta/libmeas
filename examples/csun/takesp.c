@@ -18,15 +18,15 @@ void quit() {
 int main(int argc, char **argv) {
 
   double *x, *y;
-  int i, size, mode, con = 0;
+  int i, xsize, mode, con = 0;
   char dummy[512];
 
-  size = meas_newport_is_size();
-  if(!(x = (double *) malloc(sizeof(double) * size))) {
+  xsize = meas_newport_is_size();
+  if(!(x = (double *) malloc(sizeof(double) * xsize))) {
     fprintf(stderr, "Memory allocation failure.");
     exit(1);
   }
-  if(!(y = (double *) malloc(sizeof(double) * size))) {
+  if(!(y = (double *) malloc(sizeof(double) * xsize))) {
     fprintf(stderr, "Memory allocation failure.");
     exit(1);
   }
@@ -43,18 +43,18 @@ int main(int argc, char **argv) {
   }
 
   meas_newport_is_init();
-  meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "takesp");
+  meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, xsize, "takesp");
 
   while(con) {
     meas_newport_is_read(atof(argv[1]), mode, atoi(argv[3]), y);
     
     /* for now (x = pixel #) */
-    for (i = 0; i < size; i++) {
+    for (i = 0; i < xsize; i++) {
       x[i] = meas_newport_is_calib(i);
-      printf("%le %le\n", x[i], y[i]);
+      //      printf("%le %le\n", x[i], y[i]);
     }
 
-    meas_graphics_update_xy(0, x, y, size);
+    meas_graphics_update_xy(0, x, y, xsize);
     meas_graphics_autoscale(0);
     meas_graphics_update();
   }
