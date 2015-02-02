@@ -18,12 +18,15 @@
 #include <meas/meas.h>
 #include "conf.h"
 
-#define SURELITE_FIRE_DELAY 189.9E-6
+#define SURELITE_FIRE_DELAY 189.9E-6   /* 189.9E-6 */
 
 #define HEIGHT 640
 #define WIDTH 480
 
+#define SCALE 2   /* 1 or 2 */
+
 unsigned char r[HEIGHT * WIDTH], g[HEIGHT * WIDTH], b[HEIGHT * WIDTH];
+unsigned char rs[HEIGHT * WIDTH * SCALE * SCALE], gs[HEIGHT * WIDTH * SCALE * SCALE], bs[HEIGHT * WIDTH * SCALE * SCALE];
 
 static void sig_handler(int x) {
 
@@ -62,7 +65,7 @@ int main(int argc, char **argv) {
 
   printf("Running... press ctrl-c to stop.\n");
 
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, HEIGHT, WIDTH, 0, "video");
+  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, HEIGHT*SCALE, WIDTH*SCALE, 0, "video");
 
   meas_bnc565_init(0, 0, BNC565);
   meas_dg535_init(0, 0, DG535);
@@ -94,7 +97,7 @@ int main(int argc, char **argv) {
 
   fd = meas_video_open("/dev/video0", WIDTH, HEIGHT);
   meas_video_set_exposure_mode(fd, 1);  /* manual exposure */
-  meas_video_exposure_time(fd, 1250);  /* exposure time (removes the scanline artefact) */
+  meas_video_exposure_time(fd, 1250);  /* exposure time (removes the scanline artefact; 1250 seems good) */
   meas_video_set_brightness(fd, brightness);
   if(filebase[0] != '0') {
     sprintf(filename, "%s.info", filebase);
@@ -115,7 +118,12 @@ int main(int argc, char **argv) {
     meas_video_start(fd);
     meas_video_read_rgb(fd, r, g, b, 1);
     meas_video_stop(fd);
-    meas_graphics_update_image(0, r, g, b);
+    if(SCALE == 2) {
+      meas_graphics_scale_rgb(r, g, b, HEIGHT, WIDTH, SCALE, rs, gs, bs);
+      meas_graphics_update_image(0, rs, gs, bs);
+    } else {
+      meas_graphics_update_image(0, r, g, b);
+    }
     meas_graphics_update();
     if(filebase[0] != '0') {
       if(tstep != 0.0) 
