@@ -19,7 +19,8 @@
 
 static struct window {
   int type;          /* not in use (0), 2D (1) or contour (3) */
-  int nx, ny, ns, maxns;        /* for 2-D ns indicates the data length */
+  int ns, maxns;        /* for 2-D ns indicates the data length */
+  int nx, ny;                /* Image size in pixels */
   unsigned char *img_data;   /* ordered: b, g, r, 0 */
   float *xvalues;
   char xtitle[MAX_LABEL];
@@ -79,6 +80,7 @@ EXPORT int meas_graphics_init(int win, int type, int nx, int ny, int maxns, char
   wins[win].nx = nx;
   wins[win].ny = ny;
   wins[win].ns = 0;
+  wins[win].maxns = maxns;
   switch(type) {
   case MEAS_GRAPHICS_XY:
     wins[win].form = fl_bgn_form(FL_NO_BOX, nx, ny);
@@ -333,7 +335,7 @@ EXPORT int meas_graphics_xautoscale(int win) {
     meas_err("meas_graphics_xautoscale: Illegal window type for autoscale.\n");
 
   tmp = wins[win].xvalues;
-  for(i = 0; i < wins[win].nx; i++) {
+  for(i = 0; i < wins[win].ns; i++) {
     if(tmp[i] < xmin) xmin = tmp[i];
     if(tmp[i] > xmax) xmax = tmp[i];
   }
@@ -366,7 +368,7 @@ EXPORT int meas_graphics_yautoscale(int win) {
     meas_err("meas_graphics_yautoscale: Illegal window type for autoscale.\n");
 
   tmp = wins[win].yvalues;
-  for(i = 0; i < wins[win].nx; i++) {
+  for(i = 0; i < wins[win].ns; i++) {
     if(tmp[i] < ymin) ymin = tmp[i];
     if(tmp[i] > ymax) ymax = tmp[i];
   }
