@@ -11,8 +11,8 @@ install: video2
 video2: video2.o
 	$(CC) -o video2 video2.o $(LDFLAGS) $(LGPIB)
 
-viode2-diode: video2-diode.o
-	$(CC) -o video2-diode video2-diode.c $(LDFLAGS) $(LGPIB)
+video2-diode: video2-diode.o
+	$(CC) -o video2-diode video2-diode.o $(LDFLAGS) $(LGPIB)
 
 video2.o: video2.c
 video2-diode.o: video2-diode.c
@@ -23,4 +23,4 @@ video2-view: video2-view.o
 video2-view.o: video2-view.c
 
 clean:
-	-rm -f *.o *~ *.a video2 video2-view
+	-rm -f *.o *~ *.a video2 video2-view video2-diode
