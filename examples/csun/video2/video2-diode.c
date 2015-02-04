@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
 
   /* Init PI-MAX */
   meas_pi_max_init(TEMP);
-  meas_pi_max_speed_index(1);
+  meas_pi_max_speed_index(2);
   meas_pi_max_roi(0, NX-1, 1, 0, NY-1, 1);
   meas_pi_max_gain(gain);
 
