@@ -495,7 +495,7 @@ EXPORT int meas_graphics_convert_img_to_rgb(unsigned short *img, unsigned int nx
     }
     as -= lv;
     printf("libmeas: autoscale by %u\n", as);
-  }
+  } else lv = 0;
 
   for(i = 0; i < nx * ny; i++) {
     r[i] = (unsigned char) ((255.0 / (double) as) * (double) (img[i] - lv));
