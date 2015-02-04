@@ -485,18 +485,22 @@ EXPORT void meas_graphics_update_image_contour(int win, double *data) {
 EXPORT int meas_graphics_convert_img_to_rgb(unsigned short *img, unsigned int nx, unsigned int ny, unsigned char *r, unsigned char *g, unsigned char *b, unsigned short as) {
 
   unsigned int i;
+  unsigned short lv = 65535;
 
   if(!as) {
     as = 0;
-    for (i = 0; i < nx * ny; i++)
+    for (i = 0; i < nx * ny; i++) {
+      if(img[i] < lv) lv = img[i];
       if(img[i] > as) as = img[i];
+    }
+    as -= lv;
     printf("libmeas: autoscale by %u\n", as);
   }
 
   for(i = 0; i < nx * ny; i++) {
-    r[i] = (unsigned char) ((255.0 / (double) as) * (double) img[i]);
-    g[i] = (unsigned char) ((255.0 / (double) as) * (double) img[i]);
-    b[i] = (unsigned char) ((255.0 / (double) as) * (double) img[i]);
+    r[i] = (unsigned char) ((255.0 / (double) as) * (double) (img[i] - lv));
+    g[i] = (unsigned char) ((255.0 / (double) as) * (double) (img[i] - lv));
+    b[i] = (unsigned char) ((255.0 / (double) as) * (double) (img[i] - lv));
   }
   return 0;
 }
