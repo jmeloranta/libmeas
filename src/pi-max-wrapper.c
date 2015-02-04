@@ -458,7 +458,7 @@ EXPORT int meas_pi_max_read(int ave, unsigned short *dst) {
 /* TODO: Additional params required: gate gain, gate mode */
 
   static uns16 *data = NULL;
-  int16 exp_time = 100; /* ms (seems to work...) */
+  int16 exp_time = 5; /* ms (seems to work...) */
   uns32 size;
   int16 status;
   uns32 dummy;
