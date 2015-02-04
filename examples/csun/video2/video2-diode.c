@@ -19,8 +19,8 @@
 #include <signal.h>
 
 #define TEMP (-20.0)
-#define MINILITE_FIRE_DELAY 189.9E-6
-#define CCD_DELAY 1E-6    /* CCD trigger delay */
+#define MINILITE_FIRE_DELAY 179.8E-6
+#define CCD_DELAY 50.0E-9    /* CCD trigger delay */
 
 #define SCALE 2
 #define NX 512
@@ -90,19 +90,19 @@ int main(int argc, char **argv) {
   meas_dg535_set(0, MEAS_DG535_CHCD, 0, 0.0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   
   /* BNC565 to external trigger */
-  meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 1.0, MEAS_BNC565_TRIG_RISE);
+  meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 3.0, MEAS_BNC565_TRIG_RISE);
   
   /* Diode flash */
   meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, CCD_DELAY, diode_length, diode_drive, MEAS_BNC565_POL_NORM); /* let CCD open 10 ns before */
-  meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_BURST, diode_npulses, diode_npulses, diode_delay);
+  meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_BURST, diode_npulses, diode_npulses, diode_length + diode_delay);
 
   /* PI-MAX on BNC-565 B/C/D -- CAREFUL -- DO NOT DRIVE 12 V to PI-MAX!!! */
-  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_T0, 0.0, ccd_time + CCD_DELAY, 4.0, MEAS_BNC565_POL_NORM);   /* only rising edge used */
-  meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0);
-  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_CHB, ccd_time + CCD_DELAY, 10E-6, 4.0, MEAS_BNC565_POL_NORM);   /* only rising edge used */
-  meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0);
+  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_T0, 0.0, 1E-6, 4.0, MEAS_BNC565_POL_NORM);   /* only rising edge used */
+  meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
+  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_CHB, ccd_time + CCD_DELAY, 1E-6, 4.0, MEAS_BNC565_POL_NORM);   /* only rising edge used */
+  meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
   meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, 0.0, ccd_time + CCD_DELAY, 4.0, MEAS_BNC565_POL_NORM);   /* on for the sync time */
-  meas_bnc565_mode(0, MEAS_BNC565_CHD, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0);
+  meas_bnc565_mode(0, MEAS_BNC565_CHD, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
   
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
   meas_dg535_run(0, MEAS_DG535_RUN); /* start unit */
