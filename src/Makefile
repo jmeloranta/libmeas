@@ -27,6 +27,7 @@ install:
 	ranlib $(ROOT)/lib/libmeas.a
 	-mkdir $(ROOT)/include/meas
 	cp -f *.h $(ROOT)/include/meas
+	cp -f ../make.conf $(ROOT)/include/meas
 
 clean:
 	-rm -f *.o *~ *.a proto.h meas.h $(PROGS)
