@@ -1,5 +1,3 @@
-#include "config.h"
-
 #ifdef PVCAM
 /* This must be taken from the pvcam distribution and placed in /usr/include */
 #include <master.h>
