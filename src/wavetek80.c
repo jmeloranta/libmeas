@@ -43,9 +43,9 @@ EXPORT int meas_wavetek80_operating_mode(int unit, int mode) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
   if(mode < MEAS_WAVETEK80_MODE_NORMAL || mode > MEAS_WAVETEK80_MODE_PLL)
-    err("wavetek80: Invalid operating mode.");
+    meas_err("wavetek80: Invalid operating mode.");
 
   sprintf(buf, "F%d", mode);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -66,9 +66,9 @@ EXPORT int meas_wavetek80_sweep_direction(int unit, int dir) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
   if(dir < MEAS_WAVETEK80_SWEEP_UP || dir > MEAS_WAVETEK80_SWEEP_DOWN_UP)
-    err("wavetek80: Invalid sweep mode.");
+    meas_err("wavetek80: Invalid sweep mode.");
 
   sprintf(buf, "S%d", dir );
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -91,10 +91,10 @@ EXPORT int meas_wavetek80_trigger_mode(int unit, int mode) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
   if(mode < MEAS_WAVETEK80_TRIGGER_CONTINUOUS
      || mode > MEAS_WAVETEK80_TRIGGER_INTERNAL_BURST)
-    err("wavetek80: Invalid trigger mode.");
+    meas_err("wavetek80: Invalid trigger mode.");
 
   sprintf(buf, "M%d", mode);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -115,9 +115,9 @@ EXPORT int meas_wavetek80_control_mode(int unit, int mode) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
   if(mode < MEAS_WAVETEK80_CONTROL_OFF || mode > MEAS_WAVETEK80_CONTROL_VCO)
-    err("wavetek80: Invalid control mode.");
+    meas_err("wavetek80: Invalid control mode.");
 
   sprintf(buf, "CT%d", mode);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -140,9 +140,9 @@ EXPORT int meas_wavetek80_output_waveform(int unit, int mode) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
   if(mode < MEAS_WAVETEK80_WAVEFORM_DC || mode > MEAS_WAVETEK80_WAVEFORM_SQUARE_NEGATIVE)
-    err("wavetek80: Invalid waveform.");
+    meas_err("wavetek80: Invalid waveform.");
 
   sprintf(buf, "W%d", mode);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -161,9 +161,9 @@ EXPORT int meas_wavetek80_output_mode(int unit, int mode) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
   if(mode < MEAS_WAVETEK80_OUTPUT_NORMAL || mode > MEAS_WAVETEK80_OUTPUT_DISABLED)
-    err("wavetek80: Invalid output mode.");
+    meas_err("wavetek80: Invalid output mode.");
 
   sprintf(buf, "D%d", mode);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -179,8 +179,8 @@ EXPORT int meas_wavetek80_set_frequency(int unit, double freq) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(freq < 10E-3 || freq > 50E6) err("wavetek80: Illegal frequency setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(freq < 10E-3 || freq > 50E6) meas_err("wavetek80: Illegal frequency setting.");
 
   sprintf(buf, "FRQ %leHZ", freq);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -196,7 +196,7 @@ EXPORT double meas_wavetek80_get_frequency(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "FRQ?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -212,8 +212,8 @@ EXPORT int meas_wavetek80_set_amplitude(int unit, double ampl) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(ampl < 10E-3 || ampl > 16.0) err("wavetek80: Illegal amplitude setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(ampl < 10E-3 || ampl > 16.0) meas_err("wavetek80: Illegal amplitude setting.");
 
   sprintf(buf, "AMP %leV", ampl);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -229,7 +229,7 @@ EXPORT double meas_wavetek80_get_amplitude(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "AMP?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -245,8 +245,8 @@ EXPORT int meas_wavetek80_set_offset(int unit, double offset) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(offset < -8.0 || offset > 8.0) err("wavetek80: Illegal offset setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(offset < -8.0 || offset > 8.0) meas_err("wavetek80: Illegal offset setting.");
 
   sprintf(buf, "OFS %leV", offset);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -262,7 +262,7 @@ EXPORT double meas_wavetek80_get_offset(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "OFS?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -278,8 +278,8 @@ EXPORT int meas_wavetek80_set_phase_lock_offset(int unit, double offset) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(offset < -180.0 || offset > 180.0) err("wavetek80: Illegal phase lock offset setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(offset < -180.0 || offset > 180.0) meas_err("wavetek80: Illegal phase lock offset setting.");
 
   sprintf(buf, "PLL %le", offset);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -295,7 +295,7 @@ EXPORT double meas_wavetek80_get_phase_lock_offset(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "PLL?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -311,8 +311,8 @@ EXPORT int meas_wavetek80_set_internal_trigger_interval(int unit, double ival) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(ival < 20E-6 || ival > 999.0) err("wavetek80: Illegal trigger interval setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(ival < 20E-6 || ival > 999.0) meas_err("wavetek80: Illegal trigger interval setting.");
 
   sprintf(buf, "RPT %le", ival);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -328,7 +328,7 @@ EXPORT double meas_wavetek80_get_internal_trigger_interval(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "RPT?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -344,8 +344,8 @@ EXPORT int meas_wavetek80_set_counted_burst(int unit, int nburst) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(nburst < 1 || nburst > 4000) err("wavetek80: Illegal counted burst setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(nburst < 1 || nburst > 4000) meas_err("wavetek80: Illegal counted burst setting.");
 
   sprintf(buf, "BUR %le", nburst);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -361,7 +361,7 @@ EXPORT double meas_wavetek80_get_counted_burst(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "BUR?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -378,8 +378,8 @@ EXPORT int meas_wavetek80_set_trigger_level(int unit, double level) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(level < -10.0 || level > 10.0) err("wavetek80: Illegal trigger level setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(level < -10.0 || level > 10.0) meas_err("wavetek80: Illegal trigger level setting.");
 
   sprintf(buf, "TLV %le", level);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -395,7 +395,7 @@ EXPORT double meas_wavetek80_get_trigger_level(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "TLV?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -411,8 +411,8 @@ EXPORT int meas_wavetek80_set_trigger_phase_offset(int unit, double offset) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(offset < -90.0 || offset > 90.0) err("wavetek80: Illegal trigger phase offset setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(offset < -90.0 || offset > 90.0) meas_err("wavetek80: Illegal trigger phase offset setting.");
 
   sprintf(buf, "TPH %le", offset);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -428,7 +428,7 @@ EXPORT double meas_wavetek80_get_trigger_phase_offset(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "TPH?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -445,8 +445,8 @@ EXPORT int meas_wavetek80_set_output_level(int unit, double level) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(level < -8.0 || level > 8.0) err("wavetek80: Illegal output level setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(level < -8.0 || level > 8.0) meas_err("wavetek80: Illegal output level setting.");
 
   sprintf(buf, "DCO %leV", level);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -462,7 +462,7 @@ EXPORT double meas_wavetek80_get_output_level(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "DCO?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -479,8 +479,8 @@ EXPORT int meas_wavetek80_set_log_sweep_stop(int unit, double value) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(value < 10.0E-3 || value > 50.0E6) err("wavetek80: Illegal log sweep stop setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(value < 10.0E-3 || value > 50.0E6) meas_err("wavetek80: Illegal log sweep stop setting.");
 
   sprintf(buf, "STP %leHZ", value);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -496,7 +496,7 @@ EXPORT double meas_wavetek80_get_log_sweep_stop(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "STP?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -512,8 +512,8 @@ EXPORT int meas_wavetek80_set_sweep_time(int unit, double value) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(value < 10.0E-3 || value > 999.0) err("wavetek80: Illegal sweep time setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(value < 10.0E-3 || value > 999.0) meas_err("wavetek80: Illegal sweep time setting.");
 
   sprintf(buf, "SWT %leS", value);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -529,7 +529,7 @@ EXPORT double meas_wavetek80_get_sweep_time(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "SWT?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -545,8 +545,8 @@ EXPORT int meas_wavetek80_set_log_sweep_marker(int unit, double value) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(value < 10E-3 || value > 50.0E6) err("wavetek80: Illegal log sweep marker setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(value < 10E-3 || value > 50.0E6) meas_err("wavetek80: Illegal log sweep marker setting.");
 
   sprintf(buf, "MRK %leHZ", value);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -562,7 +562,7 @@ EXPORT double meas_wavetek80_get_log_sweep_marker(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "MRK?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -578,8 +578,8 @@ EXPORT int meas_wavetek80_set_sweep_stop(int unit, int value) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(value < 10 || value > 5000) err("wavetek80: Illegal sweep stop setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(value < 10 || value > 5000) meas_err("wavetek80: Illegal sweep stop setting.");
 
   sprintf(buf, "SSN %d", value);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -595,7 +595,7 @@ EXPORT int meas_wavetek80_get_sweep_stop(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "SSN?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);
@@ -611,8 +611,8 @@ EXPORT int meas_wavetek80_set_sweep_marker(int unit, int value) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
-  if(value < 10 || value > 5000) err("wavetek80: Illegal sweep marker setting.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
+  if(value < 10 || value > 5000) meas_err("wavetek80: Illegal sweep marker setting.");
 
   sprintf(buf, "MKN %leHZ", value);
   meas_gpib_write(wavetek80_fd[unit], buf, 0);
@@ -628,7 +628,7 @@ EXPORT int meas_wavetek80_get_sweep_marker(int unit) {
 
   char buf[256];
 
-  if(wavetek80_fd[unit] == -1) err("wavetek80: non-existent unit.");
+  if(wavetek80_fd[unit] == -1) meas_err("wavetek80: non-existent unit.");
 
   meas_gpib_write(wavetek80_fd[unit], "MKN?", 0);
   meas_gpib_read(wavetek80_fd[unit], buf);

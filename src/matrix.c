@@ -68,7 +68,7 @@ EXPORT void matrix_module_init() {
   struct usb_device *dev;
   
   if(udev)
-    err("matrix_module_init() called twice.");
+    meas_err2("matrix_module_init() called twice.");
   
   meas_misc_root_on();
   
@@ -86,21 +86,21 @@ EXPORT void matrix_module_init() {
     if(dev) break;
   }
   
-  if(!dev) err("Newport Oriel MMS Spectrometer Not Found");
+  if(!dev) meas_err2("Newport Oriel MMS Spectrometer Not Found");
   
   if(!(udev = usb_open(dev)))
-    err("Newport Oriel MMS Spectrometer: Can't open instrument.");
+    meas_err2("Newport Oriel MMS Spectrometer: Can't open instrument.");
   
   fprintf(stderr, "Newport Oriel MMS Spectrometer: Instrument found.\n");
   
   if(usb_set_configuration(udev, 1) < 0)
-    err("Newport Oriel MMS Spectrometer: Can't set active configuration\n"); /* 1st config. */
+    meas_err2("Newport Oriel MMS Spectrometer: Can't set active configuration\n"); /* 1st config. */
   
   if(usb_claim_interface(udev, 0) < 0)
-    err("Newport Oriel MMS Spectrometer: Can't claim interface.\n"); /* 1st interface. */
+    meas_err2("Newport Oriel MMS Spectrometer: Can't claim interface.\n"); /* 1st interface. */
   
   if(usb_set_altinterface(udev, 0) < 0)
-    err("Newport Oriel MMS Spectrometer: Can't set alternate interface.\n"); /* 0th alt */
+    meas_err2("Newport Oriel MMS Spectrometer: Can't set alternate interface.\n"); /* 0th alt */
   
   meas_misc_root_off();
 }
@@ -131,13 +131,13 @@ EXPORT void matrix_set_exposure_time(float time) {
   *((float *) &writebuf[6]) = time;
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error setting exposure time");
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting exposure time");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error setting exposure time");
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting exposure time");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error setting exposure time");
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting exposure time");
 }
 
 /*
@@ -163,13 +163,13 @@ EXPORT float matrix_get_exposure_time() {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error receiving exposure time");
+    meas_err2("Newport Oriel MMS Spectrometer: Error receiving exposure time");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error receiving exposure time");
+    meas_err2("Newport Oriel MMS Spectrometer: Error receiving exposure time");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error receiving exposure time");
+    meas_err2("Newport Oriel MMS Spectrometer: Error receiving exposure time");
   
   return *((float *) &readbuf[7]);
 }
@@ -199,13 +199,13 @@ EXPORT void matrix_reset() {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error resetting device");
+    meas_err2("Newport Oriel MMS Spectrometer: Error resetting device");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error resetting device");
+    meas_err2("Newport Oriel MMS Spectrometer: Error resetting device");
   
   if(readbuf[6] == 0x00) 
-    err("Newport Oriel MMS Spectrometer: Error resetting device");
+    meas_err2("Newport Oriel MMS Spectrometer: Error resetting device");
   
   sleep(2);
 }
@@ -235,13 +235,13 @@ EXPORT void matrix_print_info() {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
   
   if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
   
   printf("\n");
   /* subtract 20???? WHY ??? */
@@ -392,22 +392,22 @@ EXPORT void matrix_start_exposure(unsigned char shutterState, unsigned char expo
   writebuf[5] = 0x01; /* Schema number */
   
   if(shutterState != 0x00 && shutterState != 0x01 && shutterState != 0x02) /* test if we have a valid shutterState */
-    err("Invalid shutter state");
+    meas_err2("Invalid shutter state");
   
   if(exposureType != 0x00 && exposureType != 0x01 && exposureType != 0x02 && exposureType != 0x03) /* test if we have a valid exposure type */
-    err("Invalid exposure type");
+    meas_err2("Invalid exposure type");
   
   writebuf[6] = shutterState;  /* set the shutter state */
   writebuf[7] = exposureType;  /* set the exposure type */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error starting exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error starting exposure");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error starting exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error starting exposure");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error starting exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error starting exposure");
 }
 
 /*
@@ -441,13 +441,13 @@ EXPORT unsigned char matrix_query_exposure() {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error querying exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error querying exposure");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error querying exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error querying exposure");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error querying exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error querying exposure");
   
   return readbuf[7];
 }
@@ -484,18 +484,18 @@ EXPORT void matrix_end_exposure(unsigned char shutterState) {
   
   /* test if we have a valid shutterState */
   if(shutterState != 0x00 && shutterState != 0x01 && shutterState != 0x02)
-    err("Invalid shutter state");
+    meas_err2("Invalid shutter state");
   
   writebuf[6] = shutterState;  /* set the shutter state */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error ending exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error ending exposure");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error ending exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error ending exposure");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error ending exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error ending exposure");
 }
 
 /*
@@ -549,13 +549,13 @@ EXPORT void matrix_get_last_error(unsigned int *error) {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting last error");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting last error");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting last error");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting last error");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error getting last error");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting last error");
   
   switch(readbuf[7]) {
   case 0x0000:
@@ -699,13 +699,13 @@ EXPORT void matrix_open_CCD_shutter() {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error Opening CCD Shutter");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Opening CCD Shutter");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error Opening CCD Shutter");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Opening CCD Shutter");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error Opening CCD Shutter");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Opening CCD Shutter");
 }
 
 /*
@@ -731,13 +731,13 @@ EXPORT void matrix_close_CCD_shutter() {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error Closing CCD Shutter");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Closing CCD Shutter");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error Closing CCD Shutter");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Closing CCD Shutter");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error Closing CCD Shutter");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Closing CCD Shutter");
 }
 
 /*
@@ -778,13 +778,13 @@ EXPORT void matrix_get_pixel_hw(unsigned short *width, unsigned short *height) {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
   
   if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
   
   /* NOTE: For some reason the camera returns 532 as the CCD width even though
    * it is 512. Hard coded for now.
@@ -818,13 +818,13 @@ EXPORT unsigned char matrix_get_ccd_bpp() {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
   
   if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
   
   return (unsigned char) ((int) readbuf[11]/((int) 8));
 }
@@ -849,19 +849,19 @@ EXPORT void matrix_get_exposure() {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error Getting Exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Getting Exposure");
   
   if(usb_bulk_read(udev, EP6, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error Getting Exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Getting Exposure");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error Getting Exposure");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Getting Exposure");
   
   data_size = *((unsigned int *) &readbuf[8]);
   
   for(i = 0; i < data_size; i += 64)
     if(usb_bulk_read(udev, EP6, readbuf, 64, 0) <= 0)
-      err("Newport Oriel MMS Spectrometer: Error Getting Exposure");
+      meas_err2("Newport Oriel MMS Spectrometer: Error Getting Exposure");
 }
 
 /*
@@ -891,13 +891,13 @@ EXPORT void matrix_set_reconstruction() {
   writebuf[6] = 0x00; /* Algorithm */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error Setting Reconstruction");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Setting Reconstruction");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error Setting Reconstruction");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Setting Reconstruction");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error Setting Reconstruction");
+    meas_err2("Newport Oriel MMS Spectrometer: Error Setting Reconstruction");
 }
 
 /*
@@ -940,18 +940,18 @@ EXPORT unsigned int matrix_get_reconstruction(unsigned char type, float *data) {
   writebuf[5] = 0x01; /* Schema number */
   
   if(type != 0x01 && type != 0x02 && type != 0x03) /* test if we have a valid reconType */
-    err("Invalid Reconstruction Type");
+    meas_err2("Invalid Reconstruction Type");
   
   writebuf[6] = type; /* Set the reconstruction type */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting Reconstruction");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting Reconstruction");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting Reconstruction");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting Reconstruction");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error getting Reconstruction");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting Reconstruction");
   
   saturation = *((unsigned char *) &readbuf[8]);
   if(saturation) fprintf(stderr, "Warning: saturated pixels.\n");
@@ -960,7 +960,7 @@ EXPORT unsigned int matrix_get_reconstruction(unsigned char type, float *data) {
   
   for(i = 0; i < data_size - 64; i += 64) {
     if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-      err("Newport Oriel MMS Spectrometer: Error Getting Exposure");
+      meas_err2("Newport Oriel MMS Spectrometer: Error Getting Exposure");
     
     for(j = 0; j < 64; j += 4) {
       data[i/4+j/4] = *((float *) &readbuf[j]);    
@@ -994,13 +994,13 @@ EXPORT void matrix_get_model_number(char *model) {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting model number");  
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting model number");  
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting model number");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting model number");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error getting model number");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting model number");
   
   for(i = 0; i < *((unsigned short *) &readbuf[7]); i++)
     model[i] = (char) readbuf[i + 9]; 
@@ -1028,13 +1028,13 @@ EXPORT void matrix_get_serial_number(char *serial) {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting serial number");  
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting serial number");  
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting serial number");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting serial number");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error getting serial number");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting serial number");
   
   for(i = 0; i < *((unsigned short *) &readbuf[7]); i++)
     serial[i] = (char) readbuf[i + 9];  
@@ -1069,13 +1069,13 @@ EXPORT unsigned short matrix_get_clock_rate() {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting clock rate");  
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting clock rate");  
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting clock rate");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting clock rate");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error getting clock rate");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting clock rate");
   
   return *((unsigned int *) &readbuf[7]);
 }
@@ -1113,19 +1113,19 @@ EXPORT void matrix_set_clock_rate(unsigned short freq) {
   
   /* test if we have a valid freq */
   if(freq != 0x00 && freq != 0x01 && freq != 0x02 && freq != 0x03 && freq != 0x04 && freq != 0x05)
-    err("Invalid frequency");
+    meas_err2("Invalid frequency");
   
   writebuf[6] = ((char *) &freq)[0];  /* set the zeroth byte of the A/D Clock Frequency */
   writebuf[7] = ((char *) &freq)[1];  /* set the first byte ot the A/D Clock Frequency */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error setting clock rate");  
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting clock rate");  
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error setting clock rate");
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting clock rate");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error setting clock rate");
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting clock rate");
 }
 
 /*
@@ -1158,19 +1158,19 @@ EXPORT void matrix_set_pixel_mode(unsigned short mode) {
   
   /* test if we have a valid mode */
   if(mode != 0x00 && mode != 0x01 && mode != 0x02 && mode != 0x03)
-    err("Invalid Pixel Mode");
+    meas_err2("Invalid Pixel Mode");
   
   writebuf[6] = ((char *) &mode)[0];  /* set the first byte of the Pixel Mode */
   writebuf[7] = ((char *) &mode)[1];  /* set the second byte ot the Pixel Mode */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error setting Pixel Mode");  
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting Pixel Mode");  
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error setting Pixel Mode");
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting Pixel Mode");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error setting Pixel Mode");
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting Pixel Mode");
 }
 
 /*
@@ -1202,13 +1202,13 @@ EXPORT unsigned short matrix_get_pixel_mode() {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting Pixel Mode");  
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting Pixel Mode");  
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting Pixel Mode");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting Pixel Mode");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error getting Pixel Mode");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting Pixel Mode");
   
   return *((unsigned int *) &readbuf[7]);
 }
@@ -1240,16 +1240,16 @@ EXPORT float matrix_get_CCD_temp() {
   /* Spectrometer will stall if the command is sent to a */
   /* spectrometer that doesn't support temperature regulation */
   if(!matrix_is_temp_supported())
-    err("Temperature control not supported.");
+    meas_err2("Temperature control not supported.");
   
   if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting CCD temperature information");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting CCD temperature information");
   
   if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting CCD temperature information");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting CCD temperature information");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error getting CCD temperature information");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting CCD temperature information");
   
   temp = *((float *) &readbuf[12]);
   if(readbuf[16]) fprintf(stderr, "Warning: CCD thermal fault.\n");
@@ -1280,13 +1280,13 @@ EXPORT unsigned char matrix_is_temp_supported() {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
   
   if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
   
   return (unsigned char) readbuf[24];
 }
@@ -1319,13 +1319,13 @@ EXPORT void matrix_set_CCD_temp(float temperature) {
   writebuf[10] = ((char *) &temperature)[3];  /* set the third byte of the temperature */
   
   if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
   
   if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");  
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");  
 }
 
 /*
@@ -1350,13 +1350,13 @@ EXPORT void matrix_disable_CCD_temp_regulation() {
   writebuf[6] = 0x00;  /* disable CCD temperature regulation */
   
   if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
   
   if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error reading device info.");
+    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
   
 }
 
@@ -1386,10 +1386,10 @@ EXPORT void matrix_set_AFE_parameters(short offset, short gain) {
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
   
   if(offset < 0 || offset > 1024)  /* test if we have a valid offset */
-    err("Offset out of bounds");
+    meas_err2("Offset out of bounds");
   
   if(gain < 0 || gain > 63)  /* test if we have a valid gain */
-    err("Gain out of bounds");
+    meas_err2("Gain out of bounds");
   
   writebuf[0] = 0x2B; /* command - Set CCD Temperature Info */
   *len = 13; /* set the length of the command */
@@ -1400,13 +1400,13 @@ EXPORT void matrix_set_AFE_parameters(short offset, short gain) {
   writebuf[12] = ((char *) &gain)[1];  /* set the first byte of the gain */
   
   if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error setting AFE parameters");
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting AFE parameters");
   
   if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error setting AFE parameters");
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting AFE parameters");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error setting AFE parameters");
+    meas_err2("Newport Oriel MMS Spectrometer: Error setting AFE parameters");
 }
 
 /* 
@@ -1435,13 +1435,13 @@ EXPORT void matrix_get_AFE_parameters(short *params) {
   writebuf[5] = 0x01; /* Schema number */
   
   if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting AFE parameters");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting AFE parameters");
   
   if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    err("Newport Oriel MMS Spectrometer: Error getting AFE parameters");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting AFE parameters");
   
   if(readbuf[6] == 0x00)
-    err("Newport Oriel MMS Spectrometer: Error getting AFE parameters");
+    meas_err2("Newport Oriel MMS Spectrometer: Error getting AFE parameters");
   
   params[0] = *((short *) &readbuf[9]);
   params[1] = *((short *) &readbuf[11]);

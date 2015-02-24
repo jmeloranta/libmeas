@@ -2,28 +2,39 @@
 #include <stdlib.h>
 #include <meas/meas.h>
 
-#define WIDTH 640
-#define HEIGHT 480
-
 #define SCALE 1
-
-unsigned char ri[WIDTH * HEIGHT], gi[WIDTH * HEIGHT], bi[WIDTH * HEIGHT];
-unsigned char ro[SCALE * SCALE * WIDTH * HEIGHT], go[SCALE * SCALE * WIDTH * HEIGHT], bo[SCALE * SCALE * WIDTH * HEIGHT];
 
 main() {
 
-  int i, fd, s;
+  int i, s, d, f, width, height;
   double mi, ma;
+  size_t frame_size;
+  unsigned char *buffer, *rgb;
 
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE*WIDTH, SCALE*HEIGHT, 0, "test");
-  fd = meas_video_open("/dev/video0", WIDTH, HEIGHT);
-  meas_video_start(fd);
+  meas_video_info();
+  printf("Enter device #, format #, width, height: ");
+  scanf("%d %d %d %d", &d, &f, &width, &height);
+  frame_size = meas_video_open(d, f, width, height);
+  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE*width, SCALE*height, 0, "test");
+  if(!(buffer = (unsigned char *) malloc(frame_size))) {
+    fprintf(stderr, "Out of memory.\n");
+    exit(1);
+  }
+  if(!(rgb = (unsigned char *) malloc(width*height*3))) {
+    fprintf(stderr, "Out of memory.\n");
+    exit(1);
+  }
+  printf("Frame size = %u bytes.\n", frame_size);
   while (1) {
-    meas_video_read_rgb(fd, ri, gi, bi, 1);
-    meas_graphics_scale_rgb(ri, gi, bi, WIDTH, HEIGHT, SCALE, ro, go, bo);
-    meas_graphics_update_image(0, ro, go, bo);
+    meas_video_read(d, 1, buffer);
+    printf("One frame done.\n");
+    //meas_image_yuv422_to_rgb(buffer, rgb, width, height);
+    //meas_image_y800_to_rgb(buffer, rgb, width, height);
+    meas_image_y16_to_rgb(buffer, rgb, width, height);
+    //    meas_image_scale_rgb(rgbi, width, height, SCALE, rgbo);
+    meas_graphics_update_image(0, rgb);
     meas_graphics_update();
   }
-  meas_video_stop(fd);
-  meas_video_close(fd);
+  free(buffer);
+  meas_video_close(d);
 }

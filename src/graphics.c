@@ -285,33 +285,26 @@ EXPORT int meas_graphics_update_xy(int win, double *xdata, double *ydata, int ns
  * Update data points in given window & 3D data set (contour plot).
  *
  * win     = window number (0, ...).
- * r       = red component (unsigned char; 0 - 255).
- * g       = green component (unsigned char; 0 - 255).
- * b       = blue component (unsigned char; 0 - 255).
- *
- * r, g, b arrays form a two dimensional array that defines the image.
+ * rgb     = RGB components.
  *
  * Returns 0 on success.
  *
  */
 
-EXPORT int meas_graphics_update_image(int win, unsigned char *r, unsigned char *g, unsigned char *b) {
+EXPORT int meas_graphics_update_image(int win, unsigned char *rgb) {
 
   int i, k;
 
   if(win < 0 || win >= MEAS_GRAPHICS_MAX_WIN)
     meas_err("meas_graphics_update3d: Illegal window id.");  
 
-  k = 0;
-  for (i = 0; i < wins[win].nx * wins[win].ny; i++) {
-    wins[win].img_data[k] = b[i]; 
-    wins[win].img_data[k+1] = g[i];
-    wins[win].img_data[k+2] = r[i];
+  for (i = k = 0; i < 3*wins[win].nx * wins[win].ny; i += 3, k += 4) {
+    wins[win].img_data[k] = rgb[i]; 
+    wins[win].img_data[k+1] = rgb[i+1];
+    wins[win].img_data[k+2] = rgb[i+2];
     wins[win].img_data[k+3] = 0;
-    k += 4;
   }
-
-  return 0;
+  return -1;
 }
 
 /*
@@ -465,85 +458,4 @@ EXPORT void meas_graphics_update_image_contour(int win, double *data) {
     wins[win].img_data[j+3] = 0;
     j += 4;
   }
-}
-
-/*
- * Convert pi-max (16 bit unsigned) gray scale to RGB.
- *
- * img  = Gray scale image array (16 bit; unsigned short *; length nx * ny; input).
- * nx   = number of pixels along x (unsigned int; input).
- * ny   = number of pixels along y (unsigned int; input).
- * r    = red component (8 bit; unsigned char *; length nx * ny; output).
- * g    = green component (8 bit; unsigned char *; length nx * ny; output).
- * b    = blue component (8 bit; unsigned char *; length nx * ny; output).
- * as   = 0: auto scale, > 0: set image maximum pixel value to as (use as = 65535 for no scaling) (unsigned short).
- * 
- * Returns -1 on failure.
- *
- */
-
-EXPORT int meas_graphics_convert_img_to_rgb(unsigned short *img, unsigned int nx, unsigned int ny, unsigned char *r, unsigned char *g, unsigned char *b, unsigned short as) {
-
-  unsigned int i;
-  unsigned short lv = 65535;
-
-  if(!as) {
-    as = 0;
-    for (i = 0; i < nx * ny; i++) {
-      if(img[i] < lv) lv = img[i];
-      if(img[i] > as) as = img[i];
-    }
-    as -= lv;
-    printf("libmeas: autoscale by %u\n", as);
-  } else lv = 0;
-
-  for(i = 0; i < nx * ny; i++) {
-    r[i] = (unsigned char) ((255.0 / (double) as) * (double) (img[i] - lv));
-    g[i] = (unsigned char) ((255.0 / (double) as) * (double) (img[i] - lv));
-    b[i] = (unsigned char) ((255.0 / (double) as) * (double) (img[i] - lv));
-  }
-  return 0;
-}
-
-/*
- * Scale up RGB image.
- *
- * ri = Input red component (unsigned char *; input).
- * gi = Input green component (unsigned char *; input).
- * bi = Input blue component (unsigned char *; input).
- * nx = Image size along x (unsigned int; input).
- * ny = Image size along y (unsigned int; input).
- * sc = Scale: 1, 2, 3 ... (unsigned int; input).
- * ro = Output red component (unsigned char *; output). Note size nx * ny * sc.
- * go = Output green component (unsigned char *; output). Note size nx * ny * sc.
- * bo = Output blue component (unsigned char *; output). Note size nx * ny * sc.
- * 
- * Returns -1 on failure.
- *
- * TODO: check array indexing!!!! 
- *
- */
-
-EXPORT int meas_graphics_scale_rgb(unsigned char *ri, unsigned char *gi, unsigned char *bi, unsigned int nx, unsigned int ny, unsigned int sc, unsigned char *ro, unsigned char *go, unsigned char *bo) {
-
-  unsigned int i, j, si, sj;
-
-  if(sc < 1 || sc > 10) meas_err("meas_graphics_scale_rgb: Illegal scale value.\n");
-  if(sc == 1) {
-    for (i = 0; i < nx*ny; i++) {
-      ro[i] = ri[i];
-      go[i] = gi[i];
-      bo[i] = bi[i];
-    }
-    return 0;
-  }
-  for (i = 0; i < nx; i++)
-    for (j = 0; j < ny; j++)
-      for (si = 0; si < sc; si++)
-	for (sj = 0; sj < sc; sj++) {
-	  ro[(j * sc + sj) * nx * sc + (i * sc + si)] = ri[j * nx + i];
-	  go[(j * sc + sj) * nx * sc + (i * sc + si)] = gi[j * nx + i];
-	  bo[(j * sc + sj) * nx * sc + (i * sc + si)] = bi[j * nx + i];
-	}
-  return 0;
 }

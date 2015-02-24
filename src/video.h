@@ -1,6 +1,7 @@
 
 /* Maximum number of devices that can be open simultaneously */
-#define MEAS_VIDEO_MAXDEV 4
+#define MEAS_VIDEO_MAXDEV 16
+#define MEAS_VIDEO_MAXFMT 16
 
 /* Special exposure times */
 #define MEAS_VIDEO_AUTO_EXPOSURE_ON  (-1)
