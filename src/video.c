@@ -131,6 +131,10 @@ EXPORT size_t meas_video_open(int d, int f, int width, int height) {
   }
   formats[f].size.width = formats[f].sizes[n].width;
   formats[f].size.height = formats[f].sizes[n].height;
+  if(formats[f].bpp == 0) {
+    fprintf(stderr, "libmeas: Warning BPP = 0 - setting to 16.\n");
+    formats[f].bpp = 16;
+  }
   if(unicap_set_format(cameras[d].fd, &formats[f]) != STATUS_SUCCESS) {
     meas_err2("video: Can't set video format.");
     meas_misc_root_off();

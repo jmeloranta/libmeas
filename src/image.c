@@ -48,7 +48,7 @@ EXPORT void meas_image_y16_to_rgb(unsigned char *y16, unsigned char *rgb, unsign
   int i, j;
   
   for (i = j = 0; i < 3 * width * height; i += 3, j += 2)
-    rgb[i] = rgb[i+1] = rgb[i+2] = 255 * (y16[j]*256 + y16[j+1]) / 65535;
+    rgb[i] = rgb[i+1] = rgb[i+2] = 255 * (y16[j+1]*256 + y16[j]) / 65535;
 }
 
 /*
