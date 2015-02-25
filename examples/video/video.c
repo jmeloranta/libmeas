@@ -11,10 +11,11 @@ main() {
   size_t frame_size;
   unsigned char *buffer, *rgb;
 
-  meas_video_info();
+  meas_video_info_all();
   printf("Enter device #, format #, width, height: ");
   scanf("%d %d %d %d", &d, &f, &width, &height);
-  frame_size = meas_video_open(d, f, width, height);
+  meas_video_open(d);
+  frame_size = meas_video_format(d, f, width, height);
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE*width, SCALE*height, 0, "test");
   if(!(buffer = (unsigned char *) malloc(frame_size))) {
     fprintf(stderr, "Out of memory.\n");
@@ -25,12 +26,14 @@ main() {
     exit(1);
   }
   printf("Frame size = %u bytes.\n", frame_size);
+  meas_video_properties(0);
+  exit(0);
   while (1) {
     meas_video_read(d, 1, buffer);
     printf("One frame done.\n");
-    //meas_image_yuv422_to_rgb(buffer, rgb, width, height);
+    meas_image_yuv422_to_rgb(buffer, rgb, width, height);
     //meas_image_y800_to_rgb(buffer, rgb, width, height);
-    meas_image_y16_to_rgb(buffer, rgb, width, height);
+    //meas_image_y16_to_rgb(buffer, rgb, width, height);
     //    meas_image_scale_rgb(rgbi, width, height, SCALE, rgbo);
     meas_graphics_update_image(0, rgb);
     meas_graphics_update();

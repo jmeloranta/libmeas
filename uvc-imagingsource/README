@@ -1,0 +1,17 @@
+Read: https://github.com/TheImagingSource/tiscamera/wiki/UVC-Extension-Units
+
+Basically:
+
+UVC compliant cameras use a provision called "extension unit" to support custom features that are not already present in the UVC standard. Among the features supported via the extension unit are the access of GPIO pins, external trigger and the binning functionality.
+
+To be able to use such features, the uvcvideo driver has to be configured to use the extension unit of the camera. This is done with a description of the extension unit's control set in form of a XML file and a special tool ("uvcdynctrl") that uses this XML description to configure the driver.
+
+For USB2: uvcdynctrl -i tisEUVC.xml -d /dev/video0
+For USB3: uvcdynctrl -i usb3.xml -d /dev/video0
+
+where the XML files are from:
+
+https://github.com/TheImagingSource/tiscamera.git
+
+and uvcdynctrl is available from the standard repos.
+
