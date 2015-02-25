@@ -118,7 +118,6 @@ EXPORT void meas_video_properties(int d) {
       fprintf(stderr, "libmeas: Unknown video property type %d.\n", cameras[d].properties[m].type);
       break;
     }
-    printf("Flags: %s. Manual = %d, Auto = %d, One Push = %d, Read Out = %d, On Off = %d, Read Only = %d, Format Change = %d, Write Only = %d, Check Stepping = %d.\n", cameras[d].properties[m].identifier, (cameras[d].properties[m].flags & UNICAP_FLAGS_MANUAL)?1:0, (cameras[d].properties[m].flags & UNICAP_FLAGS_AUTO)?1:0, (cameras[d].properties[m].flags & UNICAP_FLAGS_ONE_PUSH)?1:0, (cameras[d].properties[m].flags & UNICAP_FLAGS_READ_OUT)?1:0, (cameras[d].properties[m].flags & UNICAP_FLAGS_ON_OFF)?1:0, (cameras[d].properties[m].flags & UNICAP_FLAGS_READ_ONLY)?1:0, (cameras[d].properties[m].flags & UNICAP_FLAGS_FORMAT_CHANGE)?1:0, (cameras[d].properties[m].flags & UNICAP_FLAGS_WRITE_ONLY)?1:0);
   }
 }
 
