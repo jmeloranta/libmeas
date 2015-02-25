@@ -27,12 +27,16 @@ main() {
   }
   printf("Frame size = %u bytes.\n", frame_size);
   meas_video_properties(0);
-  exit(0);
+  /* Testing */
+  meas_video_set_range(0, "Exposure (Absolute)", 100.0);
+  meas_video_set_range(0, "Exposure Time (us)", 100.0);
+  meas_video_set_range(0, "Gain", 100.0);
+  meas_video_set_range(0, "Gain (dB/100)", 100.0);
   while (1) {
     meas_video_read(d, 1, buffer);
     printf("One frame done.\n");
-    meas_image_yuv422_to_rgb(buffer, rgb, width, height);
-    //meas_image_y800_to_rgb(buffer, rgb, width, height);
+    //meas_image_yuv422_to_rgb(buffer, rgb, width, height);
+    meas_image_y800_to_rgb(buffer, rgb, width, height);
     //meas_image_y16_to_rgb(buffer, rgb, width, height);
     //    meas_image_scale_rgb(rgbi, width, height, SCALE, rgbo);
     meas_graphics_update_image(0, rgb);

@@ -5,10 +5,10 @@
 #include <math.h>
 #include <meas/meas.h>
 
-#define HEIGHT 640
-#define WIDTH 480
+#define HEIGHT 1280
+#define WIDTH 960
 
-unsigned char r[HEIGHT * WIDTH], g[HEIGHT * WIDTH], b[HEIGHT * WIDTH];
+unsigned char *rgb, *y16;
 
 int main(int argc, char **argv) {
 
@@ -26,6 +26,14 @@ int main(int argc, char **argv) {
   }
   fscanf(fp , " %*d %le %le", &t0, &tstep);
   fclose(fp);
+  if(!(rgb = (unsigned char *) malloc(WIDTH * HEIGHT * 3))) {
+    fprintf(stderr, "Out of memory.\n");
+    exit(1);
+  }
+  if(!(y16 = (unsigned char *) malloc(WIDTH * HEIGHT * 4))) {
+    fprintf(stderr, "Out of memory.\n");
+    exit(1);
+  }
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, HEIGHT, WIDTH, 0, "video");
   for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
@@ -34,19 +42,11 @@ int main(int argc, char **argv) {
       fprintf(stderr, "Error reading file.\n");
       exit(1);
     }
-    fread((void *) r, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
-    fread((void *) g, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
-    fread((void *) b, sizeof(unsigned char) * HEIGHT * WIDTH, 1, fp);
+    fread((void *) y16, 4 * HEIGHT * WIDTH, 1, fp);
     fclose(fp);
-    meas_graphics_update_image(0, r, g, b);
+    meas_image_y16_to_rgb(y16, rgb, WIDTH, HEIGHT);    
+    meas_graphics_update_image(0, rgb);
     meas_graphics_update();
-    sprintf(filename, "%s-%le.ppm", filebase, delay);
-    if(!(fp = fopen(filename, "w"))) {
-      fprintf(stderr, "Error writing file.\n");
-      exit(1);
-    }
-    meas_video_rgb_to_ppm(fp, r, g, b, WIDTH, HEIGHT);
-    fclose(fp);
     //sleep(1);
   }
 }
