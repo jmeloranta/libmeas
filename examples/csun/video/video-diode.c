@@ -39,9 +39,9 @@ static void sig_handler(int x) {
 
 int main(int argc, char **argv) {
 
-  double tstep, cur_time, t0, diode_drive, diode_length, diode_delay;
+  double tstep, cur_time, t0, diode_drive, diode_length, diode_delay, gain;
   char filebase[512], filename[512];
-  int fd, diode_npulses, nimg = 0, brightness;
+  int fd, diode_npulses, nimg = 0;
   size_t frame_size;
   FILE *fp;
 
@@ -63,8 +63,8 @@ int main(int argc, char **argv) {
   printf("Delay between diode pulses (microsec.): ");
   scanf(" %le", &diode_delay);
   diode_delay *= 1E-6;
-  printf("Camera brightness (-16 to 16): ");
-  scanf(" %d", &brightness);
+  printf("Camera gain (0, 3039): ");
+  scanf(" %le", &gain);
 
   printf("Running... press ctrl-c to stop.\n");
 
@@ -115,11 +115,8 @@ int main(int argc, char **argv) {
   }
   meas_video_set_range(CAMERA, "Trigger Mode", 1.0); /* external trigger */
   meas_video_set_range(CAMERA, "Trigger Delay", 0.0); /* Immediate triggering, no delay */
-  /* TODO: two different gains, two different exposure times - how to set these? */
-  meas_video_set_range(CAMERA, "Exposure (Absolute)", 100.0);
-  meas_video_set_range(CAMERA, "Exposure Time (us)", 100.0);
-  meas_video_set_range(CAMERA, "Gain", 100.0);
-  meas_video_set_range(CAMERA, "Gain (dB/100)", 100.0);
+  meas_video_set_range(CAMERA, "Exposure Time (us)", 1000.0);  /* millisecond */
+  meas_video_set_range(CAMERA, "Gain (dB/100)", gain);
   if(filebase[0] != '0') {
     sprintf(filename, "%s.info", filebase);
     if(!(fp = fopen(filename, "w"))) {

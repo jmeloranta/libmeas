@@ -155,27 +155,64 @@ EXPORT void meas_image_yuv422_to_rgb(unsigned char *yuv, unsigned char *rgb, uns
 }
 
 /*
- * Write R, G, & B array into a PPM file.
+ * Write RGB array (8 bit) into a PPM file.
  *
  * fp    = File pointer for writing the file.
  * Image = RGB array (an array of (R,G,B) triples). 
  *
 */
 
-EXPORT void meas_image_rgb_to_ppm(FILE *fp, unsigned *rgb, unsigned int width, unsigned int height) {
+EXPORT void meas_image_rgb_to_ppm(FILE *fp, unsigned int *rgb, unsigned int width, unsigned int height) {
   
-  int i, j;
-
   fprintf(fp, "P6 ");
   fprintf(fp, "%u ", height);
   fprintf(fp, "%u ", width);
   fprintf(fp, "255 ");
-  fwrite((void *) rgb, sizeof(unsigned char) * width * height, 1, fp);
+  fwrite((void *) rgb, width * height, 1, fp);
 }
 
+/*
+ * Write YUV800 (8 bit) into a PGM file.
+ *
+ * fp    = File pointer for writing the file.
+ * Image = Y400 array (an array of 8 bit grayscale values). 
+ *
+*/
+
+EXPORT void meas_image_y800_to_pgm(FILE *fp, unsigned int *yuv800, unsigned int width, unsigned int height) {
+
+  fprintf(fp, "P5 ");
+  fprintf(fp, "%u ", height);
+  fprintf(fp, "%u ", width);
+  fprintf(fp, "255 ");
+  fwrite((void *) yuv800, width * height, 1, fp);
+}
 
 /*
- * Convert pi-max (16 bit unsigned) gray scale to RGB.
+ * Write YUV16 (16 bit) into a PGM file.
+ *
+ * fp    = File pointer for writing the file.
+ * Image = Y16 array (an array of 16 bit gray scale values). 
+ *
+*/
+
+EXPORT void meas_image_y16_to_pgm(FILE *fp, unsigned int *yuv16, unsigned int width, unsigned int height) {
+
+  int i;
+
+  fprintf(fp, "P5 ");
+  fprintf(fp, "%u ", height);
+  fprintf(fp, "%u ", width);
+  fprintf(fp, "65535 ");
+
+  for (i = 0; i < 2 * width * height; i += 2) {
+    fwrite((void *) (yuv16+1), 1, 1, fp);  /* Swap byte order */
+    fwrite((void *) yuv16, 1, 1, fp);
+  }
+}
+
+/*
+ * Convert (16 bit unsigned) gray scale to RGB.
  *
  * img  = Gray scale image array (16 bit; unsigned short *; length nx * ny; input).
  * nx   = number of pixels along x (unsigned int; input).

@@ -13,5 +13,5 @@ where the XML files are from:
 
 https://github.com/TheImagingSource/tiscamera.git
 
-and uvcdynctrl is available from the standard repos.
-
+and uvcdynctrl is available from the standard repos. Errors may appear but
+things still seem to work OK.
