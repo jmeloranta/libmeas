@@ -10,7 +10,7 @@ See src/ directory for supported devices.
 -------------------
 
 2.1 Install required external libraries (Fedora naming convention): 
-   libunicap, libusb-devel and linux-gpib from sourceforge
+   libunicap-devel, xforms-devel, libusb-devel and linux-gpib from sourceforge
    (http://linux-gpib.sourceforge.net/). There is a sample gpib config
    file in src/gpib-sample.conf which could be placed at /etc/gpib.conf.
    Most notably the first interface is named gpib0 rather than the default

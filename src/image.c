@@ -2,6 +2,10 @@
 /*
  * Image processing and conversion routines.
  *
+ * Note that Y16 is little endian format. On big endian machines,
+ * the application program is responsible for the conversion if
+ * the data is accessed as 16 bit integers.
+ *
  */
 
 #include <stdio.h>
@@ -70,6 +74,7 @@ EXPORT void meas_image_y16_to_rgb3(unsigned char *y16, unsigned char *rgb3, unsi
 
   int i, j;
   
+  /* Y16 is little endian format */
   for (i = j = 0; i < 3 * width * height; i += 3, j += 1)
     rgb3[i] = rgb3[i+1] = rgb3[i+2] = (y16[j+1] * 256 + y16[j]) / 65535;
 }
@@ -232,13 +237,10 @@ EXPORT int meas_image_pgm_to_y16(FILE *fp, unsigned char *y16, unsigned int *wid
   int i;
   
   if(fscanf(fp, "P5[ \r\n\t]%u[ \r\n\t]%u[ \r\n\t]65535[ \r\n\t]", width, height) != 2) return -1;
-#ifdef BIG_ENDIAN
-  fread((void *) y16, 2 * *width * *height, 1, fp);
-#else
+  /* PGM is big endian format */
   for (i = 0; i < 2 * *width * *height; i += 2) {
     fread((void *) (y16+1), 1, 1, fp);
     fread((void *) y16, 1, 1, fp);
-#endif
   }
   return 0;
 }
