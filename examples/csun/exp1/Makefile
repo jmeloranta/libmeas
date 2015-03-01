@@ -1,7 +1,6 @@
-CC = cc
-CFLAGS = -O
+include /usr/include/meas/make.conf
+
 PROGS = exp
-LDFLAGS = -lmeas -lm -lpvcam -lraw1394 -ldl -lplplotd -lgpib -lusb -lrt
 
 all: $(PROGS)
 

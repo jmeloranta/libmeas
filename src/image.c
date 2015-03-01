@@ -71,7 +71,7 @@ EXPORT void meas_image_y16_to_rgb3(unsigned char *y16, unsigned char *rgb3, unsi
   int i, j;
   
   for (i = j = 0; i < 3 * width * height; i += 3, j += 1)
-    rgb3[i] = rgb3[i+1] = rgb3[i+2] = (y16[j+1]*256 + y16[j]) / 65535;
+    rgb3[i] = rgb3[i+1] = rgb3[i+2] = (y16[j+1] * 256 + y16[j]) / 65535;
 }
 
 /*
@@ -227,7 +227,7 @@ EXPORT int meas_image_pgm_to_y800(FILE *fp, unsigned int *y800, unsigned int *wi
  *
  */
 
-EXPORT int meas_image_pgm_y16(FILE *fp, unsigned char *y16, unsigned int *width, unsigned int *height) {
+EXPORT int meas_image_pgm_to_y16(FILE *fp, unsigned char *y16, unsigned int *width, unsigned int *height) {
 
   int i;
   
@@ -316,41 +316,6 @@ EXPORT int meas_image_y16_to_pgm(FILE *fp, unsigned char *yuv16, unsigned int wi
 }
 
 /*
- * Convert (16 bit unsigned) gray scale to RGB3.
- *
- * img  = Gray scale image array (16 bit; unsigned short *; length nx * ny; input).
- * rgb  = RGB3 image (output).
- * nx   = number of pixels along x (unsigned int; input).
- * ny   = number of pixels along y (unsigned int; input).
- * as   = 0: auto scale, > 0: set image maximum pixel value to as (use as = 65535 for no scaling) (unsigned short).
- * 
- * Returns -1 on failure.
- *
- */
-
-EXPORT void meas_image_img_to_rgb3(unsigned short *img, unsigned char *rgb3, unsigned int nx, unsigned int ny, unsigned short as) {
-
-  unsigned int i, j;
-  unsigned short lv = 65535;
-
-  if(!as) {
-    as = 0;
-    for (i = 0; i < nx * ny; i++) {
-      if(img[i] < lv) lv = img[i];
-      if(img[i] > as) as = img[i];
-    }
-    as -= lv;
-    printf("libmeas: autoscale by %u\n", as);
-  } else lv = 0;
-
-  for(i = j = 0; j < nx * ny; i += 3, j += 1) {
-    rgb3[i]   = (unsigned char) ((255.0 / (double) as) * (double) (img[j] - lv));
-    rgb3[i+1] = (unsigned char) ((255.0 / (double) as) * (double) (img[j] - lv));
-    rgb3[i+2] = (unsigned char) ((255.0 / (double) as) * (double) (img[j] - lv));
-  }
-}
-
-/*
  * Scale up RGB3 image.
  *
  * rgbi = Input RGB3 (unsigned char *; input).
@@ -381,4 +346,44 @@ EXPORT int meas_image_scale_rgb3(unsigned char *rgb3i, unsigned int nx, unsigned
 	  for (k = 0; k < 3; k++)
 	    rgb3o[(j * sc + sj) * nx * sc * 3 + (i * sc + si) * 3 + k] = rgb3i[j * nx * 3 + i * 3 + k];
   return 0;
+}
+
+/*
+ * Flip RGB3 in vertical direction.
+ *
+ * rgb3 = RGB3 image.
+ *
+ */
+
+EXPORT void meas_imag_rgb3_vertical_flip(unsigned char *rgb3, int width, int height) {
+
+  int i, j;
+  unsigned char tmp;
+  
+  for (i = 0; i < height; i++)
+    for (j = 0; j < width; j++) {
+      tmp = rgb3[i * width + j];
+      rgb3[i * width + j] = rgb3[(height - i - 1) * width + j];
+      rgb3[(height - i - 1) * width + j] = tmp;
+    }
+}
+
+/*
+ * Flip RGB3 in horizontal direction.
+ *
+ * rgb3 = RGB3 image.
+ *
+ */
+
+EXPORT void meas_imag_rgb3_horizontal_flip(unsigned char *rgb3, int width, int height) {
+
+  int i, j;
+  unsigned char tmp;
+  
+  for (i = 0; i < height; i++)
+    for (j = 0; j < width; j++) {
+      tmp = rgb3[i * width + j];
+      rgb3[i * width + j] = rgb3[i * width + width - j - 1];
+      rgb3[i * width + width - j - 1] = tmp;
+    }
 }

@@ -26,7 +26,8 @@ int shg_n = 0, gain, dye_noscan = 0, active_bkg = 0, diode_bkg = 0;
 double ccd_temp, diode_bkg_wl1 = -1.0, diode_bkg_wl2, diode_bkg_val1, diode_bkg_val2;
 double bkg_data[NX*NY];
 
-unsigned char rr[512*512], gg[512*512], bb[512*512];
+unsigned char rgb[3*NX*NY];
+unsigned char y16[2*NX*NY], y16_bkg[2*NX*NY];
 
 double diode_corr(double val) {
 
@@ -131,7 +132,7 @@ void exp_init() {
 
 static void graph_callback(struct experiment *p) {
 
-  int i, j, k;
+  int i, j, k, l;
   static double *tmp = NULL;
   static int cur = 0;
   double wl, zmin, zmax;
@@ -195,9 +196,9 @@ static void graph_callback(struct experiment *p) {
     }
     for(k = 0; k < NX * NY; k++) /* scale between 0 and 1 */
       p->ydata[i * p->mono_points + k] = (p->ydata[i * p->mono_points + k] - zmin) / (zmax - zmin); 
-    for (k = 0; k < NX * NY; k++) /* invert axes & convert to rgb */
-      meas_graphics_rgb(p->ydata[i * p->mono_points + k], &rr[NX * NY - k - 1], &gg[NX * NY - k - 1], &bb[NX * NY - k - 1]);
-    meas_graphics_update_image(0, rr, gg, bb);
+    meas_image_y16_to_rgb3(y16, rgb, NX, NY);
+    meas_image_vertical_flip(rgb, NX, NY);
+    meas_graphics_update_image(0, rgb);
   }
   meas_graphics_update();
 }
@@ -351,7 +352,7 @@ void exp_run(struct experiment *p) {
   if(p->gate >= 0.0) {
     /* Discard few first samples */
     for (i = 0; i < 10; i++) 
-      meas_pi_max_read2(1, NULL);
+      meas_pi_max_read(1, NULL);
   }
   if(diode_bkg) (void) meas_hp34401a_complete_read(0);
 
@@ -385,8 +386,13 @@ void exp_run(struct experiment *p) {
     if(p->gate >= 0.0)
       printf("Current CCD temperature = %le\n", meas_pi_max_get_temperature());
     memset(&(p->ydata[i * p->mono_points]), 0, sizeof(double) * p->mono_points);
-    if(p->gate >= 0.0)
-      meas_pi_max_read2(p->accum, &(p->ydata[i * p->mono_points]));
+    if(p->gate >= 0.0) {
+      int xx;
+      meas_pi_max_read(p->accum, y16);
+      for (xx = 0; xx < NX*NY; xx++)
+	p->ydata[i * p->mono_points + xx] = (double) y16[xx];
+    }
+
     if(active_bkg) { /* 10 last points from the long wavelength side */
       double ave = 0.0;
       for(j = p->mono_points-10; j < p->mono_points; j++)
@@ -411,8 +417,12 @@ void exp_run(struct experiment *p) {
       /* Turn off dye laser */
       meas_bnc565_enable(0, 2, 0);  /* disable Q switch */
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
-      if(p->gate >= 0.0)
-	meas_pi_max_read2(p->accum, bkg_data);
+      if(p->gate >= 0.0) {
+	int xx;
+	meas_pi_max_read(p->accum, y16_bkg);
+	for(xx = 0; xx < NX*NY; xx++)
+	  bkg_data[xx] = (double) y16_bkg[xx];
+      }
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= bkg_data[j];
       /* Turn on dye laser */
@@ -422,8 +432,12 @@ void exp_run(struct experiment *p) {
       /* Turn off ablation laser */
       meas_bnc565_enable(0, 3, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
-      if(p->gate >= 0.0)
-	meas_pi_max_read2(p->accum, bkg_data);
+      if(p->gate >= 0.0) {
+	int xx;
+	meas_pi_max_read(p->accum, y16_bkg);
+	for (xx = 0; xx < NX*NY; xx++)
+	  bkg_data[xx] = (double) y16_bkg[xx];
+      }
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= bkg_data[j];
       /* Turn on ablation laser */
@@ -433,16 +447,24 @@ void exp_run(struct experiment *p) {
       /* Dye laser off, ablation on */
       meas_bnc565_enable(0, 2, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
-      if(p->gate >= 0.0)
-	meas_pi_max_read2(p->accum, bkg_data);
+      if(p->gate >= 0.0) {
+	int xx;
+	meas_pi_max_read(p->accum, y16_bkg);
+	for(xx = 0; xx < NX*NY; xx++)
+	  bkg_data[xx] = (double) y16_bkg[xx];
+      }
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= 0.5*bkg_data[j];
       meas_bnc565_enable(0, 2, 1);
       /*  dye laser on and ablation off */
       meas_bnc565_enable(0, 3, 0);
       memset(&bkg_data, 0, sizeof(double) * p->mono_points);
-      if(p->gate >= 0.0)
-	meas_pi_max_read2(p->accum, bkg_data);
+      if(p->gate >= 0.0) {
+	int xx;
+	meas_pi_max_read(p->accum, y16_bkg);
+	for(xx = 0; xx < NX*NY; xx++)
+	  bkg_data[xx] = y16_bkg[xx];
+      }
       for (j = 0; j < p->mono_points; j++)
 	p->ydata[i * p->mono_points + j] -= 0.5*bkg_data[j];
       meas_bnc565_enable(0, 3, 1);

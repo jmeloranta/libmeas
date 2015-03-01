@@ -35,9 +35,9 @@ static void graph_callback(struct experiment *p) {
 
   static int cur = 0;
 
-  if(!cur) meas_graphics_init(1, NULL, NULL);
+  if(!cur) meas_graphics_init(1, MEAS_GRAPHICS_XY, 512, 512, 1024, "graph"); /* TODO: are these sensible values ? */
   /* fluorescence as a function of emission wavelength */
-  meas_graphics_update2d(0, 0, MEAS_GRAPHICS_WHITE, p->xdata, p->ydata, cur);
+  meas_graphics_update2d(0, p->xdata, p->ydata, cur);
   meas_graphics_autoscale(0);
   meas_graphics_update();
   cur++;

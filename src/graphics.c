@@ -227,7 +227,7 @@ EXPORT int meas_graphics_ytitle(int win, char *str) {
 }
 
 /*
- * Update graphics output.
+ * Update graphics output for all windows & graphics types.
  *
  * Returns 0 on success.
  *

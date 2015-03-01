@@ -5,6 +5,10 @@
  *
  */
 
+#include <meas/meas.h>
+#include <math.h>
+#include "csun.h"
+
 static double surelite_qswitch_val = 300.0E-6; /* sec */
 static double surelite_delay_val = 0.0; /* sec */
 static double minilite_qswitch_val = 300.0E-6; /* sec */

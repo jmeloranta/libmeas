@@ -20,9 +20,9 @@
 #define NX 512
 #define NY 512
 
-unsigned char ri[NX * NY], gi[NX * NY], bi[NX * NY];
-unsigned char ro[SCALE * SCALE * NX * NY], go[SCALE * SCALE * NX * NY], bo[SCALE * SCALE * NX * NY];
-unsigned short img[NX * NY];
+unsigned char rgbi[3 * NX * NY];
+unsigned char rgbo[3 * SCALE * SCALE * NX * NY];
+unsigned char y16[2 * NX * NY];
 
 int main(int argc, char **argv) {
 
@@ -90,10 +90,10 @@ int main(int argc, char **argv) {
   for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
     meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, delay + CCD_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-    meas_pi_max_read(aves, img);
-    meas_graphics_convert_img_to_rgb(img, NX, NY, ri, gi, bi, 0);
-    meas_graphics_scale_rgb(ri, gi, bi, NX, NY, SCALE, ro, go, bo);
-    meas_graphics_update_image(0, ro, go, bo);
+    meas_pi_max_read(aves, y16);
+    meas_graphics_y16_to_rgb3(y16, rgbi, NX, NY);
+    meas_graphics_scale_rgb3(rgbi, NX, NY, SCALE, rgbo);
+    meas_graphics_update_image(0, rgbo);
     meas_graphics_update();
     sprintf(filename, "%s-%le.img", filebase, delay);
     if(filename[0] != '0') {
@@ -101,9 +101,7 @@ int main(int argc, char **argv) {
 	fprintf(stderr, "Error writing file.\n");
 	exit(1);
       }
-      fwrite((void *) ri, sizeof(unsigned char) * NX * NY, 1, fp);
-      fwrite((void *) gi, sizeof(unsigned char) * NX * NY, 1, fp);
-      fwrite((void *) bi, sizeof(unsigned char) * NX * NY, 1, fp);
+      meas_image_y16_to_pgm(fp, y16, NX, NY);
       fclose(fp);
     }
   }

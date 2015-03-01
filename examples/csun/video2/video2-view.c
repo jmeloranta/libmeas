@@ -9,7 +9,8 @@
 #define NX 512
 #define NY 512
 
-unsigned char r[NX * NY], g[NX * NY], b[NX * NY];
+unsigned char rgb[3 * NX * NY];
+unsigned char y16[2 * NX * NY];
 
 int main(int argc, char **argv) {
 
@@ -35,11 +36,10 @@ int main(int argc, char **argv) {
       fprintf(stderr, "Error reading file.\n");
       exit(1);
     }
-    fread((void *) r, sizeof(unsigned char) * NX * NY, 1, fp);
-    fread((void *) g, sizeof(unsigned char) * NX * NY, 1, fp);
-    fread((void *) b, sizeof(unsigned char) * NX * NY, 1, fp);
+    meas_image_pgm_to_y16(fp, y16, NX, NY);
+    meas_image_y16_to_rgb3(y16, rgb, NX, NY);
     fclose(fp);
-    meas_graphics_update_image(0, r, g, b);
+    meas_graphics_update_image(0, rgb);
     meas_graphics_update();
 #if 0
     sprintf(filename, "%s-%le.ppm", filebase, delay);
