@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
   meas_dg535_run(0, MEAS_DG535_RUN); /* start unit */
 
   fd = meas_video_open(CAMERA);
-  frame_size = meas_video_format(CAMERA, FORMAT, WIDTH, HEIGHT);
+  frame_size = meas_video_set_image_format(CAMERA, FORMAT, WIDTH, HEIGHT);
   if(!(rgb = (unsigned char *) malloc(WIDTH * HEIGHT * 3))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);

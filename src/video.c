@@ -40,8 +40,6 @@ struct device {
 } cameras[MEAS_VIDEO_MAXDEV];
 static int nvideo = -1; /* # of video devices */
 
-static int been_here = 0;
-
 /*
  * Output a list of supported video modes for a given camera.
  *
@@ -85,7 +83,7 @@ EXPORT void meas_video_info_all() {
 /*
  * Print properties for a given camera.
  *
- * d = Camera descriptor.
+ * d = Camera number.
  *
  */
 
@@ -181,8 +179,6 @@ EXPORT int meas_video_open(int d) {
  *
  * d      = Camera number.
  * f      = Format number.
- * width  = Image width.
- * height = Image height.
  * fcc    = Char array of at least 5 bytes to hold the four byte FOURCC and the null termination.
  *          For a list of allocated FOURCC's, see http://www.fourcc.org
  *
@@ -190,12 +186,35 @@ EXPORT int meas_video_open(int d) {
  *
  */
 
-EXPORT int meas_video_image_format(int d, int f, int width, int height, char *fcc) {
+EXPORT int meas_video_get_image_format(int d, int f, char *fcc) {
 
   if(d >= nvideo || cameras[d].fd == NULL || nvideo == -1) return -1;
   strncpy(fcc, (char *) &(cameras[d].formats[f].fourcc), 4);
   fcc[4] = 0;
   return 0;
+}
+
+/*
+ * Return available image sizes for a given camera & format.
+ *
+ * d      = Camera number.
+ * f      = Format.
+ * width  = Width array of available sizes (pointer).
+ * height = Height array of available sizes (pointer).
+ *
+ * Returns the number of images sizes available.
+ *
+ */
+
+EXPORT int meas_video_get_image_sizes(int d, int f, int *width, int *height) {
+
+  int i;
+
+  for (i = 0; i < cameras[d].formats[f].size_count; i++) {
+    width[i] = cameras[d].formats[f].sizes[i].width;
+    height[i] = cameras[d].formats[f].sizes[i].height;
+  }
+  return cameras[d].formats[f].size_count;
 }
 
 /*
@@ -210,7 +229,7 @@ EXPORT int meas_video_image_format(int d, int f, int width, int height, char *fc
  *
  */
 
-EXPORT size_t meas_video_format(int d, int f, int width, int height) {
+EXPORT size_t meas_video_set_image_format(int d, int f, int width, int height) {
   
   int n;
   
@@ -233,7 +252,6 @@ EXPORT size_t meas_video_format(int d, int f, int width, int height) {
   cameras[d].current_format = f;
   
   return cameras[d].formats[f].buffer_size;
-  //  return (cameras[d].formats[f].bpp * width * height) / 8;
 }
 
 /*

@@ -15,7 +15,7 @@ main() {
   printf("Enter device #, format #, width, height: ");
   scanf("%d %d %d %d", &d, &f, &width, &height);
   meas_video_open(d);
-  frame_size = meas_video_format(d, f, width, height);
+  frame_size = meas_video_set_image_format(d, f, width, height);
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE*width, SCALE*height, 0, "test");
   if(!(buffer = (unsigned char *) malloc(frame_size))) {
     fprintf(stderr, "Out of memory.\n");
@@ -27,7 +27,7 @@ main() {
   }
   printf("Frame size = %u bytes.\n", frame_size);
   meas_video_properties(0);
-  meas_video_image_format(d, f, width, height, fmt);
+  meas_video_get_image_format(d, f, fmt);
   printf("Image format = %s\n", fmt);
   if(!strcmp(fmt, "RGB3")) {
     meas_video_start(d);
