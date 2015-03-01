@@ -11,6 +11,8 @@
 #include "gpib.h"
 #include "misc.h"
 
+#ifdef GPIB
+
 /* Up to 5 devices supported */
 static int hp34401a_fd[5] = {-1, -1, -1, -1, -1};
 
@@ -436,3 +438,5 @@ EXPORT int meas_hp34401a_set_trigger_count(int unit, int count) {
   meas_gpib_write(hp34401a_fd[unit], buf, MEAS_HP34401A_CRLF);  
   return 0;
 }
+
+#endif /* GPIB */

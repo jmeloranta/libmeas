@@ -3,6 +3,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,3 +69,5 @@ EXPORT double meas_tr5211_read(int unit) {
     meas_err("meas_tr5211_read: Time out.");
   return (double) atof(buf) * 1.0E-9;  /* to Hz */
 }
+
+#endif /* GPIB */

@@ -6,6 +6,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -271,3 +273,5 @@ EXPORT int meas_fl3000_grating(int unit, int x) {
   grating_order = x;
   return 0;
 }
+
+#endif /* GPIB */

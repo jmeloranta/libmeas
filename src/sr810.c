@@ -5,6 +5,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -412,3 +414,5 @@ EXPORT double meas_sr810_get_sinelevel(int unit) {
 
   return atof(buf);
 }
+
+#endif /* GPIB */

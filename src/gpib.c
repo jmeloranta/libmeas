@@ -7,6 +7,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <gpib/ib.h>
 #include <string.h>
@@ -322,3 +324,5 @@ EXPORT int meas_gpib_async_write(int fd, char *buf, int crlf) {
   }
   return 0;
 }
+
+#endif /* GPIB */

@@ -7,6 +7,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -634,3 +636,5 @@ EXPORT int meas_wavetek80_get_sweep_marker(int unit) {
   meas_gpib_read(wavetek80_fd[unit], buf);
   return atoi(buf);
 }
+
+#endif /* GPIB */

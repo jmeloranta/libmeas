@@ -4,6 +4,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -199,3 +201,5 @@ EXPORT int meas_hp5384_error(int unit) {
   meas_gpib_read(hp5384_fd[unit], buf);
   return atoi(buf);
 }
+
+#endif /* GPIB */

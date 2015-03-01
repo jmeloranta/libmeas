@@ -3,6 +3,8 @@
  * 
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -364,3 +366,5 @@ EXPORT int meas_er023_calibrated(int unit) {
   if(current_ma[unit] == -1) return 0;
   else return 1;
 }
+
+#endif /* GPIB */

@@ -6,6 +6,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -216,3 +218,5 @@ EXPORT int meas_dg535_do_trigger(int unit) {
   meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);  
   return 0;
 }
+
+#endif /* GPIB */

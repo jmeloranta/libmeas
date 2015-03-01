@@ -3,6 +3,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,3 +42,5 @@ EXPORT double meas_hp5350_read(int unit) {
   meas_gpib_read_n(hp5350_fd[unit], buf, 24);
   return atof(buf);
 }
+
+#endif /* GPIB */

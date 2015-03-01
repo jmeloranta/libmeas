@@ -3,6 +3,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,3 +64,5 @@ EXPORT double meas_e500_read(int unit) {
   meas_gpib_clear(e500_board[unit]); /* Is this needed? (was just ibsic()) */
   return atof(buf+1);
 }
+
+#endif /* GPIB */

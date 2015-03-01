@@ -4,6 +4,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -429,3 +431,5 @@ EXPORT int meas_sr245_scan_read(int unit, int *ports, int nports, double *points
   }
   return 0;
 }
+
+#endif /* GPIB */

@@ -3,6 +3,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,3 +66,5 @@ EXPORT double meas_hp53131_read(int unit, int channel) {
   }
   return freq;
 }
+
+#endif /* GPIB */

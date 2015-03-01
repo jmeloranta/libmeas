@@ -6,6 +6,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -234,3 +236,5 @@ EXPORT int meas_bnc565_mode(int unit, int channel, int mode, int data1, int data
   }
   return 0;
 }
+
+#endif /* GPIB */

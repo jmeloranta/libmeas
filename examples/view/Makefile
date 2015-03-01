@@ -1,4 +1,4 @@
-include ../../make.conf
+include /usr/include/meas/make.conf
 
 all: view slice slice2 subtract
 

@@ -5,6 +5,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,3 +77,5 @@ EXPORT int meas_er032_write(int unit, double field) {
   meas_gpib_write(er032_fd[unit], buf, MEAS_ER032_CRLF);
   return 0;
 }
+
+#endif /* GPIB */
