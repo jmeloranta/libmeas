@@ -9,7 +9,7 @@ main() {
   int i, s, d, f, width, height;
   double mi, ma;
   size_t frame_size;
-  unsigned char *buffer, *rgb;
+  unsigned char *buffer, *rgb, fmt[5];
 
   meas_video_info_all();
   printf("Enter device #, format #, width, height: ");
@@ -27,20 +27,62 @@ main() {
   }
   printf("Frame size = %u bytes.\n", frame_size);
   meas_video_properties(0);
-  /* Testing */
-  meas_video_set_range(0, "Exposure (Absolute)", 100.0);
-  meas_video_set_range(0, "Exposure Time (us)", 100.0);
-  meas_video_set_range(0, "Gain", 100.0);
-  meas_video_set_range(0, "Gain (dB/100)", 100.0);
-  while (1) {
+  meas_video_image_format(d, f, width, height, fmt);
+  printf("Image format = %s\n", fmt);
+  if(!strcmp(fmt, "RGB3")) {
+    meas_video_start(d);
+    while(1) {
+      meas_video_read(d, 1, buffer);
+      meas_graphics_update_image(0, buffer);
+      meas_graphics_update();
+    }
+    /* not reached */
+  }
+  if(!strcmp(fmt, "BGR3")) {
+    meas_video_start(d);
+    while(1) {
+      meas_video_read(d, 1, buffer);
+      meas_image_bgr3_to_rgb3(buffer, buffer, width, height);
+      meas_graphics_update_image(0, buffer);
+      meas_graphics_update();
+    }
+    /* not reached */
+  }
+  if(!strcmp(fmt, "UYVY")) {
+    meas_video_start(d);
+    while(1) {
+      meas_video_read(d, 1, buffer);
+      meas_image_yuv422_to_rgb3(buffer, rgb, width, height);
+      meas_graphics_update_image(0, rgb);
+      meas_graphics_update();
+    }
+    /* not reached */
+  }
+  if(!strcmp(fmt, "Y800") || !strcmp(fmt, "Y8")) {
+    meas_video_start(d);
+    while(1) {
+      meas_video_read(d, 1, buffer);
+      meas_image_y800_to_rgb3(buffer, rgb, width, height);
+      meas_graphics_update_image(0, rgb);
+      meas_graphics_update();
+    }
+    /* not reached */
+  }
+  if(!strcmp(fmt, "Y16")) {
+    meas_video_start(d);
+    while(1) {
+      meas_video_read(d, 1, buffer);
+      meas_image_y16_to_rgb3(buffer, rgb, width, height);
+      meas_graphics_update_image(0, rgb);
+      meas_graphics_update();
+    }
+    /* not reached */
+  }
+  printf("Image format not supported.\n");
+  meas_video_start(d);
+  while(1) {
     meas_video_read(d, 1, buffer);
-    printf("One frame done.\n");
-    //meas_image_yuv422_to_rgb(buffer, rgb, width, height);
-    meas_image_y800_to_rgb(buffer, rgb, width, height);
-    //meas_image_y16_to_rgb(buffer, rgb, width, height);
-    //    meas_image_scale_rgb(rgbi, width, height, SCALE, rgbo);
-    meas_graphics_update_image(0, rgb);
-    meas_graphics_update();
+    printf("Frame read.\n");
   }
   free(buffer);
   meas_video_close(d);

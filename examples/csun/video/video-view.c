@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <meas/meas.h>
 
 #define HEIGHT 1280
@@ -44,7 +43,7 @@ int main(int argc, char **argv) {
     }
     fread((void *) y16, 4 * HEIGHT * WIDTH, 1, fp);
     fclose(fp);
-    meas_image_y16_to_rgb(y16, rgb, WIDTH, HEIGHT);    
+    meas_image_y16_to_rgb3(y16, rgb, WIDTH, HEIGHT);    
     meas_graphics_update_image(0, rgb);
     meas_graphics_update();
     //sleep(1);

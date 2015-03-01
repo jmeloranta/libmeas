@@ -1,10 +1,10 @@
 /*
  * Simple frame grabbing interface using libunicap (for more serious work, use libunicap directly).
  *
- * TODO: This assumes that the MMAP interface is available for the camera.
+ * Unfortunately, there are a number of bugs in libunicap:
  *
- * Not all cameras support all settings provided here. See v4l2-ctl --all -d /dev/video0
- * for supported options for your camera.
+ * 1) USER_BUFFERS does not work - it hangs in unicap_wait_buffer() forever.
+ * 2) Each time stop is issued to a device, it hangs for a moment and spits out V4L2 errors.
  *
  */
 
@@ -24,12 +24,16 @@
 #include <unicap/unicap.h>
 #include <string.h>
 
+/* This does not seem to work */
+/* #define USER_BUFFERS /**/
+
 struct device {
   unicap_handle_t fd;
   int width, height;
   unicap_device_t device;
   int nformats; /* Number of formats */
   unicap_format_t formats[MEAS_VIDEO_MAXFMT]; /* supported video formats */
+  int current_format;
   int nprop;   /* Number of properties */
   unicap_property_t properties[MEAS_VIDEO_MAXPROP]; /* supported camera properties (settigns) */
 } cameras[MEAS_VIDEO_MAXDEV];
@@ -42,14 +46,15 @@ static int been_here = 0;
  *
  * d = Camera number.
  *
+ * Return 0 on success, -1 on error.
+ *
  */
 
-EXPORT void meas_video_info_camera(int d) {
+EXPORT int meas_video_info_camera(int d) {
 
   int m, n;
 
-  if(nvideo == -1) meas_video_open(0);
-  if(cameras[d].fd == NULL) return;
+  if(d >= nvideo || cameras[d].fd == NULL || nvideo == -1) return -1;
   /* Loop through available video formats */
   for (m = 0; m < cameras[d].nformats; m++) {
     /* Available resolutions for the chosen format */
@@ -58,7 +63,7 @@ EXPORT void meas_video_info_camera(int d) {
 	     cameras[d].formats[m].sizes[n].height, n, cameras[d].formats[m].bpp);
   }
   if(m == 0) fprintf(stderr, "libmeas: Camera %d: No video formats available.", d);
-  return;
+  return 0;
 }
 
 /*
@@ -102,7 +107,7 @@ EXPORT void meas_video_properties(int d) {
 	printf("%s, ", cameras[d].properties[m].menu.menu_items[n]);
       printf("\n");
       break;
-    case UNICAP_PROPERTY_TYPE_VALUE_LIST:   /* TODO: support getting/setting these */
+    case UNICAP_PROPERTY_TYPE_VALUE_LIST:
       printf("Property(Value list): %s. Current = %le. Available: ", cameras[d].properties[m].identifier, cameras[d].properties[m].value);
       for (n = 0; n < cameras[d].properties[m].value_list.value_count; n++)
 	printf("%le ", cameras[d].properties[m].value_list.values[n]);
@@ -171,12 +176,34 @@ EXPORT int meas_video_open(int d) {
 }
  
 /*
+ * Return image format (YU12, Y800, etc.) for the given device and format # & resolution.
+ *
+ * d      = Camera number.
+ * f      = Format number.
+ * width  = Image width.
+ * height = Image height.
+ * fcc    = Char array of at least 5 bytes to hold the four byte FOURCC and the null termination.
+ *          For a list of allocated FOURCC's, see http://www.fourcc.org
+ *
+ * Return value is 0 on success or -1 on error.
+ *
+ */
+
+EXPORT int meas_video_image_format(int d, int f, int width, int height, char *fcc) {
+
+  if(d >= nvideo || cameras[d].fd == NULL || nvideo == -1) return -1;
+  strncpy(fcc, (char *) &(cameras[d].formats[f].fourcc), 4);
+  fcc[4] = 0;
+  return 0;
+}
+
+/*
  * Set video format.
  *
  * d      = Camera.
  * f      = Format (a number; use meas_video_info_all() to see the available modes).
- * height = Image height.
  * width  = Image width.
+ * height = Image height.
  *
  * Returns -1 for non-existing video mode or number of bytes required per frame.
  *
@@ -196,9 +223,16 @@ EXPORT size_t meas_video_format(int d, int f, int width, int height) {
   
   cameras[d].formats[f].size.width = cameras[d].formats[f].sizes[n].width;
   cameras[d].formats[f].size.height = cameras[d].formats[f].sizes[n].height;
+#ifdef USER_BUFFERS
+  cameras[d].formats[f].buffer_type = UNICAP_BUFFER_TYPE_USER;
+#else
+  cameras[d].formats[f].buffer_type = UNICAP_BUFFER_TYPE_SYSTEM;
+#endif
   if(unicap_set_format(cameras[d].fd, &(cameras[d].formats[f])) != STATUS_SUCCESS) meas_err("video: Can't set video format.");
+  cameras[d].current_format = f;
   
-  return (cameras[d].formats[f].bpp * width * height) / 8;
+  return cameras[d].formats[f].buffer_size;
+  //  return (cameras[d].formats[f].bpp * width * height) / 8;
 }
 
 /*
@@ -207,8 +241,11 @@ EXPORT size_t meas_video_format(int d, int f, int width, int height) {
  * d       = Video device number.
  * nframes = Number of frames to read.
  *
+ * Note that meas_video_start() must be called before this and meas_video_stop() to stop the device.
+ *
  */
 
+#ifndef USER_BUFFERS
 struct tmp {
   volatile int frame_count; /* Note: volatile because the frame_sub routine is changing this inside a while loop in read */
   int max_frames;
@@ -224,24 +261,63 @@ static void new_frame_sub(unicap_event_t event, unicap_handle_t handle, unicap_d
     bcopy(buffer->data, &(tmp->frames[tmp->frame_count * buffer->buffer_size]), buffer->buffer_size);
   (tmp->frame_count)++;
 }
+#endif
 
 EXPORT void meas_video_read(int d, int nframes, unsigned char *buffer) {
 
   struct tmp tmp;
-
+  int cf;
+#ifdef USER_BUFFERS
+  unicap_data_buffer_t unibuf;
+#endif
+  
   if(cameras[d].fd == NULL) {
     meas_err2("video: Read from non-existing camera.");
     return;
   }
   meas_misc_root_on();
+#ifdef USER_BUFFERS
+  unibuf.buffer_size = cameras[d].formats[cameras[d].current_format].buffer_size;
+  unicap_start_capture(cameras[d].fd);
+  for (cf = 0; cf < nframes; cf++) {
+    unicap_data_buffer_t *rb;
+    unibuf.data = buffer + cf * unibuf.buffer_size;
+    unicap_queue_buffer(cameras[d].fd, &unibuf);
+    unicap_wait_buffer(cameras[d].fd, &rb);
+  }
+  unicap_stop_capture(cameras[d].fd);
+#else
   tmp.frame_count = 0;
   tmp.frames = buffer;
   tmp.max_frames = nframes;
   unicap_register_callback(cameras[d].fd, UNICAP_EVENT_NEW_FRAME, (unicap_callback_t) new_frame_sub, (void *) &tmp);
-  unicap_start_capture(cameras[d].fd);
-  while(tmp.frame_count < nframes) usleep(100000);
-  unicap_stop_capture(cameras[d].fd);
+  while(tmp.frame_count < nframes) usleep(100);
+#endif
   meas_misc_root_off();
+}
+
+/*
+ * Start capture.
+ *
+ * d = Camera number.
+ *
+ */
+
+EXPORT void meas_video_start(int d) {
+
+  unicap_start_capture(cameras[d].fd);
+}
+
+/*
+ * Stop capture.
+ *
+ * d = Camera number.
+ *
+ */
+
+EXPORT void meas_video_stop(int d) {
+
+  unicap_stop_capture(cameras[d].fd);
 }
 
 /*

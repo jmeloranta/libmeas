@@ -130,24 +130,26 @@ int main(int argc, char **argv) {
 
   signal(SIGINT, &sig_handler);
 
+  meas_video_start(CAMERA); /* TODO: start/stop outside or inside the loop ? */
   for(cur_time = t0; ; cur_time += tstep) {
     printf("Diode delay = %le s.\n", cur_time);
     meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
     meas_video_read(CAMERA, 1, y16);
-    meas_image_y16_to_rgb(y16, rgb, WIDTH, HEIGHT);
+    meas_image_y16_to_rgb3(y16, rgb, WIDTH, HEIGHT);
     meas_graphics_update_image(0, rgb);
     meas_graphics_update();
     if(filebase[0] != '0') {
       if(tstep != 0.0) 
-	sprintf(filename, "%s-%le.img", filebase, diode_delay);
+	sprintf(filename, "%s-%le.pgm", filebase, diode_delay);
       else
-	sprintf(filename, "%s-%le-%d.img", filebase, diode_delay, nimg);
+	sprintf(filename, "%s-%le-%d.pgm", filebase, diode_delay, nimg);
       if(!(fp = fopen(filename, "w"))) {
 	fprintf(stderr, "Error writing file.\n");
 	exit(1);
       }
-      fwrite((void *) y16, frame_size, 1, fp);
+      meas_image_y16_to_pgm(fp, y16, WIDTH, HEIGHT);
       fclose(fp);
     }
   }
+  meas_video_stop(CAMERA);
 }

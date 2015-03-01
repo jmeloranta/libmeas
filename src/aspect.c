@@ -1,4 +1,6 @@
 /*
+ * This may have some endianness issues and probably works only on x86.
+ * 
  * Driver routines for old Aspect computer slow speed serial bus.
  * Used, for example, in some old Bruker ENDOR equipment.
  * The interface has Bruker type code EN-003.
