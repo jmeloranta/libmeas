@@ -67,6 +67,8 @@ EXPORT void meas_image_y800_to_rgb3(unsigned char *y800, unsigned char *rgb3, un
  * Note that Y16 is a 16bit/pixel format and RGB3 is 3x8bits.
  * So, bits are lost. This just for displaying images.
  *
+ * Y12 is just a special 12 bit version of Y16 with the two top most bits zero.
+ *
  */
 
 EXPORT void meas_image_y16_to_rgb3(unsigned char *y16, unsigned char *rgb3, unsigned int width, unsigned int height) {

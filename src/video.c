@@ -153,8 +153,9 @@ EXPORT int meas_video_open(int d) {
       for (n = 0; n < MEAS_VIDEO_MAXFMT; n++) {
 	if(unicap_enumerate_formats(cameras[m].fd, NULL, &(cameras[m].formats[n]), n) != STATUS_SUCCESS) break;
 	if(cameras[d].formats[n].bpp == 0) {
-	  fprintf(stderr, "libmeas: Warning BPP = 0 - setting to 16.\n");
-	  cameras[d].formats[n].bpp = 16;
+	  // Not exactly sure what to do here...
+	  //	  fprintf(stderr, "libmeas: Warning BPP = 0 - setting to 16.\n");
+	  //      cameras[d].formats[n].bpp = 16;
 	}
       }
       cameras[m].nformats = n;

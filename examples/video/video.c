@@ -48,6 +48,16 @@ main() {
     }
     /* not reached */
   }
+  if(!strcmp(fmt, "Y12") || !strcmp(fmt, "Y16")) {
+    meas_video_start(d);
+    while(1) {
+      meas_video_read(d, 1, buffer);
+      meas_image_y16_to_rgb3(buffer, rgb, width, height);
+      meas_graphics_update_image(0, rgb);
+      meas_graphics_update();
+    }
+    /* not reached */
+  }
   if(!strcmp(fmt, "UYVY")) {
     meas_video_start(d);
     while(1) {
