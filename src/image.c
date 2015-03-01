@@ -9,7 +9,6 @@
  */
 
 #include <stdio.h>
-#include <strings.h>
 #include "misc.h"
 
 /*
@@ -29,11 +28,11 @@ EXPORT void meas_image_bgr3_to_rgb3(unsigned char *bgr3, unsigned char *rgb3, un
   int i;
   unsigned char tmp;
   
-  for (i = 0; i < width * height; i++) {
-    tmp = rgb3[3*i];
-    rgb3[3*i] = bgr3[3*i + 2];
-    rgb3[3*i + 1] = bgr3[3*i + 1];
-    rgb3[3*i + 2] = tmp;
+  for (i = 0; i < 3 * width * height; i += 3) {
+    tmp = bgr3[i];
+    rgb3[i] = bgr3[i + 2];
+    rgb3[i + 1] = bgr3[i + 1];
+    rgb3[i + 2] = tmp;
   }
 }
 
@@ -75,7 +74,7 @@ EXPORT void meas_image_y16_to_rgb3(unsigned char *y16, unsigned char *rgb3, unsi
   int i, j;
   
   /* Y16 is little endian format */
-  for (i = j = 0; i < 3 * width * height; i += 3, j += 1)
+  for (i = j = 0; i < 3 * width * height; i += 3, j += 2)
     rgb3[i] = rgb3[i+1] = rgb3[i+2] = (y16[j+1] * 256 + y16[j]) / 65535;
 }
 
@@ -95,7 +94,7 @@ EXPORT void meas_image_yuv_to_rgb3(unsigned char *yuv, unsigned char *rgb3, unsi
 
   int i, y, u, v;
   
-  for (i = 0; i < width * height; i += 3) {
+  for (i = 0; i < 3 * width * height; i += 3) {
     y = yuv[i]; u = yuv[i+1]; v = yuv[i+2];
     rgb3[i] = 1.164 * (y - 16) + 1.596 * (v - 128);
     rgb3[i+1] = 1.164 * (y - 16) - 0.813 * (v - 128) - 0.391 * (u - 128);
@@ -119,7 +118,7 @@ EXPORT void meas_image_rgb3_to_yuv(unsigned char *rgb3, unsigned char *yuv, unsi
 
   int i, r, g, b;
 
-  for (i = 0; i < width * height; i++) {
+  for (i = 0; i < 3 * width * height; i += 3) {
     r = rgb3[i]; g = rgb3[i+1]; b = rgb3[i+2];
     yuv[i] = (0.257 * r) + (0.504 * g) + (0.098 * b) + 16;
     yuv[i+1] = -(0.148 * r) - (0.291 * g) + (0.439 * b) + 128;
@@ -143,6 +142,7 @@ EXPORT void meas_image_yuv422_to_rgb3(unsigned char *yuv, unsigned char *rgb3, u
   double tmp;
   unsigned char y1, y2, u, v;
 
+  /* for each pixel: 4 bytes of YUV -> 6 bytes of RGB */
   for(i = j = 0; i < 3 * height * width; i += 6, j += 4) {
     /* two pixels interleaved */
     y1 = yuv[j];
@@ -197,7 +197,7 @@ EXPORT void meas_image_yuv422_to_rgb3(unsigned char *yuv, unsigned char *rgb3, u
 EXPORT int meas_image_ppm_to_rgb3(FILE *fp, unsigned int *rgb3, unsigned int *width, unsigned int *height) {
   
   if(fscanf(fp, "P6[ \r\n\t]%u[ \r\n\t]%u[ \r\n\t]255[ \n\r\t]", width, height) != 2) return -1;
-  fread((void *) rgb3, *width * *height, 1, fp);
+  fread((void *) rgb3, 3 * *width * *height, 1, fp);
   return 0;
 }
 
@@ -263,7 +263,7 @@ EXPORT int meas_image_rgb3_to_ppm(FILE *fp, unsigned int *rgb3, unsigned int wid
   if(fprintf(fp, "%u ", width) < 0) return -1;
   if(fprintf(fp, "%u ", height) < 0) return -1;
   if(fprintf(fp, "255 ") < 0) return -1;
-  if(fwrite((void *) rgb3, width * height, 1, fp) != width * height) return -1;
+  if(fwrite((void *) rgb3, 3 * width * height, 1, fp) != width * height) return -1;
   return 0;
 }
 
@@ -338,7 +338,7 @@ EXPORT int meas_image_scale_rgb3(unsigned char *rgb3i, unsigned int nx, unsigned
 
   if(sc < 1 || sc > 10) meas_err("meas_image_scale_rgb3: Illegal scale value.\n");
   if(sc == 1) {
-    bcopy(rgb3i, rgb3o, nx * ny);
+    for (i = 0; i < nx * ny; i++) rgb3o[i] = rgb3i[i];
     return 0;
   }
   for (i = 0; i < nx; i++)
@@ -359,15 +359,16 @@ EXPORT int meas_image_scale_rgb3(unsigned char *rgb3i, unsigned int nx, unsigned
 
 EXPORT void meas_imag_rgb3_vertical_flip(unsigned char *rgb3, int width, int height) {
 
-  int i, j;
+  int i, j, k, w3 = width * 3;
   unsigned char tmp;
-  
+
   for (i = 0; i < height; i++)
-    for (j = 0; j < width; j++) {
-      tmp = rgb3[i * width + j];
-      rgb3[i * width + j] = rgb3[(height - i - 1) * width + j];
-      rgb3[(height - i - 1) * width + j] = tmp;
-    }
+    for (j = 0; j < width; j++)
+      for (k = 0; k < 3; k++) {      
+	tmp = rgb3[i * w3 + 3 * j + k];
+	rgb3[i * w3 + 3 * j + k] = rgb3[(height - i - 1) * w3 + 3 * j + k];
+	rgb3[(height - i - 1) * w3 + 3 * j + k] = tmp;
+      }
 }
 
 /*
@@ -379,13 +380,14 @@ EXPORT void meas_imag_rgb3_vertical_flip(unsigned char *rgb3, int width, int hei
 
 EXPORT void meas_imag_rgb3_horizontal_flip(unsigned char *rgb3, int width, int height) {
 
-  int i, j;
+  int i, j, k, w3 = width * 3;
   unsigned char tmp;
   
   for (i = 0; i < height; i++)
-    for (j = 0; j < width; j++) {
-      tmp = rgb3[i * width + j];
-      rgb3[i * width + j] = rgb3[i * width + width - j - 1];
-      rgb3[i * width + width - j - 1] = tmp;
-    }
+    for (j = 0; j < width; j++)
+      for (k = 0; k < 3; k++) {
+	tmp = rgb3[i * w3 + 3 * j + k];
+	rgb3[i * w3 + 3 * j + k] = rgb3[i * w3 + 3 * (width - j - 1) + k];
+	rgb3[i * w3 + 3 * (width - j - 1) + k] = tmp;
+      }
 }
