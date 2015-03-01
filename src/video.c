@@ -5,6 +5,7 @@
  *
  * 1) USER_BUFFERS does not work - it hangs in unicap_wait_buffer() forever.
  * 2) Each time stop is issued to a device, it hangs for a moment and spits out V4L2 errors.
+ * 3) bpp is sometimes zero.
  *
  */
 

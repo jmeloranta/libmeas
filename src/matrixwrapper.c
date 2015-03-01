@@ -76,7 +76,7 @@ EXPORT int meas_matrix_read(double exp, int ave, double *dst) {
   data_size = ((unsigned int) width) * ((unsigned int) height) * (unsigned int) bpp;
   if(!spc) {
     if(!(spc = (float *) malloc(sizeof(float) * width)))
-      meas_meas_err2("matrix: Memory allocation failure.");
+      meas_err2("matrix: Memory allocation failure.");
   }
 
   /* start a dark exposure */
@@ -84,7 +84,7 @@ EXPORT int meas_matrix_read(double exp, int ave, double *dst) {
   while(query != 0x01) {
     query = matrix_query_exposure();
     if(query == 0x02)
-      meas_meas_err2("matrix: failure in  query_exposure()\n");
+      meas_err2("matrix: failure in  query_exposure()\n");
     /*    usleep(MATRIX_SLEEP); */
   }
   query = 0x00;
@@ -97,7 +97,7 @@ EXPORT int meas_matrix_read(double exp, int ave, double *dst) {
     while(query != 0x01) {
       query = matrix_query_exposure();
       if(query == 0x02)
-	meas_meas_err2("matrix: failure in  query_exposure()\n");
+	meas_err2("matrix: failure in  query_exposure()\n");
       /*      usleep(MATRIX_SLEEP); */
     }
     matrix_get_exposure();

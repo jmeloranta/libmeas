@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include "csun.h"
 #include <meas/meas.h>
 
 void quit() {

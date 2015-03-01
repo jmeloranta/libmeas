@@ -6,8 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "csun.h"
 #include <meas/meas.h>
+
+#define SR245 12     /* GPIB ID */
 
 #define MD 655350
 
@@ -15,13 +16,9 @@ int main(int argc, char **argv) {
 
   int i, j, loop_amt;
   char buf[2048];
-  double xval[MD], yval[MD], qd;
+  double xval[MD], yval[MD];
   char graphix;
   char dummy[512];
-
-  printf("Q-switch delay (in microsec): ");
-  scanf(" %le", &qd);
-  qd *= 1E-6;
 
   printf("Number of averages? ");
   scanf("%d", &loop_amt);
@@ -31,15 +28,6 @@ int main(int argc, char **argv) {
     printf("Invalid input, exiting\n");
     exit(1);
   }
-
-  /* Setup surelite */
-  meas_bnc565_init(0, 0, BNC565);
-  surelite_qswitch(qd);
-  minilite_qswitch(qd);
-  surelite_delay(0.0);
-  minilite_delay(0.0);
-  laser_set_delays();
-  laser_start();
 
   meas_sr245_init(0, 0, SR245, NULL);
   meas_sr245_reset(0);
