@@ -1,0 +1,6 @@
+- The two gain settings appearing for some cameras are the same.
+- The two exposure time settings are the same but use different units.
+  The V4L2 units of 100 microsec. and the UVC extension exposure
+  time in units of microseconds, which allows for shorter shutter times.
+- The time unit for trigger delay is microseconds.
+
