@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include <meas/meas.h>
 
-#define SCALE 1
+#define SCALE 2
 
 main() {
 
   int i, s, d, f, width, height;
   double mi, ma;
   size_t frame_size;
-  unsigned char *buffer, *rgb, fmt[5];
+  unsigned char *buffer, *rgb3, *rgb3s, fmt[5];
 
   meas_video_info_all();
   printf("Enter device #, format #, width, height: ");
@@ -21,7 +21,11 @@ main() {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  if(!(rgb = (unsigned char *) malloc(width*height*3))) {
+  if(!(rgb3 = (unsigned char *) malloc(width * height * 3))) {
+    fprintf(stderr, "Out of memory.\n");
+    exit(1);
+  }
+  if(!(rgb3s = (unsigned char *) malloc(SCALE * SCALE * width * height * 3))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
@@ -29,70 +33,18 @@ main() {
   meas_video_properties(0);
   meas_video_get_image_format(d, f, fmt);
   printf("Image format = %s\n", fmt);
-  if(!strcmp(fmt, "RGB3")) {
-    meas_video_start(d);
-    while(1) {
-      meas_video_read(d, 1, buffer);
-      meas_graphics_update_image(0, buffer);
-      meas_graphics_update();
-    }
-    /* not reached */
-  }
-  if(!strcmp(fmt, "BGR3")) {
-    meas_video_start(d);
-    while(1) {
-      meas_video_read(d, 1, buffer);
-      meas_image_bgr3_to_rgb3(buffer, buffer, width, height);
-      meas_graphics_update_image(0, buffer);
-      meas_graphics_update();
-    }
-    /* not reached */
-  }
-  if(!strcmp(fmt, "Y12") || !strcmp(fmt, "Y16")) {
-    meas_video_start(d);
-    while(1) {
-      meas_video_read(d, 1, buffer);
-      meas_image_y16_to_rgb3(buffer, rgb, width, height);
-      meas_graphics_update_image(0, rgb);
-      meas_graphics_update();
-    }
-    /* not reached */
-  }
-  if(!strcmp(fmt, "UYVY")) {
-    meas_video_start(d);
-    while(1) {
-      meas_video_read(d, 1, buffer);
-      meas_image_yuv422_to_rgb3(buffer, rgb, width, height);
-      meas_graphics_update_image(0, rgb);
-      meas_graphics_update();
-    }
-    /* not reached */
-  }
-  if(!strcmp(fmt, "Y800") || !strcmp(fmt, "Y8")) {
-    meas_video_start(d);
-    while(1) {
-      meas_video_read(d, 1, buffer);
-      meas_image_y800_to_rgb3(buffer, rgb, width, height);
-      meas_graphics_update_image(0, rgb);
-      meas_graphics_update();
-    }
-    /* not reached */
-  }
-  if(!strcmp(fmt, "Y16")) {
-    meas_video_start(d);
-    while(1) {
-      meas_video_read(d, 1, buffer);
-      meas_image_y16_to_rgb3(buffer, rgb, width, height);
-      meas_graphics_update_image(0, rgb);
-      meas_graphics_update();
-    }
-    /* not reached */
-  }
-  printf("Image format not supported.\n");
   meas_video_start(d);
   while(1) {
     meas_video_read(d, 1, buffer);
-    printf("Frame read.\n");
+    if(!strcmp(fmt, "RGB3")) bcopy(buffer, rgb3, 3 * width * height);
+    else if(!strcmp(fmt, "BGR3")) meas_image_bgr3_to_rgb3(buffer, rgb3, width, height);
+    else if(!strcmp(fmt, "UYVY")) meas_image_yuv422_to_rgb3(buffer, rgb3, width, height);
+    else if(!strcmp(fmt, "Y800") || !strcmp(fmt, "Y8")) meas_image_y800_to_rgb3(buffer, rgb3, width, height);
+    else if(!strcmp(fmt, "Y12") || !strcmp(fmt, "Y16")) meas_image_y16_to_rgb3(buffer, rgb3, width, height);
+    else { printf("Unknown video format.\n"); exit(1);}
+    meas_image_scale_rgb3(rgb3, width, height, SCALE, rgb3s);
+    meas_graphics_update_image(0, rgb3s);
+    meas_graphics_update();
   }
   free(buffer);
   meas_video_close(d);
