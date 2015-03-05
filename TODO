@@ -1,0 +1,10 @@
+- complete SR810 lock in amplifier (needed for endor)
+- wavelength calibration params should be variables, not preproc defines.
+- instead of hard coding termination for gpib devices, add a function to 
+  deal with this.
+- we should have both rs232 and gpib interfaces available for devices that support this,
+  so that they could be used in systems without GPIB and vice versa.
+- we should have documentation (in LaTeX)
+- we should probably use pkg-config rather than have the makefile options in
+  /usr/include/meas/make.conf
+  

@@ -19,6 +19,7 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <dirent.h>
 #include "video.h"
 
 struct device {
@@ -209,12 +210,28 @@ static void enumerate_controls(int cd) {
 }
 
 /*
+ * Print out available video devices.
+ *
+ * Returns the number of devices available or zero for no devices.
+ *
+ */
+
+EXPORT int meas_video_devices() {
+
+  DIR *dp;
+  struct old_linux_dirent info;
+  
+  if(!(dp = opendir("/dev"))) return -1;
+  while(readdir(dp, &info, 1) TODO;
+}
+
+/*
  * Open video device at specified resolution.
  *
  * device   = Device name (e.g., /dev/video0, /dev/video1, ...).
  * nbuffers = Number of video buffers to be allocated.
  *
- * Returns descriptor to the video device.
+ * Returns descriptor to the video device or -1 on error.
  *
  */
 
@@ -281,30 +298,77 @@ EXPORT int meas_video_open(char *device, int nbuffers) {
 
   return cd;
 }
+/*
+ * Return current image width.
+ *
+ * d = Camera #.
+ *
+ * Returns image width or -1 for error.
+ *
+ */
+
+EXPORT unsigned int meas_video_get_width(int cd) {
+
+  if(cd < 0 || cd >= MEAS_VIDEO_MAXDEV || devices[cd].fd == -1) return -1;
+  return devices[cd].current_format.fmt.pix.width;
+}
+
+/*
+ * Return current image height.
+ *
+ * d = Camera #.
+ *
+ * Returns image height or -1 for error.
+ *
+ */
+
+EXPORT unsigned int meas_video_get_height(int cd) {
+
+  if(cd < 0 || cd >= MEAS_VIDEO_MAXDEV || devices[cd].fd == -1) return -1;
+  return devices[cd].current_format.fmt.pix.height;
+}
+
+/*
+ * Return current image pixel format.
+ *
+ * d = Camera #.
+ *
+ * Returns pxiel format or -1 for error.
+ *
+ */
+
+EXPORT unsigned int meas_video_get_pxielformat(int cd) {
+
+  if(cd < 0 || cd >= MEAS_VIDEO_MAXDEV || devices[cd].fd == -1) return -1;
+  return devices[cd].current_format.fmt.pix.pixelformat;
+}
 
 /*
  * Set image format and size.
  *
  * cd     = Camera descriptor.
- * f      = Format #.
+ * f      = Format # (image format).
+ * r      = Frame size # (resolution).
  *
- * Returns 0 on sucess, -1 on error.
+ * Returns current frame size or 0 on error.
  *
  */
 
-EXPORT int meas_video_set_format(int cd, int f) {
+EXPORT unsigned int meas_video_set_format(int cd, int f, int r) {
 
-  if(!been_here || cd >= MEAS_VIDEO_MAXDEV || cd < 0 || devices[cd].fd == -1 || f >= devices[cd].nframe_formats) return -1;
+  if(!been_here || cd >= MEAS_VIDEO_MAXDEV || cd < 0 || devices[cd].fd == -1 || f >= devices[cd].nframe_formats || f < 0 || r < || r >= devices[cd].nframe_sizes[f]) return 0;
 
   bzero(&devices[cd].current_format, sizeof(struct v4l2_format));
   devices[cd].current_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   devices[cd].current_format.fmt.pix.pixelformat = devices[cd].frame_formats[f]->pixelformat;
-
+  devices[cd].current_format.fmt.pix.width = devices[cd].frame_sizes[f][r]->discrete.width;
+  devices[cd].current_format.fmt.pix.height = devices[cd].frame_sizes[f][r]->discrete.height;
+    
   if (ioctl(devices[cd].fd, VIDIOC_S_FMT, &devices[cd].current_format)) {
     fprintf(stderr, "libmeas: Failed to set video format.\n");
-    return -1;
+    return 0;
   }
-  return 0;
+  return devices[cd].current_format.fmt.pix.sizeimage;
 }
 
 /*
@@ -324,9 +388,9 @@ EXPORT int meas_video_info_camera(int cd) {
   
   printf("Camera %d\n", cd);
   for (i = 0; i < devices[cd].nframe_formats; i++) {
-    printf("%s with resolutions: ", devices[cd].frame_formats[i]->description);
+    printf("Format %d/%s with resolutions:\n", i, devices[cd].frame_formats[i]->description);
     for (j = 0; j < devices[cd].nframe_sizes[i]; j++)
-      printf("%dX%d, ", devices[cd].frame_sizes[i][j]->discrete.width, devices[cd].frame_sizes[i][j]->discrete.height);
+      printf("%dX%d(%d), ", devices[cd].frame_sizes[i][j]->discrete.width, devices[cd].frame_sizes[i][j]->discrete.height, j);
     printf("\n");
   }
   return 0;

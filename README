@@ -9,14 +9,14 @@ See src/ directory for supported devices.
 2. Compling libmeas
 -------------------
 
-2.1 Install required external libraries (Fedora naming convention): 
-   libunicap-devel, xforms-devel, libusb-devel and linux-gpib from sourceforge
+2.1 Install the required external libraries (Fedora naming convention): 
+   xforms-devel, libusb-devel and linux-gpib from sourceforge
    (http://linux-gpib.sourceforge.net/). There is a sample gpib config
-   file in src/gpib-sample.conf which could be placed at /etc/gpib.conf.
+   file in src/gpib-sample.conf, which could be placed as /etc/gpib.conf.
    Most notably the first interface is named gpib0 rather than the default
    "violet". For pi-max, you will need the freely available pvcam library
-   installed in /usr/lib and /usr/include (see pi-max/). You will also need
-   to install the libraw1394-devel package. Don't forget to install the
+   installed in /usr/lib and /usr/include (see pi-max/). For firewire, you will
+   also need to install the libraw1394-devel package. Don't forget to install the
    necessary kernel level driver for the camera. See pi-max/rc.local.
 
 2.2 Take a look at make.conf to see if you need to change anything there.
@@ -33,9 +33,9 @@ See src/ directory for supported devices.
 
 Note that many functions require root access. While I have tried to pay some
 attention to security issues, this has not been my top priority. So remember
-this when you make programs linked against this library setuid root (i.e.,
+this when you make programs linked against this library and setuid root (i.e.,
 chmod u+s). There are functions in misc.c to switch between normal user
-and root (given the setuid bit).
+and root (given the setuid permissions).
 
 3. Documentation
 ----------------
@@ -47,6 +47,6 @@ comments there. Look also at the example applications under examples directory.
 ----------
 
 The code is licensed according to ./COPYING with the exception of the
-files in pi-max and uvc-imagingsource, which were written by others.
+files under pi-max and uvc-imagingsource, which were written by others.
 
 jmeloranta@gmail.com
