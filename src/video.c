@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -53,15 +54,15 @@ static int been_here = 0;
 static void setup_cropping(int cd) {
 
   /* Cropping - default no cropping */
-  bzero(&devices[cd].cropcap, sizeof(struct v4l2_cropcap));
-  devices[cd].cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  if(ioctl(devices[cd].fd, VIDIOC_CROPCAP, &devices[cd].cropcap) < 0) {
+  bzero(&devices[cd].crop_info, sizeof(struct v4l2_cropcap));
+  devices[cd].crop_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  if(ioctl(devices[cd].fd, VIDIOC_CROPCAP, &devices[cd].crop_info) < 0) {
     fprintf(stderr, "libmeas: error in ioctl(VIDIOC_CROPCAP).\n");
     return;
   }
-  devices[cd].crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  devices[cd].crop.c = cropcap.defrect; /* default */
-  if(ioctl(devices[cd].fd, VIDIOC_S_CROP, &devices[cd].crop) < 0)
+  devices[cd].current_crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  devices[cd].current_crop.c = devices[cd].crop_info.defrect; /* default */
+  if(ioctl(devices[cd].fd, VIDIOC_S_CROP, &devices[cd].current_crop) < 0)
     fprintf(stderr, "libmeas: Video cropping not supported.\n");
 }  
 
@@ -96,7 +97,7 @@ static void enumerate_frame_sizes(int cd) {
   for (i = 0; i < devices[cd].nframe_formats; i++) {
     for (j = 0; j < MEAS_VIDEO_MAXFRAME; j++) {
       tmp.index = j;
-      tmp.pixel_format = devices[cd].frame_formats[i]->pixel_format;
+      tmp.pixel_format = devices[cd].frame_formats[i]->pixelformat;
       if(ioctl(devices[cd].fd, VIDIOC_ENUM_FRAMESIZES, &tmp) < 0) break;
       if(!(devices[cd].frame_sizes[i][j] = malloc(sizeof(struct v4l2_frmsizeenum)))) {
 	fprintf(stderr, "libmeas: Out of memory in allocating frame size descriptions.\n");
@@ -118,7 +119,7 @@ static void setup_buffers(int cd, int nbuf) {
   int i;
   
   /* Setup device for mmap and allocate buffers */
-  bzero(&devices[cd].buffer_info, sizeof(buffer_info));
+  bzero(&devices[cd].buffer_info, sizeof(struct v4l2_requestbuffers));
   devices[cd].buffer_info.count = nbuf;
   devices[cd].buffer_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   devices[cd].buffer_info.memory = V4L2_MEMORY_MMAP;
@@ -140,7 +141,7 @@ static void setup_buffers(int cd, int nbuf) {
   }
 
   for (i = 0; i < devices[cd].buffer_info.count; i++) {
-    bzero(tmp, sizeof(tmp));
+    bzero(&tmp, sizeof(tmp));
     tmp.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     tmp.memory = V4L2_MEMORY_MMAP;
     tmp.index = i;
@@ -148,7 +149,7 @@ static void setup_buffers(int cd, int nbuf) {
       fprintf(stderr, "video: ioctl(VIDIOC_QUERYBUF).\n");
       exit(1);
     }
-    if((devices[cd].buffers[i] = mmap(NULL, tmp.length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, tmp.m.offset)) < -1) {
+    if((devices[cd].buffers[i] = mmap(NULL, tmp.length, PROT_READ | PROT_WRITE, MAP_SHARED, devices[cd].fd, tmp.m.offset)) == MAP_FAILED) {
       fprintf(stderr, "video: mmap() failed.\n");
       exit(1);
     }
@@ -183,7 +184,7 @@ static void enumerate_controls(int cd) {
     if(tmp.type == V4L2_CTRL_TYPE_MENU) {
       /* Enumerate menu items */
       for (j = 0, k = tmp.minimum; k <= tmp.maximum && j < MEAS_VIDEO_MAXCTRL; j++, k++) {
-	tmp2.id = devices[cd].menu_ctrls[i].id;
+	tmp2.id = devices[cd].ctrls[i]->id;
 	tmp2.index = k;
 	if(ioctl(devices[cd].fd, VIDIOC_QUERYMENU, &tmp2) < 0) continue;
 	if(!(devices[cd].menu_items[i][j] = malloc(sizeof(struct v4l2_querymenu)))) {
@@ -221,7 +222,8 @@ EXPORT int meas_video_open(char *device, int nbuffers) {
 
   int fd, cd;
   unsigned int i;
-
+  struct v4l2_capability tmp;
+  
   if(!been_here) {
     for(i = 0; i < MEAS_VIDEO_MAXDEV; i++)
       devices[i].fd = -1;
@@ -243,20 +245,20 @@ EXPORT int meas_video_open(char *device, int nbuffers) {
   }
   devices[cd].fd = fd;
 
-  if(ioctl(fd, VIDIOC_QUERYCAP, &devices[cd].cap) < 0) {
+  if(ioctl(fd, VIDIOC_QUERYCAP, &tmp) < 0) {
     fprintf(stderr, "libmeas: Error in VIDIOC_QUERYCAP.\n");
     close(fd);
     return -1;
   }
 
-  if(!(devices[cd].cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
+  if(!(tmp.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
     fprintf(stderr, "libmeas: Device not a video capture device.\n");
     close(fd);
     return -1;
   }
 
-  if(!(devices[cd].cap.capabilities & V4L2_CAP_STREAMING)) {
-    printf(stdrer, "libmeas: Camera does not support streaming.\n");
+  if(!(tmp.capabilities & V4L2_CAP_STREAMING)) {
+    fprintf(stderr, "libmeas: Camera does not support streaming.\n");
     close(fd);
     return -1;
   }
@@ -296,9 +298,9 @@ EXPORT int meas_video_set_format(int cd, int f) {
 
   bzero(&devices[cd].current_format, sizeof(struct v4l2_format));
   devices[cd].current_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  devices[cd].current_format.fmt.pix.pixelformat = devices[cd].frame_formats[f].pixelformat;
+  devices[cd].current_format.fmt.pix.pixelformat = devices[cd].frame_formats[f]->pixelformat;
 
-  if (ioctl(devics[cd].fd, VIDIOC_S_FMT, &devices[cd].current_format)) {
+  if (ioctl(devices[cd].fd, VIDIOC_S_FMT, &devices[cd].current_format)) {
     fprintf(stderr, "libmeas: Failed to set video format.\n");
     return -1;
   }
@@ -324,7 +326,7 @@ EXPORT int meas_video_info_camera(int cd) {
   for (i = 0; i < devices[cd].nframe_formats; i++) {
     printf("%s with resolutions: ", devices[cd].frame_formats[i]->description);
     for (j = 0; j < devices[cd].nframe_sizes[i]; j++)
-      printf("%dX%d, ", devices[cd].frame_sizes[i][j]->width, devices[cd].frame_sizes[i][j]->height);
+      printf("%dX%d, ", devices[cd].frame_sizes[i][j]->discrete.width, devices[cd].frame_sizes[i][j]->discrete.height);
     printf("\n");
   }
   return 0;
@@ -398,7 +400,7 @@ EXPORT int meas_video_set_control(int cd, unsigned int id, void *value) {
 
 EXPORT int meas_video_get_control_type(int cd, int id) {
 
-  inr i;
+  int i;
 
   if(!been_here || cd < 0 || cd >= MEAS_VIDEO_MAXDEV || devices[cd].fd == -1) return -1;
   for (i = 0; i < devices[cd].nctrls; i++)
@@ -541,10 +543,10 @@ EXPORT int meas_video_control_menu(int cd, int id, char **items, int *len) {
   for(i = 0; i < devices[cd].nctrls; i++)
     if(devices[cd].ctrls[i]->id == id) break;
   if(i == devices[cd].nctrls) return -1;
-  if(meas_video_get_control_type(cd) != MEAS_VIDEO_TYPE_MENU) return -1;
-  *len = devices[cd].ctrls[i].maximum - devices[cd].ctrls[i].maximum;
-  for(j = devices[cd].ctrls[i].minimum; j < devices[cd].ctrls[i].maximum; j++)
-    strcpy(items[j - devices[cd].ctrls[i].minimum], devices[cd].ctrls[j - devices[cd].ctrls[i].minimum].name);
+  if(meas_video_get_control_type(cd, id) != MEAS_VIDEO_TYPE_MENU) return -1;
+  *len = devices[cd].ctrls[i]->maximum - devices[cd].ctrls[i]->maximum;
+  for(j = devices[cd].ctrls[i]->minimum; j < devices[cd].ctrls[i]->maximum; j++)
+    strcpy(items[j - devices[cd].ctrls[i]->minimum], devices[cd].ctrls[j - devices[cd].ctrls[i]->minimum]->name);
   return 0;
 }
 
@@ -559,7 +561,7 @@ EXPORT int meas_video_control_menu(int cd, int id, char **items, int *len) {
 
 EXPORT int meas_video_info_controls(int cd) {
 
-  int i;
+  int i, j;
   int ival;
   unsigned int uval;
 
@@ -582,14 +584,14 @@ EXPORT int meas_video_info_controls(int cd) {
       meas_video_get_control(cd, devices[cd].ctrls[i]->id, (void *) &uval);
       printf("Menu, Value = %s, Choices: ", uval);
       for (j = devices[cd].ctrls[i]->minimum; j < devices[cd].ctrls[i]->maximum; j++)
-	printf("%s(%u) ", devices[cd].menus[i][j-devices[cd].ctrls[i]->minimum].name, j);
+	printf("%s(%u) ", devices[cd].menu_items[i][j-devices[cd].ctrls[i]->minimum]->name, j);
       printf("\n");
       break;
     case V4L2_CTRL_TYPE_INTEGER_MENU:
       meas_video_get_control(cd, devices[cd].ctrls[i]->id, (void *) &uval);
       printf("Menu, Value = %d, Choices: ", uval);
       for (j = devices[cd].ctrls[i]->minimum; j < devices[cd].ctrls[i]->maximum; j++)
-	printf("%d ", devices[cd].menus[i][j-devices[cd].ctrls[i]->minimum].value);
+	printf("%d ", devices[cd].menu_items[i][j-devices[cd].ctrls[i]->minimum]->value);
       printf("\n");
       break;
     case V4L2_CTRL_TYPE_BITMASK:
@@ -620,7 +622,7 @@ EXPORT int meas_video_start(int cd) {
   enum v4l2_buf_type type;
 
   if(!been_here || cd >= MEAS_VIDEO_MAXDEV || cd < 0 || devices[cd].fd == -1) {
-    printf(stderr, "libmeas: Attempt to start video without opening the device.\n");
+    fprintf(stderr, "libmeas: Attempt to start video without opening the device.\n");
     return -1;
   }
   if(devices[cd].camera_state) return -1; /* camera already streaming */
@@ -661,7 +663,7 @@ EXPORT int meas_video_stop(int cd) {
   enum v4l2_buf_type type;
 
   if(!been_here || cd >= MEAS_VIDEO_MAXDEV || cd < 0 || devices[cd].fd == -1) {
-    printf(stderr, "libmeas: Attempt to stop video without opening the device.\n");
+    fprintf(stderr, "libmeas: Attempt to stop video without opening the device.\n");
     return -1;
   }
   if(!devices[cd].camera_state) return -1; /* camera already stopped */
@@ -706,7 +708,7 @@ EXPORT int meas_video_close(int cd) {
   // unmap buffers & free
   meas_misc_root_on();
   for (i = 0; i < devices[cd].buffer_info.count; i++)
-    munmap(devices[cd].memory[i], devices[cd].length[i]);
+    munmap(devices[cd].buffers[i], devices[cd].buffer_lengths[i]);
   meas_misc_root_off();
   free(devices[cd].buffer_lengths);
   free(devices[cd].buffers);
@@ -715,8 +717,8 @@ EXPORT int meas_video_close(int cd) {
     free(devices[cd].ctrls[i]);
 
   for (i = 0; i < devices[cd].nctrls; i++)
-    for (j = 0; j < nmenu_items[i]; j++)
-      free(menu_items[i][j]);
+    for (j = 0; j < devices[cd].nmenu_items[i]; j++)
+      free(devices[cd].menu_items[i][j]);
   
   close(devices[cd].fd);
 
@@ -776,7 +778,7 @@ EXPORT int meas_video_read(int cd, unsigned char *buffer, int nframes) {
     }
 
     /* Copy over to user buffer */
-    bcopy((unsigned char *) devices[cd].memory[buf.index], buffer + i * buf.bytesused, buf.bytesused);
+    bcopy((unsigned char *) devices[cd].buffers[buf.index], buffer + i * buf.bytesused, buf.bytesused);
 
   }
   meas_misc_root_off();

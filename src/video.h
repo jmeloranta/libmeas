@@ -2,6 +2,9 @@
 
 /* Maximum number of devices that can be open simultaneously */
 #define MEAS_VIDEO_MAXDEV 4
+#define MEAS_VIDEO_MAXFMT 8
+#define MEAS_VIDEO_MAXFRAME 10
+#define MEAS_VIDEO_MAXCTRL 25
 
 /* Special exposure times */
 #define MEAS_VIDEO_AUTO_EXPOSURE_ON  (-1)
@@ -14,5 +17,3 @@
 #define MEAS_VIDEO_TYPE_INTEGER_MENU V4L2_CTRL_TYPE_INTEGER_MENU
 #define MEAS_VIDEO_TYPE_BITMASK V4L2_CTRL_TYPE_BITMASK
 
-/* Data types */
-#define 
