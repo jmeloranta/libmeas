@@ -214,15 +214,26 @@ static void enumerate_controls(int cd) {
  *
  * Returns the number of devices available or zero for no devices.
  *
+ * The return value is 0 for success, -1 for error.
+ *
  */
 
-EXPORT int meas_video_devices() {
+EXPORT int meas_video_devices(char **names, int *ndev) {
 
   DIR *dp;
   struct old_linux_dirent info;
+  int maxdev = *ndev, devnum;
   
+  if(maxdev < 1) return -1;
   if(!(dp = opendir("/dev"))) return -1;
-  while(readdir(dp, &info, 1) TODO;
+  *ndev = 0;
+  while(readdir(dp, &info, 1) && *ndev < maxdev)
+    if(sscanf(info.d_name, "video%d", &devnum) == 1) {
+      strcpy(names[*ndev], info.d_name);
+      (*ndev)++;
+    }
+  closedir(dp);
+  return 0;
 }
 
 /*

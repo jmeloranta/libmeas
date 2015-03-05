@@ -4,6 +4,10 @@
 
 #define SCALE 2
 
+#define MAXDEVS 2
+char devs[MAXDEVS][64];  /* actually file names can be longer but these video devices won't be */
+int ndevs = MAXDEVS;
+
 main() {
 
   int i, d, f, r, width, height;
@@ -14,8 +18,16 @@ main() {
     char str[4];
     unsigned int val;
   } fmt;
-    
-  if((d = meas_video_open("/dev/video0", 4)) < 0) {
+
+  if(meas_video_devices(devs, &ndevs) < 0) {
+    fprintf(stderr, "Can't find device names.\n");
+    exit(1);
+  }
+  for (i = 0; i < ndevs; i++)
+    printf("Device: %s\n", devs[i]);
+  printf("Enter device number to use: ");
+  scanf("%d", &i);
+  if((d = meas_video_open(devs[i], 4)) < 0) {
     fprintf(stderr, "Can't open /dev/video0 - is the camera connected?\n");
     exit(1);
   }
