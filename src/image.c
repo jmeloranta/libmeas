@@ -340,7 +340,7 @@ EXPORT int meas_image_scale_rgb3(unsigned char *rgb3i, unsigned int nx, unsigned
 
   if(sc < 1 || sc > 10) meas_err("meas_image_scale_rgb3: Illegal scale value.\n");
   if(sc == 1) {
-    for (i = 0; i < nx * ny; i++) rgb3o[i] = rgb3i[i];
+    for (i = 0; i < 3 * nx * ny; i++) rgb3o[i] = rgb3i[i];
     return 0;
   }
   for (i = 0; i < nx; i++)
