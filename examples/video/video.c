@@ -10,7 +10,7 @@ int ndevs = MAXDEVS;
 
 main() {
 
-  int i, d, f, r, width, height;
+  int i, d, f, r, width, height, trigger_mode;
   double mi, ma;
   unsigned int frame_size;
   unsigned char *buffer, *rgb3, *rgb3s;
@@ -58,15 +58,18 @@ main() {
   printf("Frame size = %u bytes.\n", frame_size);
   fmt.val = meas_video_get_pxielformat(d);
   printf("Image format = %c%c%c%c\n", fmt.str[0], fmt.str[1], fmt.str[2], fmt.str[3]);
-  meas_video_set_power_line_frequency(d, 2);
+  trigger_mode = 0;
+  meas_video_set_control(d, meas_video_get_control_id(d, "Trigger Mode"), (void *) &trigger_mode);
   meas_video_info_controls(d);
+  exit(0);
   meas_video_start(d);
   while(1) {
     meas_video_read(d, buffer, 1);
     if(!strncmp(fmt.str, "RGB3", 4)) bcopy(buffer, rgb3, 3 * width * height);
     else if(!strncmp(fmt.str, "BGR3", 4)) meas_image_bgr3_to_rgb3(buffer, rgb3, width, height);
     else if(!strncmp(fmt.str, "YUYV", 4)) meas_image_yuv422_to_rgb3(buffer, rgb3, width, height);
-    else if(!strncmp(fmt.str, "Y800", 4) || !strncmp(fmt.str, "Y8", 2)) meas_image_y800_to_rgb3(buffer, rgb3, width, height);
+    else if(!strncmp(fmt.str, "Y800", 4) || !strncmp(fmt.str, "Y8", 2) || !strncmp(fmt.str, "GREY", 4))
+      meas_image_y800_to_rgb3(buffer, rgb3, width, height);
     else if(!strncmp(fmt.str, "Y12", 3) || !strncmp(fmt.str, "Y16", 3)) meas_image_y16_to_rgb3(buffer, rgb3, width, height);
     else { printf("Unknown video format.\n"); exit(1);}
     meas_image_scale_rgb3(rgb3, width, height, SCALE, rgb3s);

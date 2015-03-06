@@ -77,7 +77,7 @@ EXPORT void meas_image_y16_to_rgb3(unsigned char *y16, unsigned char *rgb3, unsi
   
   /* Y16 is little endian format */
   for (i = j = 0; i < 3 * width * height; i += 3, j += 2)
-    rgb3[i] = rgb3[i+1] = rgb3[i+2] = (y16[j+1] * 256 + y16[j]) / 65535;
+    rgb3[i] = rgb3[i+1] = rgb3[i+2] = 255 * (y16[j+1] * 256 + y16[j]) / 65535;
 }
 
 /*

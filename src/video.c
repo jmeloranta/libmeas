@@ -216,6 +216,10 @@ static void enumerate_controls(int cd) {
       exit(1);
     }
     bcopy(&tmp, devices[cd].ctrls[i], sizeof(struct v4l2_queryctrl));    
+    if(devices[cd].ctrls[i]->step == 0) {
+      fprintf(stderr, "libmeas: Warning control with zero step - resetting to 1.\n");
+      devices[cd].ctrls[i]->step = 1;
+    }
     if(tmp.type == V4L2_CTRL_TYPE_MENU) {
       /* Enumerate menu items */
       for (j = 0, k = tmp.minimum; k <= tmp.maximum && j < MEAS_VIDEO_MAXCTRL; j++, k++) {
@@ -702,7 +706,7 @@ EXPORT int meas_video_info_controls(int cd) {
     switch(devices[cd].ctrls[i]->type) {
     case V4L2_CTRL_TYPE_INTEGER: /* TODO: signed or unsigned ? */
       meas_video_get_control(cd, devices[cd].ctrls[i]->id, (void *) &ival);
-      printf("Integer, Value = %d, Min = %d, Max = %d, Step = %u, Default = %d\n", ival, devices[cd].ctrls[i]->minimum, devices[cd].ctrls[i]->maximum, devices[cd].ctrls[i]->step, devices[cd].ctrls[i]->default_value); 
+      printf("Integer, Value = %d, Min = %d, Max = %d, Step = %u, Default = %d\n", ival, devices[cd].ctrls[i]->minimum*devices[cd].ctrls[i]->step, devices[cd].ctrls[i]->maximum*devices[cd].ctrls[i]->step, devices[cd].ctrls[i]->step, devices[cd].ctrls[i]->default_value); 
       break;
     case V4L2_CTRL_TYPE_BOOLEAN:
       meas_video_get_control(cd, devices[cd].ctrls[i]->id, (void *) &ival);
