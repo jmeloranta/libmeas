@@ -3,6 +3,8 @@
  *
  */
 
+#ifdef GPIB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,8 +12,6 @@
 #include "hp-34401a.h"
 #include "gpib.h"
 #include "misc.h"
-
-#ifdef GPIB
 
 /* Up to 5 devices supported */
 static int hp34401a_fd[5] = {-1, -1, -1, -1, -1};

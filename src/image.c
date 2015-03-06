@@ -144,7 +144,7 @@ EXPORT void meas_image_yuv422_to_rgb3(unsigned char *yuv, unsigned char *rgb3, u
   double tmp;
   unsigned char y1, y2, u, v;
 
-  /* for each pixel: 4 bytes of YUV -> 6 bytes of RGB */
+  /* for two pixels: 4 bytes of YUV (butes / pixel) -> 6 bytes of RGB (3 bytes/pixel) */
   for(i = j = 0; i < 3 * height * width; i += 6, j += 4) {
     /* two pixels interleaved */
     y1 = yuv[j];

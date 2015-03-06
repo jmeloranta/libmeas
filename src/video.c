@@ -76,10 +76,7 @@ static void enumerate_formats(int cd) {
   for (i = 0; i < MEAS_VIDEO_MAXFMT; i++) {
     tmp.index = i;
     tmp.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if(ioctl(devices[cd].fd, VIDIOC_ENUM_FMT, &tmp) < 0) {
-      perror("fmt");
-      break;
-    }
+    if(ioctl(devices[cd].fd, VIDIOC_ENUM_FMT, &tmp) < 0) break;
     if(!(devices[cd].frame_formats[i] = malloc(sizeof(struct v4l2_fmtdesc)))) {
       fprintf(stderr, "libmeas: Out of memory in allocating format descriptions.\n");
       exit(1);
@@ -256,19 +253,25 @@ EXPORT int meas_video_devices(char **names, int *ndev) {
  */
 
 EXPORT unsigned int meas_video_set_format(int cd, int f, int r) {
-
+  
   if(!been_here || cd >= MEAS_VIDEO_MAXDEV || cd < 0 || devices[cd].fd == -1 || f >= devices[cd].nframe_formats || f < 0 || r < 0 || r >= devices[cd].nframe_sizes[f]) return 0;
 
-  bzero(&devices[cd].current_format, sizeof(struct v4l2_format));
   devices[cd].current_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  if (ioctl(devices[cd].fd, VIDIOC_G_FMT, &devices[cd].current_format)) {
+    fprintf(stderr, "libmeas: Failed to get video format.\n");
+    return 0;
+  }
+
   devices[cd].current_format.fmt.pix.pixelformat = devices[cd].frame_formats[f]->pixelformat;
   devices[cd].current_format.fmt.pix.width = devices[cd].frame_sizes[f][r]->discrete.width;
   devices[cd].current_format.fmt.pix.height = devices[cd].frame_sizes[f][r]->discrete.height;
     
   if (ioctl(devices[cd].fd, VIDIOC_S_FMT, &devices[cd].current_format)) {
-    fprintf(stderr, "libmeas: Failed to set video format.\n");
-    return 0;
+    fprintf(stderr, "libmeas: Failed to set video format - using current.\n");
+    devices[cd].current_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    ioctl(devices[cd].fd, VIDIOC_G_FMT, &devices[cd].current_format);
   }
+
   return devices[cd].current_format.fmt.pix.sizeimage;
 }
 
@@ -332,17 +335,18 @@ EXPORT int meas_video_open(char *device, int nbuffers) {
   enumerate_formats(cd);
 
   enumerate_frame_sizes(cd);
-  
-  setup_buffers(cd, nbuffers);
 
   enumerate_controls(cd);
 
   meas_video_set_format(cd, 0, 0);
 
+  devices[cd].camera_state = 1; /* Make sure we stop streaming */
+  meas_video_stop(cd); 
+  
+  setup_buffers(cd, nbuffers);
+
   meas_misc_root_off();
-
-  devices[cd].camera_state = 0;
-
+  
   return cd;
 }
 /*
@@ -879,7 +883,10 @@ EXPORT int meas_video_read(int cd, unsigned char *buffer, int nframes) {
     }
 
     /* Copy over to user buffer */
-    bcopy((unsigned char *) devices[cd].buffers[buf.index], buffer + i * buf.bytesused, buf.bytesused);
+    /* TODO: Strange, buf.bytesused is different from frame size??! */
+    /* Eventhough bytesused was set to zero when allocating buffers */
+    //*   bcopy((unsigned char *) devices[cd].buffers[buf.index], buffer + i * buf.bytesused, buf.bytesused); */
+    bcopy((unsigned char *) devices[cd].buffers[buf.index], buffer + i * devices[cd].current_format.fmt.pix.sizeimage, devices[cd].current_format.fmt.pix.sizeimage);
 
     if(ioctl(devices[cd].fd, VIDIOC_QBUF, &buf) < 0) {
       fprintf(stderr, "libmeas: Error in ioctl(VIDIOC_QBUF).\n");

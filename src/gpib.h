@@ -1,3 +1,5 @@
+#ifdef GPIB
+
 #include <gpib/ib.h>
 
 /* Standard buffer size */
@@ -11,3 +13,4 @@
 /* In microsec */
 #define MEAS_GPIB_DELAY 10
 
+#endif

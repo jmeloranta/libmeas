@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <meas/meas.h>
 
-#define SCALE 2
+#define SCALE 1
 
 #define MAXDEVS 2
 char *devs[MAXDEVS];  /* actually file names can be longer but these video devices won't be */
@@ -35,9 +35,13 @@ main() {
   printf("Enter format #, Frame size #: ");
   scanf("%d %d", &f, &r);
   
-  frame_size = meas_video_set_format(d, f, r);
+  if((frame_size = meas_video_set_format(d, f, r)) == 0) {
+    fprintf(stderr, "Error in setting video format.\n");
+    exit(1);
+  }
   width = meas_video_get_width(d);
   height = meas_video_get_height(d);
+  printf("Frame size %dX%d.\n", width, height);
   meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE*width, SCALE*height, 0, "test");
   if(!(buffer = (unsigned char *) malloc(frame_size))) {
     fprintf(stderr, "Out of memory.\n");
@@ -60,7 +64,7 @@ main() {
     meas_video_read(d, buffer, 1);
     if(!strncmp(fmt.str, "RGB3", 4)) bcopy(buffer, rgb3, 3 * width * height);
     else if(!strncmp(fmt.str, "BGR3", 4)) meas_image_bgr3_to_rgb3(buffer, rgb3, width, height);
-    else if(!strncmp(fmt.str, "UYVY", 4)) meas_image_yuv422_to_rgb3(buffer, rgb3, width, height);
+    else if(!strncmp(fmt.str, "YUYV", 4)) meas_image_yuv422_to_rgb3(buffer, rgb3, width, height);
     else if(!strncmp(fmt.str, "Y800", 4) || !strncmp(fmt.str, "Y8", 2)) meas_image_y800_to_rgb3(buffer, rgb3, width, height);
     else if(!strncmp(fmt.str, "Y12", 3) || !strncmp(fmt.str, "Y16", 3)) meas_image_y16_to_rgb3(buffer, rgb3, width, height);
     else { printf("Unknown video format.\n"); exit(1);}
