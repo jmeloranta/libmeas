@@ -10,7 +10,7 @@ int ndevs = MAXDEVS;
 
 main() {
 
-  int i, d, f, r, width, height, trigger_mode;
+  int i, d, f, r, width, height;
   double mi, ma;
   unsigned int frame_size;
   unsigned char *buffer, *rgb3, *rgb3s;
@@ -58,10 +58,7 @@ main() {
   printf("Frame size = %u bytes.\n", frame_size);
   fmt.val = meas_video_get_pxielformat(d);
   printf("Image format = %c%c%c%c\n", fmt.str[0], fmt.str[1], fmt.str[2], fmt.str[3]);
-  trigger_mode = 0;
-  meas_video_set_control(d, meas_video_get_control_id(d, "Trigger Mode"), (void *) &trigger_mode);
   meas_video_info_controls(d);
-  exit(0);
   meas_video_start(d);
   while(1) {
     meas_video_read(d, buffer, 1);
