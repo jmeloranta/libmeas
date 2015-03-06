@@ -58,7 +58,7 @@ static void setup_cropping(int cd) {
   bzero(&devices[cd].crop_info, sizeof(struct v4l2_cropcap));
   devices[cd].crop_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   if(ioctl(devices[cd].fd, VIDIOC_CROPCAP, &devices[cd].crop_info) < 0) {
-    fprintf(stderr, "libmeas: error in ioctl(VIDIOC_CROPCAP).\n");
+    fprintf(stderr, "libmeas: Cropping not supported -- skipping.\n");
     return;
   }
   devices[cd].current_crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -75,7 +75,11 @@ static void enumerate_formats(int cd) {
   /* Enumerate camera image formats */
   for (i = 0; i < MEAS_VIDEO_MAXFMT; i++) {
     tmp.index = i;
-    if(ioctl(devices[cd].fd, VIDIOC_ENUM_FMT, &tmp) < 0) break;
+    tmp.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if(ioctl(devices[cd].fd, VIDIOC_ENUM_FMT, &tmp) < 0) {
+      perror("fmt");
+      break;
+    }
     if(!(devices[cd].frame_formats[i] = malloc(sizeof(struct v4l2_fmtdesc)))) {
       fprintf(stderr, "libmeas: Out of memory in allocating format descriptions.\n");
       exit(1);
@@ -221,19 +225,51 @@ static void enumerate_controls(int cd) {
 EXPORT int meas_video_devices(char **names, int *ndev) {
 
   DIR *dp;
-  struct old_linux_dirent info;
+  struct dirent *info;
   int maxdev = *ndev, devnum;
   
   if(maxdev < 1) return -1;
   if(!(dp = opendir("/dev"))) return -1;
   *ndev = 0;
-  while(readdir(dp, &info, 1) && *ndev < maxdev)
-    if(sscanf(info.d_name, "video%d", &devnum) == 1) {
-      strcpy(names[*ndev], info.d_name);
+  while((info = readdir(dp)) != NULL && *ndev < maxdev)
+    if(sscanf(info->d_name, "video%d", &devnum) == 1) {
+      if(!(names[*ndev] = (char *) malloc(strlen(info->d_name) + 5 + 1))) {
+	fprintf(stderr, "libmeas: Out of memory in meas_video_devices().\n");
+	exit(1);
+      }
+      sprintf(names[*ndev], "/dev/%s", info->d_name);
       (*ndev)++;
     }
   closedir(dp);
   return 0;
+}
+
+/*
+ * Set image format and size.
+ *
+ * cd     = Camera descriptor.
+ * f      = Format # (image format).
+ * r      = Frame size # (resolution).
+ *
+ * Returns current frame size or 0 on error.
+ *
+ */
+
+EXPORT unsigned int meas_video_set_format(int cd, int f, int r) {
+
+  if(!been_here || cd >= MEAS_VIDEO_MAXDEV || cd < 0 || devices[cd].fd == -1 || f >= devices[cd].nframe_formats || f < 0 || r < 0 || r >= devices[cd].nframe_sizes[f]) return 0;
+
+  bzero(&devices[cd].current_format, sizeof(struct v4l2_format));
+  devices[cd].current_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  devices[cd].current_format.fmt.pix.pixelformat = devices[cd].frame_formats[f]->pixelformat;
+  devices[cd].current_format.fmt.pix.width = devices[cd].frame_sizes[f][r]->discrete.width;
+  devices[cd].current_format.fmt.pix.height = devices[cd].frame_sizes[f][r]->discrete.height;
+    
+  if (ioctl(devices[cd].fd, VIDIOC_S_FMT, &devices[cd].current_format)) {
+    fprintf(stderr, "libmeas: Failed to set video format.\n");
+    return 0;
+  }
+  return devices[cd].current_format.fmt.pix.sizeimage;
 }
 
 /*
@@ -272,7 +308,7 @@ EXPORT int meas_video_open(char *device, int nbuffers) {
     return -1;
   }
   devices[cd].fd = fd;
-
+  
   if(ioctl(fd, VIDIOC_QUERYCAP, &tmp) < 0) {
     fprintf(stderr, "libmeas: Error in VIDIOC_QUERYCAP.\n");
     close(fd);
@@ -301,7 +337,7 @@ EXPORT int meas_video_open(char *device, int nbuffers) {
 
   enumerate_controls(cd);
 
-  meas_video_set_format(cd, 0);
+  meas_video_set_format(cd, 0, 0);
 
   meas_misc_root_off();
 
@@ -352,34 +388,6 @@ EXPORT unsigned int meas_video_get_pxielformat(int cd) {
 
   if(cd < 0 || cd >= MEAS_VIDEO_MAXDEV || devices[cd].fd == -1) return -1;
   return devices[cd].current_format.fmt.pix.pixelformat;
-}
-
-/*
- * Set image format and size.
- *
- * cd     = Camera descriptor.
- * f      = Format # (image format).
- * r      = Frame size # (resolution).
- *
- * Returns current frame size or 0 on error.
- *
- */
-
-EXPORT unsigned int meas_video_set_format(int cd, int f, int r) {
-
-  if(!been_here || cd >= MEAS_VIDEO_MAXDEV || cd < 0 || devices[cd].fd == -1 || f >= devices[cd].nframe_formats || f < 0 || r < || r >= devices[cd].nframe_sizes[f]) return 0;
-
-  bzero(&devices[cd].current_format, sizeof(struct v4l2_format));
-  devices[cd].current_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  devices[cd].current_format.fmt.pix.pixelformat = devices[cd].frame_formats[f]->pixelformat;
-  devices[cd].current_format.fmt.pix.width = devices[cd].frame_sizes[f][r]->discrete.width;
-  devices[cd].current_format.fmt.pix.height = devices[cd].frame_sizes[f][r]->discrete.height;
-    
-  if (ioctl(devices[cd].fd, VIDIOC_S_FMT, &devices[cd].current_format)) {
-    fprintf(stderr, "libmeas: Failed to set video format.\n");
-    return 0;
-  }
-  return devices[cd].current_format.fmt.pix.sizeimage;
 }
 
 /*
@@ -950,7 +958,7 @@ EXPORT int meas_video_exposure_time(int cd, int value) {
     value = 0;
     return meas_video_set_control(cd, V4L2_CID_EXPOSURE_AUTO, (void *) &value);
   default:
-    if(value < meas_video_control_min(cd, V4L2_CID_EXPOSURE_ABSOLUTE) || value > meas_video_control_max(cd, V4L2_CID_EXPOSURE_ABSOLUTE)) return -1;
+    if(value < meas_video_get_control_min(cd, V4L2_CID_EXPOSURE_ABSOLUTE) || value > meas_video_get_control_max(cd, V4L2_CID_EXPOSURE_ABSOLUTE)) return -1;
     return meas_video_set_control(cd, V4L2_CID_EXPOSURE_ABSOLUTE, (void *) &value);
   }
 }
@@ -973,11 +981,10 @@ EXPORT int meas_video_gain(int cd, int value) {
     value = 0;
     return meas_video_set_control(cd, V4L2_CID_AUTOGAIN, (void *) &value);
   default:
-    if(value < meas_video_control_min(cd, V4L2_CID_GAIN) || value > meas_video_control_max(cd, V4L2_CID_GAIN)) return -1;
+    if(value < meas_video_get_control_min(cd, V4L2_CID_GAIN) || value > meas_video_get_control_max(cd, V4L2_CID_GAIN)) return -1;
     return meas_video_set_control(cd, V4L2_CID_GAIN, (void *) &value);
   }
 }
-
 
 /*
  * Set horizontal flip.
@@ -1046,7 +1053,7 @@ EXPORT int meas_video_set_frame_rate(int cd, int fps) {
 
 EXPORT int meas_video_set_brightness(int cd, int value) {
 
-  if(value < meas_video_control_min(cd, V4L2_CID_BRIGHTNESS) || value > meas_video_control_max(cd, V4L2_CID_BRIGHTNESS)) return -1;
+  if(value < meas_video_get_control_min(cd, V4L2_CID_BRIGHTNESS) || value > meas_video_get_control_max(cd, V4L2_CID_BRIGHTNESS)) return -1;
   return meas_video_set_control(cd, V4L2_CID_BRIGHTNESS, (void *) &value);
 }
 
@@ -1060,7 +1067,7 @@ EXPORT int meas_video_set_brightness(int cd, int value) {
 
 EXPORT int meas_video_set_contrast(int cd, int value) {
 
-  if(value < meas_video_control_min(cd, V4L2_CID_CONTRAST) || value > meas_video_control_max(cd, V4L2_CID_CONTRAST)) return -1;
+  if(value < meas_video_get_control_min(cd, V4L2_CID_CONTRAST) || value > meas_video_get_control_max(cd, V4L2_CID_CONTRAST)) return -1;
   return meas_video_set_control(cd, V4L2_CID_CONTRAST, (void *) &value);
 }
 
@@ -1074,7 +1081,7 @@ EXPORT int meas_video_set_contrast(int cd, int value) {
 
 EXPORT int meas_video_set_saturation(int cd, int value) {
 
-  if(value < meas_video_control_min(cd, V4L2_CID_SATURATION) || value > meas_video_control_max(cd, V4L2_CID_SATURATION)) return -1;
+  if(value < meas_video_get_control_min(cd, V4L2_CID_SATURATION) || value > meas_video_get_control_max(cd, V4L2_CID_SATURATION)) return -1;
   return meas_video_set_control(cd, V4L2_CID_SATURATION, (void *) &value);
 }
 
@@ -1088,7 +1095,7 @@ EXPORT int meas_video_set_saturation(int cd, int value) {
 
 EXPORT int meas_video_set_hue(int cd, int value) {
 
-  if(value < meas_video_control_min(cd, V4L2_CID_HUE) || value > meas_video_control_max(cd, V4L2_CID_HUE)) return -1;
+  if(value < meas_video_get_control_min(cd, V4L2_CID_HUE) || value > meas_video_get_control_max(cd, V4L2_CID_HUE)) return -1;
   return meas_video_set_control(cd, V4L2_CID_HUE, (void *) &value);
 }
 
@@ -1102,7 +1109,7 @@ EXPORT int meas_video_set_hue(int cd, int value) {
 
 EXPORT int meas_video_set_gamma(int cd, int value) {
 
-  if(value < meas_video_control_min(cd, V4L2_CID_GAMMA) || value > meas_video_control_max(cd, V4L2_CID_GAMMA)) return -1;
+  if(value < meas_video_get_control_min(cd, V4L2_CID_GAMMA) || value > meas_video_get_control_max(cd, V4L2_CID_GAMMA)) return -1;
   return meas_video_set_control(cd, V4L2_CID_GAMMA, (void *) &value);
 }
 
@@ -1116,7 +1123,7 @@ EXPORT int meas_video_set_gamma(int cd, int value) {
 
 EXPORT int meas_video_set_power_line_frequency(int cd, int value) {
 
-  if(value < meas_video_control_min(cd, V4L2_CID_POWER_LINE_FREQUENCY) || value > meas_video_control_max(cd, V4L2_CID_POWER_LINE_FREQUENCY)) return -1;
+  if(value < meas_video_get_control_min(cd, V4L2_CID_POWER_LINE_FREQUENCY) || value > meas_video_get_control_max(cd, V4L2_CID_POWER_LINE_FREQUENCY)) return -1;
   return meas_video_set_control(cd, V4L2_CID_POWER_LINE_FREQUENCY, (void *) &value);
 }
 
@@ -1130,6 +1137,6 @@ EXPORT int meas_video_set_power_line_frequency(int cd, int value) {
 
 EXPORT int meas_video_set_sharpness(int cd, int value) {
 
-  if(value < meas_video_control_min(cd, V4L2_CID_SHARPNESS) || value > meas_video_control_max(cd, V4L2_CID_SHARPNESS)) return -1;
+  if(value < meas_video_get_control_min(cd, V4L2_CID_SHARPNESS) || value > meas_video_get_control_max(cd, V4L2_CID_SHARPNESS)) return -1;
   return meas_video_set_control(cd, V4L2_CID_SHARPNESS, (void *) &value);
 }
