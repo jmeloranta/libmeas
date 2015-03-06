@@ -651,13 +651,12 @@ EXPORT int meas_video_info_controls(int cd) {
   if(!been_here || cd < 0 || cd >= MEAS_VIDEO_MAXDEV || devices[cd].fd == -1) return -1;
 
   printf("Control summary for camera %d\n", cd);
-  printf("---------------\n\n");
   for(i = 0; i < devices[cd].nctrls; i++) {
     printf("%s: ", devices[cd].ctrls[i]->name);
-    switch(devices[cd].ctrls[i]->id) {
+    switch(devices[cd].ctrls[i]->type) {
     case V4L2_CTRL_TYPE_INTEGER: /* TODO: signed or unsigned ? */
       meas_video_get_control(cd, devices[cd].ctrls[i]->id, (void *) &ival);
-      printf("Integer, Value = %d, Min = %d, Max = %d, Step = %u, Default = %d", ival, devices[cd].ctrls[i]->minimum, devices[cd].ctrls[i]->maximum, devices[cd].ctrls[i]->step, devices[cd].ctrls[i]->default_value); 
+      printf("Integer, Value = %d, Min = %d, Max = %d, Step = %u, Default = %d\n", ival, devices[cd].ctrls[i]->minimum, devices[cd].ctrls[i]->maximum, devices[cd].ctrls[i]->step, devices[cd].ctrls[i]->default_value); 
       break;
     case V4L2_CTRL_TYPE_BOOLEAN:
       meas_video_get_control(cd, devices[cd].ctrls[i]->id, (void *) &ival);
@@ -665,10 +664,28 @@ EXPORT int meas_video_info_controls(int cd) {
       break;
     case V4L2_CTRL_TYPE_MENU:
       meas_video_get_control(cd, devices[cd].ctrls[i]->id, (void *) &uval);
-      printf("Menu, Value = %s, Choices: ", uval);
+      printf("Menu, Value = %u, Choices: ", uval);
       for (j = devices[cd].ctrls[i]->minimum; j < devices[cd].ctrls[i]->maximum; j++)
 	printf("%s(%u) ", devices[cd].menu_items[i][j-devices[cd].ctrls[i]->minimum]->name, j);
       printf("\n");
+      break;
+    case V4L2_CTRL_TYPE_BUTTON:
+      printf("Button - Not implemented yet.\n");
+      break;
+    case V4L2_CTRL_TYPE_INTEGER64:
+      printf("Integer64: Extended controls not implemented yet.\n");
+      break;
+    case V4L2_CTRL_TYPE_CTRL_CLASS:
+      printf("Ctrl-class - No value.\n");
+      break;
+    case V4L2_CTRL_TYPE_STRING:
+      printf("String - Extended controls not implemented yet.\n");
+      //      printf("String:  Value = %s, Minimum length = %d, Maximum length = %d, Length must be multiple of = %d.\n",
+      //     xxx, devices[cd].ctrls[i]->minimum, devices[cd].ctrls[i]->maximum, devices[cd].ctrls[i]->step);
+      break;
+    case V4L2_CTRL_TYPE_BITMASK:
+      meas_video_get_control(cd, devices[cd].ctrls[i]->id, (void *) &uval);
+      printf("Bitmask, Value = %x\n", uval);
       break;
     case V4L2_CTRL_TYPE_INTEGER_MENU:
       meas_video_get_control(cd, devices[cd].ctrls[i]->id, (void *) &uval);
@@ -677,13 +694,14 @@ EXPORT int meas_video_info_controls(int cd) {
 	printf("%d ", devices[cd].menu_items[i][j-devices[cd].ctrls[i]->minimum]->value);
       printf("\n");
       break;
-    case V4L2_CTRL_TYPE_BITMASK:
-      meas_video_get_control(cd, devices[cd].ctrls[i]->id, (void *) &uval);
-      printf("Bitmask, Value = %x\n", uval);
+    case V4L2_CTRL_TYPE_U8:
+    case V4L2_CTRL_TYPE_U16:
+    case V4L2_CTRL_TYPE_U32:
+      printf("Unsigned types not implemented yet.\n");
       break;
-      /* TODO: there are more, see linux/video/videodev2.h */
     default:
       fprintf(stderr, "libmeas: Warning - unknown control type.\n");
+      printf("\n");
     }
   }
   return 0;
@@ -863,6 +881,10 @@ EXPORT int meas_video_read(int cd, unsigned char *buffer, int nframes) {
     /* Copy over to user buffer */
     bcopy((unsigned char *) devices[cd].buffers[buf.index], buffer + i * buf.bytesused, buf.bytesused);
 
+    if(ioctl(devices[cd].fd, VIDIOC_QBUF, &buf) < 0) {
+      fprintf(stderr, "libmeas: Error in ioctl(VIDIOC_QBUF).\n");
+      return -1;
+    }
   }
   meas_misc_root_off();
   return 0;

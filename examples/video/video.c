@@ -28,7 +28,7 @@ main() {
   printf("Enter device number to use: ");
   scanf("%d", &i);
   if((d = meas_video_open(devs[i], 4)) < 0) {
-    fprintf(stderr, "Can't open /dev/video0 - is the camera connected?\n");
+    fprintf(stderr, "Can't open %s - is the camera connected?\n", devs[i]);
     exit(1);
   }
   meas_video_info_camera(d);
@@ -54,6 +54,7 @@ main() {
   printf("Frame size = %u bytes.\n", frame_size);
   fmt.val = meas_video_get_pxielformat(d);
   printf("Image format = %c%c%c%c\n", fmt.str[0], fmt.str[1], fmt.str[2], fmt.str[3]);
+  meas_video_info_controls(d);
   meas_video_start(d);
   while(1) {
     meas_video_read(d, buffer, 1);
