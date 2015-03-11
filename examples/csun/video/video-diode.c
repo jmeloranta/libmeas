@@ -18,14 +18,14 @@
 #include <signal.h>
 #include <meas/meas.h>
 
-#define MINILITE_FIRE_DELAY 189.9E-6   /* 189.9E-6 */
+#define MINILITE_FIRE_DELAY 179.8E-6   /* 189.9E-6 */
 #define DG535  16
 #define BNC565 15
 
 #define CAMERA 0
 #define FORMAT 1    /* Y16 from DMK 23U445 */
 #define RESOL  0
-#define CAMERA_DELAY 4.0E-6    /* TODO: Check this */
+#define CAMERA_DELAY 10.0E-6    /* TODO: Check this (was 4E-6) */
 
 unsigned char *rgb, *y16;
 
@@ -89,13 +89,13 @@ int main(int argc, char **argv) {
   /* BNC565 to external trigger */
   meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 2.0, MEAS_BNC565_TRIG_RISE);
 
+  /* Camera triggering */
+  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);   /* This has to go first (slow) */
+  meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_BURST, 1, diode_npulses, diode_delay);
+
   /* Diode triggering */
   meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, CAMERA_DELAY, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_BURST, diode_npulses, diode_npulses, diode_delay);
-
-  /* Camera triggering */
-  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);   /* This has to go first (slow) */
-  meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0);
 
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
   meas_dg535_run(0, MEAS_DG535_RUN); /* start unit */
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
   frame_size = meas_video_set_format(cd, FORMAT, RESOL);
   width = meas_video_get_width(cd);
   height = meas_video_get_height(cd);
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, height, width, 0, "video");
+  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, width, height, 0, "video");
   
   if(!(rgb = (unsigned char *) malloc(width * height * 3))) {
     fprintf(stderr, "Out of memory.\n");
@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
   meas_video_start(cd);
   for(cur_time = t0; ; cur_time += tstep) {
     printf("Diode delay = %le s.\n", cur_time);
-    meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+    meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time - CAMERA_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
     meas_video_read(cd, y16, 1);
     meas_image_y16_to_rgb3(y16, rgb, width, height);
     meas_graphics_update_image(0, rgb);
