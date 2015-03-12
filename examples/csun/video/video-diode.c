@@ -22,12 +22,13 @@
 #define DG535  16
 #define BNC565 15
 
-#define CAMERA 0
 #define FORMAT 1    /* Y16 from DMK 23U445 */
 #define RESOL  0
 #define CAMERA_DELAY 10.0E-6    /* TODO: Check this (was 4E-6) */
 
-unsigned char *rgb, *y16;
+#define VEHO 1 /* For veho USB camera */
+
+unsigned char *rgb, *buffer;
 
 static void sig_handler(int x) {
 
@@ -62,8 +63,10 @@ int main(int argc, char **argv) {
   printf("Delay between diode pulses (microsec.): ");
   scanf(" %le", &diode_delay);
   diode_delay *= 1E-6;
+#ifndef VEHO
   printf("Camera gain (0, 3039): ");
   scanf(" %d", &gain);
+#endif
 
   printf("Running... press ctrl-c to stop.\n");
 
@@ -110,15 +113,17 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  if(!(y16 = (unsigned char *) malloc(frame_size))) {
+  if(!(buffer = (unsigned char *) malloc(frame_size))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
+#ifndef VEHO
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Delay"), &zero); /* Immediate triggering, no delay */
   exposure = 100;   /* 1 msec in units of 10 microsec */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Exposure (Absolute)"), &exposure);
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Gain (dB/100)"), &gain);
+#endif
   meas_video_info_controls(cd);
   if(filebase[0] != '0') {
     sprintf(filename, "%s.info", filebase);
@@ -137,8 +142,12 @@ int main(int argc, char **argv) {
   for(cur_time = t0; ; cur_time += tstep) {
     printf("Diode delay = %le s.\n", cur_time);
     meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time - CAMERA_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-    meas_video_read(cd, y16, 1);
-    meas_image_y16_to_rgb3(y16, rgb, width, height);
+    meas_video_read(cd, buffer, 1);
+#ifdef VEHO
+    meas_imag_yuv422_to_rgb3(buffer, rgb, width, height);
+#else
+    meas_image_y16_to_rgb3(buffer, rgb, width, height);
+#endif
     meas_graphics_update_image(0, rgb);
     meas_graphics_update();
     if(filebase[0] != '0') {
@@ -150,7 +159,11 @@ int main(int argc, char **argv) {
 	fprintf(stderr, "Error writing file.\n");
 	exit(1);
       }
-      meas_image_y16_to_pgm(fp, y16, width, height);
+#ifdef VEHO
+      meas_image_rgb3_to_ppm(fp, rgb, width, height);
+#else
+      meas_image_y16_to_pgm(fp, buffer, width, height);
+#endif
       fclose(fp);
     }
   }

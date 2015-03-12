@@ -196,7 +196,7 @@ EXPORT void meas_image_yuv422_to_rgb3(unsigned char *yuv, unsigned char *rgb3, u
  *
  */
 
-EXPORT int meas_image_ppm_to_rgb3(FILE *fp, unsigned int *rgb3, unsigned int *width, unsigned int *height) {
+EXPORT int meas_image_ppm_to_rgb3(FILE *fp, unsigned char *rgb3, unsigned int *width, unsigned int *height) {
   
   if(fscanf(fp, "P6[ \r\n\t]%u[ \r\n\t]%u[ \r\n\t]255[ \n\r\t]", width, height) != 2) return -1;
   fread((void *) rgb3, 3 * *width * *height, 1, fp);
@@ -248,7 +248,7 @@ EXPORT int meas_image_pgm_to_y16(FILE *fp, unsigned char *y16, unsigned int *wid
 }
 
 /*
- * Read PPM file into RGB3 array (8 bit).
+ * Write RGB3 array to PPM file (8 bit).
  *
  * fp     = File pointer for reading the file.
  * image  = RGB3 array (an array of (R,G,B) triples). 
@@ -259,7 +259,7 @@ EXPORT int meas_image_pgm_to_y16(FILE *fp, unsigned char *y16, unsigned int *wid
  *
  */
 
-EXPORT int meas_image_rgb3_to_ppm(FILE *fp, unsigned int *rgb3, unsigned int width, unsigned int height) {
+EXPORT int meas_image_rgb3_to_ppm(FILE *fp, unsigned char *rgb3, unsigned int width, unsigned int height) {
   
   if(fprintf(fp, "P6 ") < 0) return -1;
   if(fprintf(fp, "%u ", width) < 0) return -1;
