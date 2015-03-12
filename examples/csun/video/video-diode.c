@@ -36,11 +36,10 @@
 
 unsigned char *rgb, *buffer;
 
-static void sig_handler(int x) {
+static void exit_handler(void) {
 
   meas_bnc565_run(0, MEAS_BNC565_STOP);
   meas_dg535_run(0, MEAS_DG535_STOP);
-  exit(0);
 }
 
 int main(int argc, char **argv) {
@@ -148,7 +147,7 @@ int main(int argc, char **argv) {
   }
   printf("Hit ctrl-C to exit...\n");
 
-  signal(SIGINT, &sig_handler);
+  atexit(&exit_handler);
 
   meas_video_start(cd);
   for(cur_time = t0; ; cur_time += tstep) {
