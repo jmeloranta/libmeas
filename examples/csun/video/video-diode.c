@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
 #ifdef VEHO
   meas_video_set_control(cd, meas_video_get_control_id(cd, "exposure_auto"), &zero); /* manual exposure */
   meas_video_exposure_time(cd, 1250);  /* exposure time (removes the scanline artefact; 1250 seems good) */
-  meas_video_set_brightness(fd, gain);
+  meas_video_set_brightness(cd, gain);
 #else
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Delay"), &zero); /* Immediate triggering, no delay */
