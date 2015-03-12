@@ -22,11 +22,18 @@
 #define DG535  16
 #define BNC565 15
 
+#define VEHO 1 /* For veho USB camera */
+
+#ifdef VEHO
+#define FORMAT 0
+#define RESOL 0
+#else
 #define FORMAT 1    /* Y16 from DMK 23U445 */
 #define RESOL  0
+#endif
+
 #define CAMERA_DELAY 10.0E-6    /* TODO: Check this (was 4E-6) */
 
-#define VEHO 1 /* For veho USB camera */
 
 unsigned char *rgb, *buffer;
 
