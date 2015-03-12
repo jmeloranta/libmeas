@@ -34,7 +34,6 @@
 
 #define CAMERA_DELAY 10.0E-6    /* TODO: Check this (was 4E-6) */
 
-
 unsigned char *rgb, *buffer;
 
 static void sig_handler(int x) {
@@ -70,10 +69,12 @@ int main(int argc, char **argv) {
   printf("Delay between diode pulses (microsec.): ");
   scanf(" %le", &diode_delay);
   diode_delay *= 1E-6;
-#ifndef VEHO
+#ifdef VEHO
+  printf("Camera brightness (-16 to 16): ");
+#else
   printf("Camera gain (0, 3039): ");
-  scanf(" %d", &gain);
 #endif
+  scanf(" %d", &gain);
 
   printf("Running... press ctrl-c to stop.\n");
 
@@ -124,7 +125,11 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-#ifndef VEHO
+#ifdef VEHO
+  meas_video_set_control(cd, meas_video_get_control_id(cd, "exposure_auto"), &zero); /* manual exposure */
+  meas_video_exposure_time(cd, 1250);  /* exposure time (removes the scanline artefact; 1250 seems good) */
+  meas_video_set_brightness(fd, gain);
+#else
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Delay"), &zero); /* Immediate triggering, no delay */
   exposure = 100;   /* 1 msec in units of 10 microsec */
