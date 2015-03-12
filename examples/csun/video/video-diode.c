@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
     meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time - CAMERA_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
     meas_video_read(cd, buffer, 1);
 #ifdef VEHO
-    meas_imag_yuv422_to_rgb3(buffer, rgb, width, height);
+    meas_image_yuv422_to_rgb3(buffer, rgb, width, height);
 #else
     meas_image_y16_to_rgb3(buffer, rgb, width, height);
 #endif
