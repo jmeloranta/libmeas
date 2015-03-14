@@ -12,3 +12,6 @@
 /* Wavelength calibration (spectrometer dependent!) */
 #define MEAS_MATRIX_A 194.7
 #define MEAS_MATRIX_B 0.59408
+
+/* Maximum number of devices */
+#define MEAS_MATRIX_MAXDEV 3

@@ -50,16 +50,16 @@
 #include <string.h>
 #include <usb.h>
 
-#define EP4 4  /* Endpoint 4 (instrument input) */
-#define EP6 6  /* Endpoint 6 (CCD image data stream) */
-#define EP8 8  /* Endpoint 8 (instrument output) */
+#define MEAS_MATRIX_EP4 4  /* Endpoint 4 (instrument input) */
+#define MEAS_MATRIX_EP6 6  /* Endpoint 6 (CCD image data stream) */
+#define MEAS_MATRIX_EP8 8  /* Endpoint 8 (instrument output) */
 
 /*
  * CCD element dimensions. Hard coded for now - see comments in
  * matrix_get_pixel_hw().
  *
  */
-#define MATRIX_WIDTH 512
-#define MATRIX_HEIGHT 128
+#define MEAS_MATRIX_WIDTH 512
+#define MEAS_MATRIX_HEIGHT 128
 
 #endif

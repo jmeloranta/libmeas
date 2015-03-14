@@ -3,6 +3,8 @@
  *
  * Newport Oriel MMS Spectrometer Driver
  *
+ * TODO: Only one instrument supported.
+ *
  * NOTE: You may want to use matrixwrapper.c instead!
  *
  * Notes:
@@ -48,8 +50,6 @@
 #include "matrix.h"
 #include "misc.h"
 
-static usb_dev_handle *udev = NULL;
-
 /*
  * unsigned char matrix_module_init()
  *
@@ -58,17 +58,15 @@ static usb_dev_handle *udev = NULL;
  *
  * Input: None.
  *
- * Return Value: true is successful otherwise returns false.
+ * Return Value: pointer to usb_dev_handle (success) or NULL on failure.
  *
  */
 
-EXPORT void matrix_module_init() {
+EXPORT struct usb_dev_handle *meas_matrix_module_init(int sd) {
 
   struct usb_bus *busses, *bus;
   struct usb_device *dev;
-  
-  if(udev)
-    meas_err2("matrix_module_init() called twice.");
+  struct usb_dev_handle *udev;
   
   meas_misc_root_on();
   
@@ -86,23 +84,38 @@ EXPORT void matrix_module_init() {
     if(dev) break;
   }
   
-  if(!dev) meas_err2("Newport Oriel MMS Spectrometer Not Found");
+  if(!dev) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer Not Found\n");
+    return NULL;
+  }
   
-  if(!(udev = usb_open(dev)))
-    meas_err2("Newport Oriel MMS Spectrometer: Can't open instrument.");
+  if(!(udev = usb_open(dev))) {
+    fprintf(stderr, "Newport Oriel MMS Spectrometer: Can't open instrument.\n");
+    return NULL;
+  }
   
   fprintf(stderr, "Newport Oriel MMS Spectrometer: Instrument found.\n");
   
-  if(usb_set_configuration(udev, 1) < 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Can't set active configuration\n"); /* 1st config. */
+  if(usb_set_configuration(udev, 1) < 0) {
+    usb_close(udev);
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer: Can't set active configuration.\n");
+    return NULL;
+  }
   
-  if(usb_claim_interface(udev, 0) < 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Can't claim interface.\n"); /* 1st interface. */
+  if(usb_claim_interface(udev, 0) < 0) {
+    usb_close(udev);
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer: Can't claim interface.\n");
+    return NULL;
+  }
   
-  if(usb_set_altinterface(udev, 0) < 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Can't set alternate interface.\n"); /* 0th alt */
+  if(usb_set_altinterface(udev, 0) < 0) {
+    usb_close(udev);
+    fprintf(stderr, "Newport Oriel MMS Spectrometer: Can't set alternate interface.\n");
+    return NULL;
+  }
   
   meas_misc_root_off();
+  return udev;
 }
 
 /*
@@ -115,12 +128,14 @@ EXPORT void matrix_module_init() {
  * spectrometer's maximum exposure time.
  *
  * Input:
+ *   udev strcture
  *   float time: the time that should be set (seconds)
  *
- * Return value: none
+ * Return value: 0 for success, -1 for error.
+ *
  */
 
-EXPORT void matrix_set_exposure_time(float time) {
+EXPORT int meas_matrix_set_exposure_time(struct usb_dev_handle *udev, float time) {
 
   unsigned char writebuf[10], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -130,14 +145,12 @@ EXPORT void matrix_set_exposure_time(float time) {
   writebuf[5] = 0x01; /* Schema number */
   *((float *) &writebuf[6]) = time;
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting exposure time");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting exposure time");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting exposure time");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error setting exposure time.\n");
+    return -1;
+  }
+  return 0;
 }
 
 /*
@@ -151,9 +164,10 @@ EXPORT void matrix_set_exposure_time(float time) {
  *
  * Return value: if successful returns a float of the exposure time (in seconds) else
  * returns a negative number
+ *
  */
 
-EXPORT float matrix_get_exposure_time() {
+EXPORT float meas_matrix_get_exposure_time(struct usb_dev_handle *udev) {
   
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -162,14 +176,11 @@ EXPORT float matrix_get_exposure_time() {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error receiving exposure time");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error receiving exposure time");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error receiving exposure time");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error reading exposure time.\n");
+    return -1.0;
+  }
   
   return *((float *) &readbuf[7]);
 }
@@ -184,12 +195,13 @@ EXPORT float matrix_get_exposure_time() {
  * cause problems with the Newport Spectrometer and it may be better to use the module_close()
  * function then.
  *
- * Input: none
+ * Input: udev structure
  *
- * Return value: none
+ * Return value: -1 for error, 0 for success.
+ *
  */
 
-EXPORT void matrix_reset() {
+EXPORT int meas_matrix_reset(struct usb_dev_handle *udev) {
   
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   unsigned int *len = (unsigned int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -198,16 +210,13 @@ EXPORT void matrix_reset() {
   *len = (unsigned int) 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error resetting device");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error resetting device");
-  
-  if(readbuf[6] == 0x00) 
-    meas_err2("Newport Oriel MMS Spectrometer: Error resetting device");
-  
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error resetting device.\n");
+    return -1;
+  }
   sleep(2);
+  return 0;
 }
 
 /*
@@ -215,33 +224,30 @@ EXPORT void matrix_reset() {
  *
  * This function simply prints out various information about the spectrometer to the console
  *
- * Input: None
+ * Input: udev structure.
  *
- * Return value: none
+ * Return value: 0 for success, -1 for error.
  *
  */
 
-EXPORT void matrix_print_info() {
+EXPORT int meas_matrix_print_info(struct usb_dev_handle *udev) {
   
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
   int major, minor, build; /* temp varables to hold version information */
   char tmp[256];
-  void matrix_get_model_number(char *);
-  void matrix_get_serial_number(char *);
+  int meas_matrix_get_model_number(struct usb_dev_handle *, char *);
+  int meas_matrix_get_serial_number(struct usb_dev_handle *, char *);
   
   writebuf[0] = 0x16; /* command - Get spectrometer info */
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
-  
-  if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
+  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error reading device info.\n");
+    return -1;
+  }
   
   printf("\n");
   /* subtract 20???? WHY ??? */
@@ -299,28 +305,22 @@ EXPORT void matrix_print_info() {
   switch(readbuf[54]) {    
   case 0x00:
     printf("A/D clock frequency: N/A\n");
-    break;
-    
+    break;    
   case 0x01:
     printf("A/D clock frequency: default\n");
     break;
-    
   case 0x02:
     printf("A/D clock frequency: 150KHz\n");
     break;
-    
   case 0x03:
     printf("A/D clock frequency: 300KHz\n");
     break;
-    
   case 0x04:
     printf("A/D clock frequency: 500KHz\n");
     break;
-    
   case 0x05:
     printf("A/D clock frequency: 1000KHz\n");
     break;
-    
   default:
     printf("A/D clock frequency: Error\n");
     break;
@@ -330,29 +330,26 @@ EXPORT void matrix_print_info() {
   case 0x00:
     printf("Pixel binning mode: N/A\n");
     break;
-    
   case 0x01:
     printf("Pixel binning mode: Full Well\n");
     break;
-    
   case 0x02:
     printf("Pixel binning mode: Dark Current\n");
     break;
-    
   case 0x03:
     printf("Pixel binning mode: Line Binning\n");
     break;
-    
   default:
     printf("Pixel binning mode: Error\n");
     break;
   }
   
-  matrix_get_model_number(tmp);
+  meas_matrix_get_model_number(udev, tmp);
   printf("Model Number: %s\n", tmp);
   
-  matrix_get_serial_number(tmp);
+  meas_matrix_get_serial_number(udev, tmp);
   printf("Serial Number: %s\n", tmp);
+  return 0;
 }
 
 /*
@@ -364,7 +361,7 @@ EXPORT void matrix_print_info() {
  * shutter setting or force the state of the shutter. Shutter support can be determined
  * by calling the print_info() function.
  *
- * Inputs:
+ * Inputs:  udev structure
  *   unsigned char shutterState: an 8-bit unsigned integer which defines what
  *                               should occur with the spectrometer's camera shutter.
  *                               Acceptable values are:
@@ -378,11 +375,11 @@ EXPORT void matrix_print_info() {
  *                               0x02 - dark exposure
  *                               0x03 - reference exposure
  * 
- * Return value: none
+ * Return value: -1 for error, 0 for success.
  *
  */
 
-EXPORT void matrix_start_exposure(unsigned char shutterState, unsigned char exposureType) {
+EXPORT int meas_matrix_start_exposure(struct usb_dev_handle *udev, unsigned char shutterState, unsigned char exposureType) {
 
   unsigned char writebuf[8], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -391,23 +388,24 @@ EXPORT void matrix_start_exposure(unsigned char shutterState, unsigned char expo
   *len = 8; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(shutterState != 0x00 && shutterState != 0x01 && shutterState != 0x02) /* test if we have a valid shutterState */
-    meas_err2("Invalid shutter state");
-  
-  if(exposureType != 0x00 && exposureType != 0x01 && exposureType != 0x02 && exposureType != 0x03) /* test if we have a valid exposure type */
-    meas_err2("Invalid exposure type");
+  if(shutterState != 0x00 && shutterState != 0x01 && shutterState != 0x02) { /* test if we have a valid shutterState */
+    fprintf(stderr, "libmeas: Invalid matrix shutter state.\n");
+    return -1;
+  }
+  if(exposureType != 0x00 && exposureType != 0x01 && exposureType != 0x02 && exposureType != 0x03) { /* test if we have a valid exposure type */
+    fprintf(stderr, "libmeas: Invalid matrix exposure type.\n");
+    return -1;
+  }
   
   writebuf[6] = shutterState;  /* set the shutter state */
   writebuf[7] = exposureType;  /* set the exposure type */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error starting exposure");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error starting exposure");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error starting exposure");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error starting exposure.\n");
+    return -1;
+  }
+  return 0;
 }
 
 /*
@@ -419,7 +417,7 @@ EXPORT void matrix_start_exposure(unsigned char shutterState, unsigned char expo
  * This command will only successfully complete if it is called between both
  * start_exposure() and en end_exposure().
  *
- * Input: None
+ * Input: udev structure
  * 
  * Return value: if successful an unsigned char which indicates if the last
  *               requested exposure is available or not.
@@ -431,7 +429,7 @@ EXPORT void matrix_start_exposure(unsigned char shutterState, unsigned char expo
  *
  */
 
-EXPORT unsigned char matrix_query_exposure() {
+EXPORT unsigned char meas_matrix_query_exposure(struct usb_dev_handle *udev) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -440,15 +438,11 @@ EXPORT unsigned char matrix_query_exposure() {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error querying exposure");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error querying exposure");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error querying exposure");
-  
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error querying exposure.\n");
+    return 0x2;
+  }
   return readbuf[7];
 }
 
@@ -461,7 +455,7 @@ EXPORT unsigned char matrix_query_exposure() {
  * all future query_exposure() function commands to fail until the next start_exposure()
  * command successfully completes.
  *
- * Input:
+ * Input: udev structure
  *   unsigned char shutterState: an 8-bit unsigned integer which defines what
  *                               should occur with the spectrometer's camera shutter.
  *                               Possible values are:
@@ -469,11 +463,11 @@ EXPORT unsigned char matrix_query_exposure() {
  *                               0x01 - open shutter
  *                               0x02 - leave shutter in its current state
  * 
- * Return value: none
+ * Return value: -1 error, 0 success
  *     
  */
 
-EXPORT void matrix_end_exposure(unsigned char shutterState) {
+EXPORT int meas_matrix_end_exposure(struct usb_dev_handle *udev, unsigned char shutterState) {
 
   unsigned char writebuf[7], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -483,19 +477,19 @@ EXPORT void matrix_end_exposure(unsigned char shutterState) {
   writebuf[5] = 0x01; /* Schema number */
   
   /* test if we have a valid shutterState */
-  if(shutterState != 0x00 && shutterState != 0x01 && shutterState != 0x02)
-    meas_err2("Invalid shutter state");
+  if(shutterState != 0x00 && shutterState != 0x01 && shutterState != 0x02) {
+    fprintf(stderr, "libmeas: Invalid matrix shutter state.\n");
+    return -1;
+  }
   
   writebuf[6] = shutterState;  /* set the shutter state */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error ending exposure");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error ending exposure");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error ending exposure");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error ending exposure.\n");
+    return -1;
+  }
+  return 0;
 }
 
 /*
@@ -503,7 +497,8 @@ EXPORT void matrix_end_exposure(unsigned char shutterState) {
  *
  * This function prints out to the console and returns the last known error that the spectrometer generated.
  *
- * Inputs: Array for error status (length 2)
+ * Inputs: udev structure
+ *         Array for error status (length 2)
  *               index = 0: Error Code
  *                          Possible values are:
  *                          0x0000 - No Errors
@@ -533,11 +528,11 @@ EXPORT void matrix_end_exposure(unsigned char shutterState) {
  *                          0x0040 - Test/Diagnostic Failure
  *                          0x0080 - Non-Specific Failure
  *
- * Reuturn value: None
+ * Reuturn value: -1 for error, 0 for success.
  *
  */
 
-EXPORT void matrix_get_last_error(unsigned int *error) {
+EXPORT int meas_matrix_get_last_error(struct usb_dev_handle *udev, unsigned int *error) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -548,80 +543,61 @@ EXPORT void matrix_get_last_error(unsigned int *error) {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting last error");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting last error");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting last error");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error retrieving error code.\n");
+    return -1;
+  }
   
   switch(readbuf[7]) {
   case 0x0000:
     strcpy(errorCode, "No Errors");
-    break;
-    
+    break;    
   case 0x001:
     strcpy(errorCode, "On-Chip Memory");
     break;
-    
   case 0x0002:
     strcpy(errorCode, "On-Chip Digital I/O");
     break;
-    
   case 0x0003:
     strcpy(errorCode, "On-Chip Interrupt Module");
     break;
-    
   case 0x0004:
     strcpy(errorCode, "On-Board Timer Module");
     break;
-    
   case 0x0005:
     strcpy(errorCode, "On-Chip I2C Module");
     break;
-    
   case 0x0006:
     strcpy(errorCode, "On-Board ADC");
     break;
-    
   case 0x0007:
     strcpy(errorCode, "On-Board AFE");
     break;
-    
   case 0x0008:
     strcpy(errorCode, "On-Board EEPROM (DSP)");
     break;
-    
   case 0x0009:
     strcpy(errorCode, "On-Board EEPROM (Cypress USB)");
     break;
-    
   case 0x000A:
     strcpy(errorCode, "On-Board USB Controller (Cypress)");
     break;
-    
   case 0x000B:
     strcpy(errorCode, "On-Board Supply/References Voltage");
     break;
-    
   case 0x000C:
     strcpy(errorCode, "USB Command Handler");
     break;
-    
   case 0x000D:
     strcpy(errorCode, "Non-Specific Source");
     break;
-    
   case 0x000E:
     strcpy(errorCode, "Calibration Module");
     break;
-    
   case 0x000F:
     strcpy(errorCode, "Timing FPGA");
     break;
-    
   default:
     strcpy(errorCode, "Invalid Error Code");
     break;
@@ -631,43 +607,33 @@ EXPORT void matrix_get_last_error(unsigned int *error) {
   case 0x0000:
     strcpy(errorType, "No Errors");
     break;
-    
   case 0x0001:
     strcpy(errorType, "Read/Write Failure");
     break;
-    
   case 0x0002:
     strcpy(errorType, "Invalid Address");
     break;
-    
   case 0x0004:
     strcpy(errorType, "Invalid Parameter");
     break;
-    
   case 0x0008:
     strcpy(errorType, "Invalid State");
     break;
-    
   case 0x0010:
     strcpy(errorType, "Allocation Failure");
     break;
-    
   case 0x0020:
     strcpy(errorType, "Limit Exceeded");
     break;
-    
   case 0x0040:
     strcpy(errorType, "Test/Diagnostic Failure");
     break;
-    
   case 0x0080:
     strcpy(errorType, "Non-Specific Failure");
     break;
-    
   default:
     strcpy(errorType, "Invalid Error Type");
     break;
-    
   }
   
   fprintf(stderr, "Error Code: %s\nError Type: %s\n", errorCode, errorType);
@@ -683,13 +649,13 @@ EXPORT void matrix_get_last_error(unsigned int *error) {
  * nothing if the spectrometer does not support a shutter. Shutter support can be
  * determined by the use of print_info() function.
  *
- * Inputs: None
+ * Inputs: udev structure
  * 
- * Return value: None
+ * Return value: 0 for success, -1 for error.
  *     
  */
 
-EXPORT void matrix_open_CCD_shutter() {
+EXPORT int meas_matrix_open_CCD_shutter(struct usb_dev_handle *udev) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -698,14 +664,12 @@ EXPORT void matrix_open_CCD_shutter() {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Opening CCD Shutter");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Opening CCD Shutter");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Opening CCD Shutter");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libusb: Newport Oriel MMS Spectrometer - Error Opening CCD Shutter.\n");
+    return -1;
+  }
+  return 0;
 }
 
 /*
@@ -715,13 +679,13 @@ EXPORT void matrix_open_CCD_shutter() {
  * nothing if the spectrometer does not support a shutter. Shutter support can be
  * determined by the use of print_info() function.
  *
- * Inputs: None
+ * Inputs: udev structure
  * 
- * Return value: none
+ * Return value: -1 for error, 0 for success.
  *     
  */
 
-EXPORT void matrix_close_CCD_shutter() {
+EXPORT int meas_matrix_close_CCD_shutter(struct usb_dev_handle *udev) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -730,14 +694,12 @@ EXPORT void matrix_close_CCD_shutter() {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Closing CCD Shutter");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Closing CCD Shutter");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Closing CCD Shutter");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 && usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error Closing CCD Shutter.\n");
+    return -1;
+  }
+  return 0;
 }
 
 /*
@@ -745,15 +707,16 @@ EXPORT void matrix_close_CCD_shutter() {
  *
  * This function will release the spectrometer's udev handle and make
  *
- * Inputs: None
+ * Inputs: udev struct
  * 
  * Return value: None
  *     
  */
 
-EXPORT void matrix_module_close() {
+EXPORT void meas_matrix_module_close(struct usb_dev_handle *udev) {
 
-  usb_reset(udev); /* Most systems developed for windows don't know what close means... */
+  usb_close(udev);
+  /*  usb_reset(udev); /* Most systems developed for windows don't know what close means... */
 }
 
 /*
@@ -761,14 +724,14 @@ EXPORT void matrix_module_close() {
  *
  * Returns the pixel hieght and width of the spectrometer in use.
  *
- * Input: unsigned short *width, unsigned short *height. On exit these are
+ * Input: struct udev. unsigned short *width, unsigned short *height. On exit these are
  * CCD width in pixels and CCD height in pixels
  *
- * Return: None
+ * Return: -1 for error, 0 for success.
  *
  */
 
-EXPORT void matrix_get_pixel_hw(unsigned short *width, unsigned short *height) {
+EXPORT int meas_matrix_get_pixel_hw(struct usb_dev_handle *udev, unsigned short *width, unsigned short *height) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -777,25 +740,23 @@ EXPORT void matrix_get_pixel_hw(unsigned short *width, unsigned short *height) {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
-  
-  if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
-  
+  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0
+     || usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error reading device info.\n");
+    return -1;
+  }
   /* NOTE: For some reason the camera returns 532 as the CCD width even though
-   * it is 512. Hard coded for now.
+   * it is 512. Hard coded for now.  FIXME!!!
    */
 #if 0
   *width = *((unsigned short *) &readbuf[7]);
   *height = *((unsigned short *) &readbuf[9]);
 #else
-  *width = MATRIX_WIDTH;
-  *height = MATRIX_HEIGHT;   
+  *width = MEAS_MATRIX_WIDTH;
+  *height = MEAS_MATRIX_HEIGHT;   
 #endif
+  return 0;
 }
 
 /*
@@ -803,12 +764,14 @@ EXPORT void matrix_get_pixel_hw(unsigned short *width, unsigned short *height) {
  *
  * This function returns an 8-bit unsigned int which indicates the number of CCD byte per pixel
  *
- * Input: None
+ * Input: udev struct
  *
  * return value: 8-bit unsigned integer which indicates the number of CCD bytes per pixel
+ * 0 on error.
+ *
  */
 
-EXPORT unsigned char matrix_get_ccd_bpp() {
+EXPORT unsigned char meas_matrix_get_ccd_bpp(struct usb_dev_handle *udev) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -817,15 +780,11 @@ EXPORT unsigned char matrix_get_ccd_bpp() {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
-  
-  if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
-  
+  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error reading device info.\n");
+    return 0;
+  }
   return (unsigned char) ((int) readbuf[11]/((int) 8));
 }
 
@@ -837,7 +796,7 @@ EXPORT unsigned char matrix_get_ccd_bpp() {
  *
  */
 
-EXPORT void matrix_get_exposure() {
+EXPORT int meas_matrix_get_exposure(struct usb_dev_handle *udev) {
   
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -848,20 +807,20 @@ EXPORT void matrix_get_exposure() {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Getting Exposure");
-  
-  if(usb_bulk_read(udev, EP6, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Getting Exposure");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Getting Exposure");
-  
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP6, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "Newport Oriel MMS Spectrometer - Error Getting Exposure.\n");
+    return -1;
+  }
+
   data_size = *((unsigned int *) &readbuf[8]);
   
   for(i = 0; i < data_size; i += 64)
-    if(usb_bulk_read(udev, EP6, readbuf, 64, 0) <= 0)
-      meas_err2("Newport Oriel MMS Spectrometer: Error Getting Exposure");
+    if(usb_bulk_read(udev, MEAS_MATRIX_EP6, readbuf, 64, 0) <= 0) {
+      fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error Getting Exposure.\n");
+      return -1;
+    }
+  return 0;
 }
 
 /*
@@ -872,15 +831,15 @@ EXPORT void matrix_get_exposure() {
  * successfully complete if it is called outside a start_exposure() and
  * end_exposure() function calls
  * 
- * Inputs: None
+ * Inputs: udev structure
  *
- * Return value: none
+ * Return value: -1 for error, 0 for success.
  *
  * ****NOTE**** Host Command Format (Schema 0x02) not implemented.
  *
  */
 
-EXPORT void matrix_set_reconstruction() {
+EXPORT int meas_matrix_set_reconstruction(struct usb_dev_handle *udev) {
 
   unsigned char writebuf[7], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -890,14 +849,12 @@ EXPORT void matrix_set_reconstruction() {
   writebuf[5] = 0x01; /* Schema number */
   writebuf[6] = 0x00; /* Algorithm */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Setting Reconstruction");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Setting Reconstruction");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error Setting Reconstruction");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error Setting Reconstruction.\n");
+    return -1;
+  }
+  return 0;
 }
 
 /*
@@ -907,7 +864,7 @@ EXPORT void matrix_set_reconstruction() {
  * command should only be used outside the use of the start_exposure() and end_exposure()
  * functions.
  *
- * Input:
+ * Input: udev structure
  *   unsigned char type: Reconstruction Type - Denotes the type of reconstruction
  *                            data to retrieve. Acceptable values are:
  *                            0x01 - Reconstruction from Light Exposure - Requires that both light
@@ -923,11 +880,11 @@ EXPORT void matrix_set_reconstruction() {
  * 
  *     float *data = Data array. This must be allocated by the caller.
  *
- * Return value: number of data points transferred.
+ * Return value: number of data points transferred. 0 on error.
  *
  */
 
-EXPORT unsigned int matrix_get_reconstruction(unsigned char type, float *data) {
+EXPORT unsigned int meas_matrix_get_reconstruction(struct usb_dev_handle *udev, unsigned char type, float *data) {
 
   unsigned char writebuf[7], readbuf[64]; /* read & write buffers */
   unsigned char saturation;
@@ -939,33 +896,33 @@ EXPORT unsigned int matrix_get_reconstruction(unsigned char type, float *data) {
   *len = 7; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(type != 0x01 && type != 0x02 && type != 0x03) /* test if we have a valid reconType */
-    meas_err2("Invalid Reconstruction Type");
-  
+  if(type != 0x01 && type != 0x02 && type != 0x03) { /* test if we have a valid reconType */
+    fprintf(stderr, "libmeas: Invalid matrix reconstruction type.\n");
+    return 0;
+  }
   writebuf[6] = type; /* Set the reconstruction type */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting Reconstruction");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting Reconstruction");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting Reconstruction");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error getting Reconstruction.\n");
+    return 0;
+  }
   
   saturation = *((unsigned char *) &readbuf[8]);
-  if(saturation) fprintf(stderr, "Warning: saturated pixels.\n");
+  if(saturation) fprintf(stderr, "libmeas: Saturated pixels in matrix (warning).\n");
   /* skip data count - seems to be always zero */
   data_size = *((unsigned int *) &readbuf[1]);
   
   for(i = 0; i < data_size - 64; i += 64) {
-    if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-      meas_err2("Newport Oriel MMS Spectrometer: Error Getting Exposure");
+    if(usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0) {
+      fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error Getting Exposure.\n");
+      return -1;
+    }
     
     for(j = 0; j < 64; j += 4) {
       data[i/4+j/4] = *((float *) &readbuf[j]);    
       pts++;
-      if(pts >= MATRIX_WIDTH) break; /* Ignore zero padding in the last packet */
+      if(pts >= MEAS_MATRIX_WIDTH) break; /* Ignore zero padding in the last packet */
     }
   }
   
@@ -977,13 +934,13 @@ EXPORT unsigned int matrix_get_reconstruction(unsigned char type, float *data) {
  *
  * This function returns the spectrometer's assigned model number;
  *
- * Input Value: Storage space for model number (char *).
+ * Input Value: udev structure. Storage space for model number (char *).
  *
- * Return Value: None.
+ * Return Value: -1 for error, 0 for success.
  *
  */
 
-EXPORT void matrix_get_model_number(char *model) {
+EXPORT int meas_matrix_get_model_number(struct usb_dev_handle *udev, char *model) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -993,17 +950,15 @@ EXPORT void matrix_get_model_number(char *model) {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting model number");  
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting model number");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting model number");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error getting model number.\n");
+    return -1;
+  }
   
   for(i = 0; i < *((unsigned short *) &readbuf[7]); i++)
     model[i] = (char) readbuf[i + 9]; 
+  return 0;
 }
 
 /*
@@ -1011,13 +966,13 @@ EXPORT void matrix_get_model_number(char *model) {
  *
  * This function returns the spectrometer's assigned serial number;
  *
- * Input Value: Storage space for model number (char *)
+ * Input Value: udev structure. Storage space for model number (char *)
  *
- * Return Value: None.
+ * Return Value: -1 for error, 0 for success.
  *
  */
 
-EXPORT void matrix_get_serial_number(char *serial) {
+EXPORT int meas_matrix_get_serial_number(struct usb_dev_handle *udev, char *serial) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -1027,17 +982,15 @@ EXPORT void matrix_get_serial_number(char *serial) {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting serial number");  
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting serial number");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting serial number");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error getting serial number.\n");
+    return -1;
+  }
   
   for(i = 0; i < *((unsigned short *) &readbuf[7]); i++)
     serial[i] = (char) readbuf[i + 9];  
+  return 0;
 }
 
 /*
@@ -1046,11 +999,11 @@ EXPORT void matrix_get_serial_number(char *serial) {
  * This function returns the clock frequency that the spectrometer's camera uses to
  * convert analog data to digital data.
  *
- * Input Value: None
+ * Input Value: udev structure
  *
  * Return Value: an unsigned short which specifies the clock frequncy of the A/D converter.
  *               Possible return values:
- *               0x00 = N/A
+ *               0x00 = N/A (error)
  *               0x01 = Default
  *               0x02 = 150 KHz
  *               0x03 = 300 KHz
@@ -1059,7 +1012,7 @@ EXPORT void matrix_get_serial_number(char *serial) {
  *               0x06 = Error getting clock rate
  */
 
-EXPORT unsigned short matrix_get_clock_rate() {
+EXPORT unsigned short meas_matrix_get_clock_rate(struct usb_dev_handle *udev) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -1068,14 +1021,11 @@ EXPORT unsigned short matrix_get_clock_rate() {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting clock rate");  
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting clock rate");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting clock rate");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error getting clock rate.\n");
+    return 0x00;
+  }
   
   return *((unsigned int *) &readbuf[7]);
 }
@@ -1088,7 +1038,7 @@ EXPORT unsigned short matrix_get_clock_rate() {
  * with increased electronic noise within the captured CCD image. Slower clock rates lengthen the
  * image processing time but results in a lowered electronic noise withing the captured CCD image.
  *
- * Input:
+ * Input: udev structure
  *   unsigned short freq: Specifies the clock frequency of the A/D converter.
  *                        Acceptable values are:
  *                        0x00 = N/A
@@ -1098,11 +1048,11 @@ EXPORT unsigned short matrix_get_clock_rate() {
  *                        0x04 = 500 KHz
  *                        0x05 = 1000 KHz
  * 
- * Return value: none.
+ * Return value: -1 for error, 0 for success.
  *
  */
 
-EXPORT void matrix_set_clock_rate(unsigned short freq) {
+EXPORT int meas_matrix_set_clock_rate(struct usb_dev_handle *udev, unsigned short freq) {
 
   unsigned char writebuf[8], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -1112,20 +1062,19 @@ EXPORT void matrix_set_clock_rate(unsigned short freq) {
   writebuf[5] = 0x01; /* Schema number */
   
   /* test if we have a valid freq */
-  if(freq != 0x00 && freq != 0x01 && freq != 0x02 && freq != 0x03 && freq != 0x04 && freq != 0x05)
-    meas_err2("Invalid frequency");
+  if(freq != 0x00 && freq != 0x01 && freq != 0x02 && freq != 0x03 && freq != 0x04 && freq != 0x05) {
+    fprintf(stderr, "libmeas: Invalid matrix frequency.\n");
+    return -1;
+  }
   
   writebuf[6] = ((char *) &freq)[0];  /* set the zeroth byte of the A/D Clock Frequency */
   writebuf[7] = ((char *) &freq)[1];  /* set the first byte ot the A/D Clock Frequency */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting clock rate");  
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting clock rate");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting clock rate");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "matrix: Newport Oriel MMS Spectrometer - Error setting clock rate.\n");
+    return -1;
+  }
 }
 
 /*
@@ -1135,7 +1084,7 @@ EXPORT void matrix_set_clock_rate(unsigned short freq) {
  * use with its processing. Pixel binning is where the physical light wells (pixels) on the
  * spectrometer's CCD are grouped together for processing as a single pixel.
  *
- * Input:
+ * Input: udev structure
  *   unsigned short mode: Specifies the pixel binning mode to be used.
  *                        Acceptable values are:
  *                        0x00 = N/A
@@ -1143,11 +1092,11 @@ EXPORT void matrix_set_clock_rate(unsigned short freq) {
  *                        0x02 = Dark Current
  *                        0x03 = Line Binning
  * 
- * Return value: None.
+ * Return value: -1 for error, 0 for success.
  *
  */
 
-EXPORT void matrix_set_pixel_mode(unsigned short mode) {
+EXPORT int meas_matrix_set_pixel_mode(struct usb_dev_handle *udev, unsigned short mode) {
 
   unsigned char writebuf[8], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -1157,20 +1106,20 @@ EXPORT void matrix_set_pixel_mode(unsigned short mode) {
   writebuf[5] = 0x01; /* Schema number */
   
   /* test if we have a valid mode */
-  if(mode != 0x00 && mode != 0x01 && mode != 0x02 && mode != 0x03)
-    meas_err2("Invalid Pixel Mode");
+  if(mode != 0x00 && mode != 0x01 && mode != 0x02 && mode != 0x03) {
+    fprintf(stderr, "libmeas: Invalid matrix pixel mode.\n");
+    return -1;
+  }
   
   writebuf[6] = ((char *) &mode)[0];  /* set the first byte of the Pixel Mode */
   writebuf[7] = ((char *) &mode)[1];  /* set the second byte ot the Pixel Mode */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting Pixel Mode");  
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting Pixel Mode");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting Pixel Mode");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error setting pixel mode.\n");
+    return -1;
+  }
+  return 0;
 }
 
 /*
@@ -1180,11 +1129,11 @@ EXPORT void matrix_set_pixel_mode(unsigned short mode) {
  * Pixel binning is where physical light wells (pixels) on the spectrometer's CCD
  * are grouped together for processing as a single pixel.
  *
- * Input Value: None
+ * Input Value: udev structure
  *
  * Return Value: an unsigned short which specifies the pixel binning mode of the CCD.
  *               Possible return values:
- *               0x00 = N/A
+ *               0x00 = N/A (error)
  *               0x01 = Full Well
  *               0x02 = Dark Current
  *               0x03 = Line Binning
@@ -1192,7 +1141,7 @@ EXPORT void matrix_set_pixel_mode(unsigned short mode) {
  *
  */
 
-EXPORT unsigned short matrix_get_pixel_mode() {
+EXPORT unsigned short meas_matrix_get_pixel_mode(struct usb_dev_handle *udev) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -1201,14 +1150,11 @@ EXPORT unsigned short matrix_get_pixel_mode() {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting Pixel Mode");  
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting Pixel Mode");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting Pixel Mode");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+    || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error getting pixel mode.\n");
+    return 0x00;
+  }
   
   return *((unsigned int *) &readbuf[7]);
 }
@@ -1219,17 +1165,18 @@ EXPORT unsigned short matrix_get_pixel_mode() {
  * This function retrieves the temperature information from the spectrometer and returns
  * this information via a temperature structure.
  *
- * Input: None.
+ * Input: udev structure.
  *
- * Return value: Temperature in oC.
+ * Return value: Temperature in oC. 999.0 = error.
+ *
  */
 
-EXPORT float matrix_get_CCD_temp() {
+EXPORT float meas_matrix_get_CCD_temp(struct usb_dev_handle *udev) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
   float temp;
-  unsigned char matrix_is_temp_supported();
+  unsigned char meas_matrix_is_temp_supported();
   
   writebuf[0] = 0x03; /* command - Get CCD Temperature Info */
   *len = 6; /* set the length of the command */
@@ -1239,21 +1186,20 @@ EXPORT float matrix_get_CCD_temp() {
   /* before sending a get CCD temperature info command. */
   /* Spectrometer will stall if the command is sent to a */
   /* spectrometer that doesn't support temperature regulation */
-  if(!matrix_is_temp_supported())
-    meas_err2("Temperature control not supported.");
+  if(!meas_matrix_is_temp_supported()) {
+    fprintf(stderr, "libmeas: Matrix temperature control not supported.\n");
+    return 999.0;
+  }
   
-  if(usb_bulk_write(udev, EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting CCD temperature information");
-  
-  if(usb_bulk_read(udev, EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting CCD temperature information");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting CCD temperature information");
+  if(usb_bulk_write(udev, MEAS_MATRIX_EP4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, MEAS_MATRIX_EP8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error getting CCD temperature information.\n");
+    return 999.0;
+  }
   
   temp = *((float *) &readbuf[12]);
-  if(readbuf[16]) fprintf(stderr, "Warning: CCD thermal fault.\n");
-  if(readbuf[17]) fprintf(stderr, "Warning: CCD temperature not locked.\n");
+  if(readbuf[16]) fprintf(stderr, "libmeas: Matrix CCD thermal fault (warning).\n");
+  if(readbuf[17]) fprintf(stderr, "libmeas: Matrix CCD temperature not locked (warning).\n");
   
   return temp;
 }
@@ -1263,14 +1209,14 @@ EXPORT float matrix_get_CCD_temp() {
  *
  * Checks if temperature regulation is supported.
  *
- * Input: None.
+ * Input: udev structure.
  *
  * Return value:  Returns false if there was a problem getting the temperature info else
  *                a boolean value which indicates if temperature regulation is supported.
  *
  */
 
-EXPORT unsigned char matrix_is_temp_supported() {
+EXPORT unsigned char meas_matrix_is_temp_supported(struct usb_dev_handle *udev) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -1279,14 +1225,11 @@ EXPORT unsigned char matrix_is_temp_supported() {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
-  
-  if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
+  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error reading device info.\n");
+    return 0;
+  }
   
   return (unsigned char) readbuf[24];
 }
@@ -1296,15 +1239,14 @@ EXPORT unsigned char matrix_is_temp_supported() {
  *
  * This function sets the CCD temperature setpoint if temperature regulation is supported.
  *
- * Input:
+ * Input: udev structure.
  *   float temp: The desired CCD temperature setpoint in degrees C.
  *
- * Return value: Returns -274.0 (below absolute zero) if there is an error else
- *               returns a CCD setpoint as a confirmation.
+ * Return value: 0 for success, -1 for error.
  *
  */
 
-EXPORT void matrix_set_CCD_temp(float temperature) {
+EXPORT int meas_matrix_set_CCD_temp(struct usb_dev_handle *udev, float temperature) {
   
   unsigned char writebuf[11], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -1318,14 +1260,12 @@ EXPORT void matrix_set_CCD_temp(float temperature) {
   writebuf[9] = ((char *) &temperature)[2];  /* set the second byte of the temperature */
   writebuf[10] = ((char *) &temperature)[3];  /* set the third byte of the temperature */
   
-  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
-  
-  if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");  
+  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error reading device info.\n");
+    return -1;
+  }
+  return 0;
 }
 
 /*
@@ -1333,13 +1273,13 @@ EXPORT void matrix_set_CCD_temp(float temperature) {
  *
  * Disabled CCD temperature regulation of the spectrometer
  *
- * Input: None
+ * Input: udev structure
  *
- * Return value: None
+ * Return value: 0 for success, -1 for error.
  *
  */
 
-EXPORT void matrix_disable_CCD_temp_regulation() {
+EXPORT int meas_matrix_disable_CCD_temp_regulation(struct usb_dev_handle *udev) {
   
   unsigned char writebuf[11], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -1349,15 +1289,12 @@ EXPORT void matrix_disable_CCD_temp_regulation() {
   writebuf[5] = 0x01; /* Schema number */
   writebuf[6] = 0x00;  /* disable CCD temperature regulation */
   
-  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info");
-  
-  if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error reading device info.");
-  
+  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error reading device info.\n");
+    return -1;
+  }
+  return 0;
 }
 
 /*
@@ -1365,13 +1302,13 @@ EXPORT void matrix_disable_CCD_temp_regulation() {
  *
  * This command set the current AFE offset and gain settings of the spectrometer's camera.
  *
- * Inputs:
+ * Inputs: udev structure
  *   short offset: Specifies the current dark current compensation
  *                 Acceptable values: 0 - 1024.
  *   short gain: Specifies the current input sensitivity to the full scale output of the CCD
  *               Acceptable values: 0 - 63.
  *
- * Return value: true if the function completed successfully else false.
+ * Return value: return 0 for success, -1 for error.
  *
  * ****NOTE**** I have yet to get this function to work properly with my spectrometer my guess
  *              is that not all spectrometers support this function. Unfortunatley there is no
@@ -1380,17 +1317,19 @@ EXPORT void matrix_disable_CCD_temp_regulation() {
  * 
  */
 
-EXPORT void matrix_set_AFE_parameters(short offset, short gain) {
+EXPORT int meas_matrix_set_AFE_parameters(struct usb_dev_handle *udev, short offset, short gain) {
 
   unsigned char writebuf[13], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
   
-  if(offset < 0 || offset > 1024)  /* test if we have a valid offset */
-    meas_err2("Offset out of bounds");
-  
-  if(gain < 0 || gain > 63)  /* test if we have a valid gain */
-    meas_err2("Gain out of bounds");
-  
+  if(offset < 0 || offset > 1024) { /* test if we have a valid offset */
+    fprintf(stderr, "libmeas: Matrix offset out of bounds.\n");
+    return -1;
+  }
+  if(gain < 0 || gain > 63) { /* test if we have a valid gain */
+    fprintf(stderr, "libmeas: Matrix gain out of bounds.\n");
+    return -1;
+  }
   writebuf[0] = 0x2B; /* command - Set CCD Temperature Info */
   *len = 13; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
@@ -1399,14 +1338,12 @@ EXPORT void matrix_set_AFE_parameters(short offset, short gain) {
   writebuf[11] = ((char *) &gain)[0];  /* set the zeroth byte of the gain */
   writebuf[12] = ((char *) &gain)[1];  /* set the first byte of the gain */
   
-  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting AFE parameters");
-  
-  if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting AFE parameters");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error setting AFE parameters");
+  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error setting AFE parameters.\n");
+    return -1;
+  }
+  return 0;
 }
 
 /* 
@@ -1414,7 +1351,7 @@ EXPORT void matrix_set_AFE_parameters(short offset, short gain) {
  *
  * This function returns the current AFE offset and gain settings of the spectrometer's camera.
  *
- * Input: None.
+ * Input: udev structure
  *
  * Return value: an short array of size 2 which contains the following inormation:
  *               index = 0: offset - Specifies the current dark current
@@ -1423,9 +1360,11 @@ EXPORT void matrix_set_AFE_parameters(short offset, short gain) {
  *                          Possible values: 0 - 63.
  *               error is NULL is returned
  *
+ * Returns 0 for success, -1 for error.
+ *
  */
 
-EXPORT void matrix_get_AFE_parameters(short *params) {
+EXPORT int meas_matrix_get_AFE_parameters(struct usb_dev_handle *udev, short *params) {
 
   unsigned char writebuf[6], readbuf[64]; /* read & write buffers */
   int *len = (int *) &writebuf[1]; /* pointer to the command size of the writebuf array */
@@ -1434,15 +1373,13 @@ EXPORT void matrix_get_AFE_parameters(short *params) {
   *len = 6; /* set the length of the command */
   writebuf[5] = 0x01; /* Schema number */
   
-  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting AFE parameters");
-  
-  if(usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting AFE parameters");
-  
-  if(readbuf[6] == 0x00)
-    meas_err2("Newport Oriel MMS Spectrometer: Error getting AFE parameters");
+  if(usb_bulk_write(udev, 4, (char *) writebuf, sizeof(writebuf), 0) <= 0 || usb_bulk_read(udev, 8, (char *) readbuf, sizeof(readbuf), 0) <= 0
+     || readbuf[6] == 0x00) {
+    fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer - Error getting AFE parameters.\n");
+    return -1;
+  }
   
   params[0] = *((short *) &readbuf[9]);
   params[1] = *((short *) &readbuf[11]);
+  return 0;
 }
