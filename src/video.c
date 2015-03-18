@@ -505,6 +505,8 @@ EXPORT int meas_video_get_control(int cd, unsigned int id, void *value) {
 /*
  * Set control value.
  *
+ * Return 0 for success, -1 for error.
+ *
  */
 
 EXPORT int meas_video_set_control(int cd, unsigned int id, void *value) {
@@ -720,7 +722,7 @@ EXPORT int meas_video_info_controls(int cd) {
       printf("\n");
       break;
     case V4L2_CTRL_TYPE_BUTTON:
-      printf("Button - Not implemented yet.\n");
+      printf("Button.\n");
       break;
     case V4L2_CTRL_TYPE_INTEGER64:
       printf("Integer64: Extended controls not implemented yet.\n");
@@ -1214,4 +1216,24 @@ EXPORT int meas_video_set_sharpness(int cd, int value) {
 
   if(value < meas_video_get_control_min(cd, V4L2_CID_SHARPNESS) || value > meas_video_get_control_max(cd, V4L2_CID_SHARPNESS)) return -1;
   return meas_video_set_control(cd, V4L2_CID_SHARPNESS, (void *) &value);
+}
+
+/*
+ * Press (by software) a button.
+ *
+ * Return 0 for success, -1 for error.
+ *
+ */
+
+EXPORT int meas_video_press_button(int cd, unsigned int id) {
+  
+  unsigned int value = 0;
+  int i;
+  
+  if(!been_here || cd >= MEAS_VIDEO_MAXDEV || cd < 0 || devices[cd].fd == -1) return -1;
+  for (i = 0; i < devices[cd].nctrls; i++)
+    if(devices[cd].ctrls[i]->id == id) break;
+  if(i == devices[cd].nctrls) return -1;
+  if(devices[cd].ctrls[i]->type != V4L2_CTRL_TYPE_BUTTON) return -1;
+  return meas_video_set_control(cd, id, (void *) &value);
 }
