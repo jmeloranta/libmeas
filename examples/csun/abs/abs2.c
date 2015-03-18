@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
   }
   
   meas_matrix_init(0);
-  size = meas_matrix_size(0, &size, NULL);
+  meas_matrix_size(0, &size, NULL);
 
   if(mode == 1) {
     /* read in background and modify the spectrum to absorbance scale */
