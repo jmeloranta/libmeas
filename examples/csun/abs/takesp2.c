@@ -10,7 +10,7 @@
 
 void quit() {
 
-  meas_matrix_close();
+  meas_matrix_close(0);
   printf("Close device\n");
   exit(1);
 }
@@ -29,8 +29,8 @@ int main(int argc, char **argv) {
   if(atoi(argv[3]) != 0) cont = 1;
   else cont = 0;
 
-  meas_matrix_init();
-  size = meas_matrix_size();
+  meas_matrix_init(0);
+  meas_matrix_size(0, &size, NULL);
   if(!(x = (double *) malloc(sizeof(double) * size))) {
     fprintf(stderr, "Memory allocation failure.");
     exit(1);
@@ -42,9 +42,10 @@ int main(int argc, char **argv) {
   signal(SIGINT, quit);
 
   meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "takesp2");
+
   while (1) {
     bzero(y, sizeof(double) * size);
-    meas_matrix_read(atof(argv[1]), atoi(argv[2]), y);
+    meas_matrix_read(0, atof(argv[1]), atoi(argv[2]), y);
     
     /* for now (x = pixel #) */
     for (i = 0; i < size; i++) x[i] = meas_matrix_calib(i);
@@ -55,7 +56,7 @@ int main(int argc, char **argv) {
     if(!cont) break;
   }
 
-  meas_matrix_close();
+  meas_matrix_close(0);
   fprintf(stderr,"Press any enter to stop:");
   gets(dummy);
   meas_graphics_close();

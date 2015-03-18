@@ -67,6 +67,7 @@ EXPORT struct usb_dev_handle *meas_matrix_module_init(int sd) {
   struct usb_bus *busses, *bus;
   struct usb_device *dev;
   struct usb_dev_handle *udev;
+  int cd;
   
   meas_misc_root_on();
   
@@ -77,14 +78,16 @@ EXPORT struct usb_dev_handle *meas_matrix_module_init(int sd) {
   busses = usb_get_busses();
   
   /* scan each device on each bus for the Newport MMS Spectrometer */
-  for (bus = busses; bus; bus = bus->next) {
+  for (bus = busses, cd = 0; bus; bus = bus->next) {
     for (dev = bus->devices; dev; dev=dev->next)
-      if(dev->descriptor.idVendor == 0x184c && dev->descriptor.idProduct == 0x0000) break;
-    
-    if(dev) break;
+      if(dev->descriptor.idVendor == 0x184c && dev->descriptor.idProduct == 0x0000) {
+	if(cd == sd) break; 
+	cd++;
+      }    
+    if(dev && cd == sd) break;
   }
   
-  if(!dev) {
+  if(!bus || !dev) {
     fprintf(stderr, "libmeas: Newport Oriel MMS Spectrometer Not Found\n");
     return NULL;
   }
@@ -715,8 +718,8 @@ EXPORT int meas_matrix_close_CCD_shutter(struct usb_dev_handle *udev) {
 
 EXPORT void meas_matrix_module_close(struct usb_dev_handle *udev) {
 
+  usb_reset(udev); /* Most systems developed for windows don't know what close means... */
   usb_close(udev);
-  /*  usb_reset(udev); /* Most systems developed for windows don't know what close means... */
 }
 
 /*

@@ -107,20 +107,20 @@ int main(int argc, char **argv) {
     }
   }
   
-  meas_matrix_init();
-  size = meas_matrix_size();
+  meas_matrix_init(0);
+  size = meas_matrix_size(0, &size, NULL);
 
   if(mode == 1) {
     /* read in background and modify the spectrum to absorbance scale */
     if(!(fp = fopen(BACKGROUND2, "r"))) {
       fprintf(stderr, "Can't read the diode array background spectrum (%s): use -b.\n", BACKGROUND2);
-      meas_matrix_close();
+      meas_matrix_close(0);
       exit(1);
     }
     fscanf(fp, " %le %d", &bexp, &bave);
     if(fabs(bexp - exp_time) > 1E-3 || bave != averages) {
       fprintf(stderr, "Inconsistent background file: %s\n", BACKGROUND2);
-      meas_matrix_close();
+      meas_matrix_close(0);
       exit(1);
     }
     for (i = 0; i < size; i++)
@@ -129,13 +129,13 @@ int main(int argc, char **argv) {
     
     if(!(fp = fopen(BACKGROUND1, "r"))) {
       fprintf(stderr, "Can't read the lamp background spectrum (%s): use -b.\n", BACKGROUND1);
-      meas_matrix_close();
+      meas_matrix_close(0);
       exit(1);
     }
     fscanf(fp, " %le %d", &bexp, &bave);
     if(fabs(bexp - exp_time) > 1E-3 || bave != averages) {
       fprintf(stderr, "Inconsistent background file: %s\n", BACKGROUND1);
-      meas_matrix_close();
+      meas_matrix_close(0);
       exit(1);
     }
     for (i = 0; i < size; i++) {
@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
 
   while (1) {
     memset(spec, 0, sizeof(double) * size);
-    meas_matrix_read(exp_time, averages, spec);
+    meas_matrix_read(0, exp_time, averages, spec);
 
     if(mode == 1) { /* spectrum */
 
@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
     
     if(!(fp = fopen(output, "w"))) {
       fprintf(stderr, "Can't open file for writing.\n");
-      meas_matrix_close();
+      meas_matrix_close(0);
       exit(1);
     }
     if(mode == 0) fprintf(fp, "%le %d\n", exp_time, averages);
@@ -183,5 +183,5 @@ int main(int argc, char **argv) {
     gets(dummy);
     meas_graphics_close();
   }
-  meas_matrix_close();  
+  meas_matrix_close(0);
 }

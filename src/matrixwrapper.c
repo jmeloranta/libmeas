@@ -15,7 +15,7 @@ static int been_here = 0;
  *
  * Sets the Newport spectrometer up for use. 
  *
- * sd = Spectrometer number.
+ * sd = Spectrometer number (0, 1, 2, ...).
  *
  * Return 0 for success, -1 for error.
  *
@@ -31,7 +31,7 @@ EXPORT int meas_matrix_init(int sd) {
       udevs[i] = NULL;
     been_here = 1;
   }
-  if(sd < 0 || sd >= MEAS_MATRIX_MAXDEV || udevs[sd] == NULL) return -1;
+  if(sd < 0 || sd >= MEAS_MATRIX_MAXDEV || udevs[sd] != NULL) return -1;
 
   if(!(udevs[sd] = meas_matrix_module_init(sd))) return -1;
   return 0;
@@ -68,8 +68,8 @@ EXPORT int meas_matrix_size(int sd, int *width, int *height) {
 
   if(sd < 0 || sd >= MEAS_MATRIX_MAXDEV || udevs[sd] == NULL) return -1;
   meas_matrix_get_pixel_hw(udevs[sd], &w, &h);
-  *width = w;
-  *height = h;
+  if(width) *width = w;
+  if(height) *height = h;
   return 0;
 }
 
