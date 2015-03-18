@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
   if(graph) {
     printf("Press any enter to stop:");
     gets(dummy);
-    meas_graphics_close();
+    // meas_graphics_close();
   }
   meas_newport_is_close();  
 }

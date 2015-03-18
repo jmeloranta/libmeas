@@ -6,7 +6,7 @@
  
  * abs2 -b                To measure lamp background to file (bkgspec1.dat).
  * abs2 -g                Disable graphics output.
- * abs2 -c                To measure diode array background (bkgspec2.dat).
+ * abs2 -c                To measure CCD array background (bkgspec2.dat).
  * abs2 -s <outspec>      To measure spectrum (using current background) to file
  *                       <outspec>.
  * abs2 -n <outpsec>      To measure spectrum without background correction.
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
   if(mode == 1) {
     /* read in background and modify the spectrum to absorbance scale */
     if(!(fp = fopen(BACKGROUND2, "r"))) {
-      fprintf(stderr, "Can't read the diode array background spectrum (%s): use -b.\n", BACKGROUND2);
+      fprintf(stderr, "Can't read the CCD array background spectrum (%s): use -b.\n", BACKGROUND2);
       meas_matrix_close(0);
       exit(1);
     }
@@ -140,12 +140,12 @@ int main(int argc, char **argv) {
     }
     for (i = 0; i < size; i++) {
       fscanf(fp, " %*le %le", &bkg1[i]);
-      bkg1[i] -= bkg2[i]; /* subtract the diode array background */
+      bkg1[i] -= bkg2[i]; /* subtract the CCD array background */
     }
     fclose(fp);
   } /* end if mode */
 
-  if(graph) meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "abs2");
+  if(graph) meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 2048, "abs2");
 
   while (1) {
     memset(spec, 0, sizeof(double) * size);
@@ -181,7 +181,7 @@ int main(int argc, char **argv) {
   if(graph) {
     printf("Press any enter to stop:");
     gets(dummy);
-    meas_graphics_close();
+    //meas_graphics_close();
   }
   meas_matrix_close(0);
 }
