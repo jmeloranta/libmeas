@@ -1,6 +1,11 @@
 /*
  * Newport Diode array + monochromator (IS minispectrometer).
  *
+ * Make sure that cdc_acm kernel module is NOT loaded.
+ * On Fedora, write:
+ * blacklist cdc_acm 
+ * to /etc/modprobe/blacklist-cdc_acm.conf file.
+ *
  */
 
 #include <stdio.h>
