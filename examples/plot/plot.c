@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <meas/meas.h>
 
-#define NS 3
+#define NS 512
 
 double xdata[NS], ydata[NS];
 
