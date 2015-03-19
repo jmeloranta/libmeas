@@ -391,20 +391,37 @@ EXPORT int meas_graphics_autoscale(int win) {
 }
 
 /*
- * Close graphics output.
+ * Close all graphics output.
+ *
+ * win = window number to close. If win == -1, close all windows.
  *
  */
 
-EXPORT int meas_graphics_close() {
+EXPORT int meas_graphics_close(int win) {
 
-  int i;
+  int i, n;
 
-  fl_finish();
-  for(i = 0; i < MEAS_GRAPHICS_MAX_WIN; i++) {
-    if(wins[i].form) fl_free(wins[i].form);
-    if(wins[i].xvalues) free(wins[i].xvalues);
-    if(wins[i].yvalues) free(wins[i].yvalues);
+  for(i = n = 0; i < MEAS_GRAPHICS_MAX_WIN; i++) {
+    if(i == win || win == -1) {
+      if(wins[i].form) fl_hide_form(wins[i].form);
+      if(wins[i].xvalues) free(wins[i].xvalues);
+      if(wins[i].yvalues) free(wins[i].yvalues);
+      wins[i].type = MEAS_GRAPHICS_EMPTY;
+      wins[i].canvasGC = NULL;
+      wins[i].img = NULL;
+      wins[i].form = NULL;
+      wins[i].canvas = NULL;
+      wins[i].img_data = NULL;
+      wins[i].nx = wins[i].ny = wins[i].ns = 0;
+      wins[i].xvalues = wins[i].yvalues = NULL;
+    }
   }
+  if(i == MEAS_GRAPHICS_MAX_WIN && win != -1) return -1;
+
+  for(i = 0; i < MEAS_GRAPHICS_MAX_WIN; i++)
+    if(wins[i].type != MEAS_GRAPHICS_EMPTY) break;
+  if(i == MEAS_GRAPHICS_MAX_WIN) fl_finish(); /* last window */
+
   return 0;
 }
 

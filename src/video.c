@@ -840,7 +840,7 @@ EXPORT int meas_video_stop(int cd) {
 
 EXPORT int meas_video_close(int cd) {
 
-  int i, j;
+  int i, j, k;
 
   if(!been_here || cd >= MEAS_VIDEO_MAXDEV || cd < 0 || devices[cd].fd == -1) {
     fprintf(stderr, "libmeas: Attempting to close non-existent video device,\n");
@@ -866,12 +866,12 @@ EXPORT int meas_video_close(int cd) {
   free(devices[cd].buffer_lengths);
   free(devices[cd].buffers);
     
-  for (i = 0; i < devices[cd].nctrls; i++)
+  for (i = 0; i < devices[cd].nctrls; i++) {
+    if(devices[cd].ctrls[i]->type == V4L2_CTRL_TYPE_MENU)
+      for (k = 0, j = devices[cd].ctrls[i]->minimum; j <= devices[cd].ctrls[i]->maximum && k < MEAS_VIDEO_MAXCTRL; j++, k++)
+	free(devices[cd].menu_items[i][k]);
     free(devices[cd].ctrls[i]);
-
-  for (i = 0; i < devices[cd].nctrls; i++)
-    for (j = devices[cd].ctrls[i]->minimum; j <= devices[cd].ctrls[i]->maximum; j++)
-      free(devices[cd].menu_items[i][j - devices[cd].ctrls[i]->minimum]);
+  }
   
   close(devices[cd].fd);
 

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <meas/meas.h>
 
-#define NS 1024
+#define NS 3
 
 double xdata[NS], ydata[NS];
 
@@ -23,4 +23,5 @@ main() {
     meas_graphics_update();
     sleep(1);
   }
+  meas_graphics_close(-1);
 }
