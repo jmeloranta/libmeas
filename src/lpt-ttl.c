@@ -31,7 +31,7 @@ static unsigned ports[] = {0x378, 0x278}; /* lpt1 and lpt2 */
  *
  */
 
-EXPORT int meas_lpt_init(int unit) {
+EXPORT int meas_lpt_open(int unit) {
 
   /* could add here detection for parallel port presence */
   return 0;

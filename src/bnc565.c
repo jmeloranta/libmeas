@@ -20,7 +20,7 @@
 static int bnc565_fd[5] = {-1, -1, -1, -1, -1};
 
 /* Initialize the DAC interface */
-EXPORT int meas_bnc565_init(int unit, int board, int dev) {
+EXPORT int meas_bnc565_open(int unit, int board, int dev) {
 
   /* remember to put in single shot mode initially */
   /* both the system timer and each channel */

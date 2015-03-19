@@ -31,7 +31,7 @@ static mode[5] = {0, 0, 0, 0, 0}; /* 0 = CM (continuous), 1 = SM (single) */
  *
  */
 
-EXPORT int meas_er023_init(int unit, int board, int dev) {
+EXPORT int meas_er023_open(int unit, int board, int dev) {
   
   char buf[MEAS_GPIB_BUF_SIZE];
 

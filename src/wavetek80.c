@@ -20,7 +20,7 @@
 /* Up to 5 devices supported */
 static int wavetek80_fd[5] = {-1, -1, -1, -1, -1};
 
-EXPORT int meas_wavetek80_init(int unit, int board, int dev) {
+EXPORT int meas_wavetek80_open(int unit, int board, int dev) {
   
   if(wavetek80_fd[unit] == -1) {
     wavetek80_fd[unit] = meas_gpib_open(board, dev);

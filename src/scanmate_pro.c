@@ -35,7 +35,7 @@ static int dye_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
 
-EXPORT int meas_scanmate_pro_init(int unit, char *dev) {
+EXPORT int meas_scanmate_pro_open(int unit, char *dev) {
 
   if(dye_fd[unit] == -1)
     dye_fd[unit] = meas_rs232_open(dev, MEAS_B57600);

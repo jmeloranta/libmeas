@@ -8,4 +8,3 @@
 - we should probably use pkg-config rather than have the makefile options in
   /usr/include/meas/make.conf
 - be consistent: some have init() and some open() as the function name to get things going.
-- graphics close complains about double free

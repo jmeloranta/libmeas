@@ -23,7 +23,7 @@ static int dk240_fd[5] = {-1, -1, -1, -1, -1};
  * 
  */
 
-EXPORT int meas_dk240_init(int unit, char *dev) {
+EXPORT int meas_dk240_open(int unit, char *dev) {
 
   char resp;
 

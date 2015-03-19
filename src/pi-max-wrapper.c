@@ -404,7 +404,7 @@ EXPORT int meas_pi_max_roi(int s1, int s2, int sbin, int p1, int p2, int pbin) {
  *
  */
 
-EXPORT int meas_pi_max_init(double temperature) {
+EXPORT int meas_pi_max_open(double temperature) {
 
   uns16 x, y;
 

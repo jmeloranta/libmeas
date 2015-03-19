@@ -79,7 +79,7 @@ static unsigned int parse(char *str, int len) {
  *
  */
 
-EXPORT int meas_fl3000_init(int unit, int board, int dev) {
+EXPORT int meas_fl3000_open(int unit, int board, int dev) {
 
   char buf[512];
   

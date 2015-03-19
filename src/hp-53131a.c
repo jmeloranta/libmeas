@@ -24,7 +24,7 @@ static int hp53131_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
  
-EXPORT int meas_hp53131_init(int unit, int board, int dev) {
+EXPORT int meas_hp53131_open(int unit, int board, int dev) {
   
   if(hp53131_fd[unit] == -1) {
     hp53131_fd[unit] = meas_gpib_open(board, dev);

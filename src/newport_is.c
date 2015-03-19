@@ -97,7 +97,7 @@ int meas_newport_is_size() {
  * 
  */
 
-EXPORT int meas_newport_is_init() {
+EXPORT int meas_newport_is_open() {
 
   struct usb_bus *busses, *bus;
   struct usb_device *dev;

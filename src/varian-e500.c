@@ -27,7 +27,7 @@ static int e500_dev[5];
  *
  */
 
-EXPORT int meas_e500_init(int unit, int board, int dev) {
+EXPORT int meas_e500_open(int unit, int board, int dev) {
   
   if(e500_fd[unit] == -1) {
     e500_fd[unit] = meas_gpib_open(board, dev);

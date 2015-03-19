@@ -18,7 +18,7 @@ static int hp5350_fd[5] = {-1, -1, -1, -1, -1};
 
 /* Initialize instrument (unit = GPIB id) */
 
-EXPORT int meas_hp5350_init(int unit, int board, int dev) {
+EXPORT int meas_hp5350_open(int unit, int board, int dev) {
   
   if(hp5350_fd[unit] == -1) {
     hp5350_fd[unit] = meas_gpib_open(board, dev);

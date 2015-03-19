@@ -29,7 +29,7 @@ static char *setmodes[] = {"SENS:FUNC \"VOLT:AC\"", "SENS:FUNC \"VOLT:DC\"", "SE
 static char *trigger_sources[] = {"BUS", "IMM", "EXT", 0};
 
 /* Initialize instrument (dev = GPIB id) */
-EXPORT int meas_hp34401a_init(int unit, int board, int dev) {
+EXPORT int meas_hp34401a_open(int unit, int board, int dev) {
 
   if(hp34401a_fd[unit] == -1) {
     hp34401a_fd[unit] = meas_gpib_open(board, dev);

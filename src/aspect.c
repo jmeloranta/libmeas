@@ -77,7 +77,7 @@
  *
  */
 
-EXPORT int meas_sl_init() {
+EXPORT int meas_sl_open() {
 
   meas_lpt_init(0);
   meas_lpt_init(1);

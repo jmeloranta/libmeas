@@ -21,7 +21,7 @@ static int been_here = 0;
  *
  */
 
-EXPORT int meas_matrix_init(int sd) {
+EXPORT int meas_matrix_open(int sd) {
 
   extern struct usb_dev_handle *meas_matrix_module_init(int);
 

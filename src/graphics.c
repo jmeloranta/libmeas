@@ -50,7 +50,7 @@ static struct window {
  *
  */
 
-EXPORT int meas_graphics_init(int win, int type, int nx, int ny, int maxns, char *title) {
+EXPORT int meas_graphics_open(int win, int type, int nx, int ny, int maxns, char *title) {
 
   static int been_here = 0;
   char *av[1] = {""};

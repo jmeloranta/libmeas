@@ -20,7 +20,7 @@ static int pdr2000_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
 
-EXPORT int meas_pdr2000_init(int unit, char *dev) {
+EXPORT int meas_pdr2000_open(int unit, char *dev) {
 
   if(unit < 0 || unit > 4)
     meas_err("meas_pdr2000_init: Non-existing unit.");

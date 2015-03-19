@@ -21,7 +21,8 @@
 /* Up to 5 units supported */
 static int mettler_fd[5] = {-1, -1, -1, -1, -1};
 
-/* Initialize the balance.
+/*
+ * Initialize the balance.
  *
  * unit = Unit number.
  * dev  = RS232 device for the balance.
@@ -30,7 +31,7 @@ static int mettler_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
 
-EXPORT int meas_mettler_init(int unit, char *dev) {
+EXPORT int meas_mettler_open(int unit, char *dev) {
 
   if(mettler_fd[unit] == -1)
     mettler_fd[unit] = meas_rs232_open(dev, MEAS_B19200);

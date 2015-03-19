@@ -23,7 +23,7 @@ static int trigger_source[5] = {MEAS_DG535_TRIG_EXT, MEAS_DG535_TRIG_EXT, MEAS_D
 static double reprate[5] = {1.0, 1.0, 1.0, 1.0, 1.0};
 
 /* Initialize the DAC interface */
-EXPORT int meas_dg535_init(int unit, int board, int dev) {
+EXPORT int meas_dg535_open(int unit, int board, int dev) {
 
   char buf[512];
   int i;

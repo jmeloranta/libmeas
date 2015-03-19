@@ -33,7 +33,7 @@ static int srmode[5] = {0, 0, 0, 0, 0};
  *
  */
 
-EXPORT int meas_sr810_init(int unit, int board, int dev, char *serial) {
+EXPORT int meas_sr810_open(int unit, int board, int dev, char *serial) {
 
   if(unit < 0 || unit > 4)
     meas_err("meas_sr810_init: Illegal units number.");

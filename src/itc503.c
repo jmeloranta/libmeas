@@ -23,7 +23,7 @@ static int temp_fd[5] = {-1, -1, -1, -1, -1};
  *
  */
 
-EXPORT int meas_itc503_init(int unit, char *dev) {
+EXPORT int meas_itc503_open(int unit, char *dev) {
 
   if(temp_fd[unit] == -1)
     temp_fd[unit] = meas_rs232_open(dev, MEAS_B9600);
