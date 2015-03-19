@@ -25,9 +25,9 @@ int main(int argc, char **argv) {
   unsigned long scan_delay;
 
   /* Use the function generator to sweep the voltage for the potentiostat */
-  meas_wavetek80_init(0, 0, GPIB_ID_WAVETEK80);
+  meas_wavetek80_open(0, 0, GPIB_ID_WAVETEK80);
   /* Use the multimeter to read the voltage (current) from the potentiostat */
-  meas_hp34401a_init(0, 0, GPIB_ID_HP34401);
+  meas_hp34401a_open(0, 0, GPIB_ID_HP34401);
   
   meas_wavetek80_output_mode(0, MEAS_WAVETEK80_OUTPUT_DISABLED);
 
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
   scanf(" %u", &scan_delay);
 
   /* Initialize graphics */
-  meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "cv2");
+  meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "cv2");
   meas_graphics_xscale(0, scan_begin, scan_end);
   meas_graphics_yscale(0, -1.0, 1.0);
   meas_graphics_xtitle(0, "Potential (V)");
@@ -105,4 +105,5 @@ int main(int argc, char **argv) {
     fflush(stdout);
   }
   meas_wavetek80_output_mode(0, MEAS_WAVETEK80_OUTPUT_DISABLED);
+  meas_graphics_close(-1);
 }

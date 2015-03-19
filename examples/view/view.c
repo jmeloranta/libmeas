@@ -53,11 +53,11 @@ int main(int argc, char **argv) {
       i += 3;
     }
   }
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, nx, ny, 0, "view");
+  meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, nx, ny, 0, "view");
   meas_graphics_update_image(0, rgb);
   meas_graphics_update();
   printf("Press reutrn: ");
-  gets(asd);
+  fgets(asd, sizeof(asd), stdin);
   free(rgb);
   fclose(fp);
   return 0;

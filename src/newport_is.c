@@ -173,7 +173,7 @@ EXPORT int meas_newport_is_read(double exp, int ext, int ave, double *dst) {
   int i, j;
 
   meas_misc_root_on();
-  if(!udev) meas_newport_is_init();
+  if(!udev) return -1;
 
   /* Prepare scan request */
   memset(buf, 0x61, sizeof(buf));

@@ -29,14 +29,14 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  meas_sr245_init(0, 0, SR245, NULL);
+  meas_sr245_open(0, 0, SR245, NULL);
   meas_sr245_reset(0);
   meas_sr245_ports(0, 8); /* All declared as inputs */
   meas_sr245_ttl_mode(0, 1, 0); /* port #1 as trigger input */
   meas_sr245_mode(0, 1); /* triggered mode */
 
   if(graphix == 'y')
-    meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "rd");
+    meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "rd");
   i = 0;
   while(1) {
     meas_misc_set_time();
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
     if(i >= MD) break;
   }
   printf("Press any enter to stop:");
-  gets(dummy);  
-  meas_graphics_close();  
+  fgets(dummy, sizeof(dummy), stdin);
+  meas_graphics_close(-1);
 }
 

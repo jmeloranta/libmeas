@@ -47,8 +47,8 @@ int main(int argc, char **argv) {
   qsw *= 1E-6;
 
   /* Set up delay generators */
-  meas_bnc565_init(0, 0, BNC565);   /* sure lite on A & B */
-  meas_dg535_init(0, 0, DG535);     /* PI-MAX on A, B, AB */
+  meas_bnc565_open(0, 0, BNC565);   /* sure lite on A & B */
+  meas_dg535_open(0, 0, DG535);     /* PI-MAX on A, B, AB */
   /* 1. Ablation laser (Surelite) */
   meas_bnc565_set(0, MEAS_BNC565_CHA, 0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);        // Ch A
   meas_bnc565_set(0, MEAS_BNC565_CHB, 0, qsw, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);        // Ch B
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     fclose(fp);
   }
   /* Init PI-MAX */
-  meas_pi_max_init(TEMP);
+  meas_pi_max_open(TEMP);
   printf("Intensifier gain (0 - 255): ");
   scanf(" %d", &gain);
   meas_pi_max_gain(gain);   /* 0 - 255 */
@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
   meas_pi_max_speed_index(1);
   meas_pi_max_roi(0, NX-1, 1, 0, NY-1, 1);
 
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE * NX, SCALE * NY, 0, "video");
+  meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, SCALE * NX, SCALE * NY, 0, "video");
   printf("Running... press ctrl-c to stop.\n");
   meas_bnc565_run(0, MEAS_BNC565_RUN);
   meas_dg535_run(0, MEAS_DG535_RUN);

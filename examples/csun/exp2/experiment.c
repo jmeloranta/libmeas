@@ -62,14 +62,13 @@ static void err(char *txt) {
 
 void exp_init() {
 
-  /*  meas_pdr2000_init(0, PDR2000);*/
-  meas_sr245_init(0, 0, SR245, NULL); /* GPIB mode */
-  /*  meas_itc503_init(0, ITC503); */
-  meas_scanmate_pro_init(0, SCANMATE_PRO);
-  meas_dk240_init(0, DK240);
-  meas_bnc565_init(0, 0, BNC565);
+  /*  meas_pdr2000_open(0, PDR2000);*/
+  meas_sr245_open(0, 0, SR245, NULL); /* GPIB mode */
+  /*  meas_itc503_open(0, ITC503); */
+  meas_scanmate_pro_open(0, SCANMATE_PRO);
+  meas_dk240_open(0, DK240);
+  meas_bnc565_open(0, 0, BNC565);
 }
-
 
 /* 
  * Graphics modes:
@@ -92,11 +91,11 @@ static void graph_callback(struct experiment *p) {
     case 0:
       break;
     case 1:
-      meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, MAX_SAMPLES, "exp0");
-      meas_graphics_init(1, MEAS_GRAPHICS_XY, 512, 512, MAX_SAMPLES, "exp1");
+      meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, MAX_SAMPLES, "exp0");
+      meas_graphics_open(1, MEAS_GRAPHICS_XY, 512, 512, MAX_SAMPLES, "exp1");
       break;
     case 2:
-      meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, 512, 512, 512 * 512, "exp");
+      meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, 512, 512, 512 * 512, "exp");
       break;
     }
     if(!(tmp = (double *) malloc(sizeof(double) * MAX_SAMPLES))) {
@@ -240,14 +239,14 @@ struct experiment *exp_read(char *file) {
   p.dye_points = 1 + (int) (0.5 + (p.dye_end - p.dye_begin) / p.dye_step);
   switch(p.signal_source) {
   case -1: /* Newport Matrix */
-    meas_matrix_init();
-    p.mono_points = meas_matrix_size();
+    meas_matrix_open(0);
+    meas_matrix_size(0, &(p.mono_points), NULL);
     p.mono_begin = meas_matrix_calib(0);
     p.mono_end = meas_matrix_calib(p.mono_points - 1);
-    p.mono_step = (p.mono_end - p.mono_begin) / (double) (meas_matrix_size() - 1);
+    p.mono_step = (p.mono_end - p.mono_begin) / (double) (p.mono_points - 1);
     break;
   case 0: /* Newport IS */
-    meas_newport_is_init();
+    meas_newport_is_open();
     p.mono_points = meas_newport_is_size();
     p.mono_begin = meas_newport_is_calib(0);
     p.mono_end = meas_newport_is_calib(p.mono_points - 1);
@@ -396,13 +395,13 @@ void exp_run(struct experiment *p) {
     }    
   } else if (p->signal_source == -1) { /* Newport Matrix */
     sleep(2); /* To allow laser etc. to start up */
-    meas_matrix_read(p->gate, p->accum, &(p->ydata[0]));
+    meas_matrix_read(0, p->gate, p->accum, &(p->ydata[0]));
     for(p->dye_cur = p->dye_begin, i = 0; p->dye_cur <= p->dye_end; p->dye_cur += p->dye_step, i++) {
-      memset(&(p->ydata[i * meas_matrix_size()]), 0, sizeof(double) * meas_matrix_size());
+      memset(&(p->ydata[i * p->mono_points]), 0, sizeof(double) * p->mono_points);
       meas_scanmate_pro_grating(0, p->dye_order);
       if(p->shg[0]) set_shg(p->shg, p->dye_cur);
       meas_scanmate_pro_setwl(0, p->dye_cur * wl_scale);
-      meas_matrix_read(p->gate, p->accum, &(p->ydata[i * meas_matrix_size()]));
+      meas_matrix_read(0, p->gate, p->accum, &(p->ydata[i * p->mono_points]));
       p->mono_cur = p->mono_end;
       graph_callback(p);
     }    

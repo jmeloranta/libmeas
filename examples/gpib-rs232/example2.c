@@ -41,9 +41,9 @@ int main(int argc, char **argv) {
     }
 
   if(graphix == 'y')
-    meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "eap2");
+    meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "eap2");
   i = 0;
-  meas_pdr2000_init(0, "/dev/ttyS0"); /* com1 */
+  meas_pdr2000_open(0, "/dev/ttyS0"); /* com1 */
   meas_misc_set_reftime();
   while(i < loop_amt) {
     meas_misc_set_time();
@@ -63,8 +63,8 @@ int main(int argc, char **argv) {
   }
   fclose(fp);
   printf("Press any enter to stop:");
-  gets(buf);  
-  meas_graphics_close();
+  fgets(buf, sizeof(buf), stdin);  
+  meas_graphics_close(-1);
   meas_pdr2000_close(0);
 }
 

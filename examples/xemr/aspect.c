@@ -68,7 +68,7 @@
 
 main() {
 
-  meas_sl_init();
+  meas_sl_open();
   meas_sl_wtk(50.0);
   meas_sl_wtk_mod(0);
   meas_sl_pts(15.0);

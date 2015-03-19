@@ -21,9 +21,9 @@ static void err(char *txt) {
 
 void exp_init() {
 
-  meas_hp34401a_init(0, 0, HP34401);
-  meas_bnc565_init(0, 0, BNC565);
-  meas_dk240_init(0, DK240);
+  meas_hp34401a_open(0, 0, HP34401);
+  meas_bnc565_open(0, 0, BNC565);
+  meas_dk240_open(0, DK240);
 }
 
 /* 
@@ -35,7 +35,7 @@ static void graph_callback(struct experiment *p) {
 
   static int cur = 0;
 
-  if(!cur) meas_graphics_init(1, MEAS_GRAPHICS_XY, 512, 512, 1024, "graph"); /* TODO: are these sensible values ? */
+  if(!cur) meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "graph"); /* TODO: are these sensible values ? */
   /* fluorescence as a function of emission wavelength */
   meas_graphics_update2d(0, p->xdata, p->ydata, cur);
   meas_graphics_autoscale(0);

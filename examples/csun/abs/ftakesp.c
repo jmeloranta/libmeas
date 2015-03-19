@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  meas_newport_is_init();
+  meas_newport_is_open();
   meas_newport_is_read(atof(argv[1]), atoi(argv[2]), atoi(argv[3]), y);
 
   /* for now (x = pixel #) */

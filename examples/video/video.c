@@ -42,7 +42,7 @@ main() {
   width = meas_video_get_width(d);
   height = meas_video_get_height(d);
   printf("Frame size %dX%d.\n", width, height);
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, SCALE*width, SCALE*height, 0, "test");
+  meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, SCALE*width, SCALE*height, 0, "test");
   if(!(buffer = (unsigned char *) malloc(frame_size))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
@@ -75,4 +75,5 @@ main() {
   }
   free(buffer);
   meas_video_close(d);
+  meas_graphics_close(-1);
 }

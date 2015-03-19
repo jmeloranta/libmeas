@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, HEIGHT, WIDTH, 0, "video");
+  meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, HEIGHT, WIDTH, 0, "video");
   for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
     sprintf(filename, "%s-%le.img", filebase, delay);

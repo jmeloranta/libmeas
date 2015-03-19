@@ -14,8 +14,8 @@ int main(int argc, char **argv) {
 
   double va, vb;
 
-  meas_hp34401a_init(0, 0, HPA);
-  meas_hp34401a_init(1, 0, HPB);
+  meas_hp34401a_open(0, 0, HPA);
+  meas_hp34401a_open(1, 0, HPB);
   meas_misc_set_reftime();
   while(1) {
     va = meas_hp34401a_read_auto(0);

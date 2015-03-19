@@ -86,21 +86,21 @@ static void err(char *txt) {
 static void turn_off(int x) {
 
   laser_stop();
-  meas_graphics_close();
+  meas_graphics_close(-1);
   exit(0);
 }
 
 void exp_init() {
 
-  meas_scanmate_pro_init(0, SCANMATE_PRO);
-  meas_bnc565_init(0, 0, BNC565);
-  meas_dg535_init(0, 0, DG535);
-  meas_pdr900_init(0, PDR900);
-  meas_itc503_init(0, ITC503);
-  meas_pdr2000_init(0, PDR2000);
+  meas_scanmate_pro_open(0, SCANMATE_PRO);
+  meas_bnc565_open(0, 0, BNC565);
+  meas_dg535_open(0, 0, DG535);
+  meas_pdr900_open(0, PDR900);
+  meas_itc503_open(0, ITC503);
+  meas_pdr2000_open(0, PDR2000);
 
   if(diode_bkg) {
-    meas_hp34401a_init(0, 0, HP34401A);
+    meas_hp34401a_open(0, 0, HP34401A);
     meas_hp34401a_set_autoscale(0, MEAS_HP34401A_AUTOSCALE_VOLT_DC, 1);
     meas_hp34401a_set_resolution(0, MEAS_HP34401A_MODE_VOLT_DC, MEAS_HP34401A_SCALE_VOLT_10V, MEAS_HP34401A_RESOL_MAX);
     meas_hp34401a_set_integration_time(0, MEAS_HP34401A_MODE_VOLT_DC, MEAS_HP34401A_INTEGRATION_TIME_100NLPC);
@@ -109,7 +109,7 @@ void exp_init() {
     meas_hp34401a_set_trigger_source(0, MEAS_HP34401A_TRIGGER_IMMEDIATE);
   }
   if(gate >= 0.0) {
-    meas_pi_max_init(ccd_temp);
+    meas_pi_max_open(ccd_temp);
     meas_pi_max_gain(gain);
     // meas_pi_max_gain_index(3);  /* 1, 2, 3 */
     meas_pi_max_speed_index(1); /* 0 = 1 MHz, 1 = 5 MHz */
@@ -141,11 +141,11 @@ static void graph_callback(struct experiment *p) {
 
   if(!tmp) {
     if(p->display == 0) {
-      meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 0, "Fluorescence");
-      meas_graphics_init(1, MEAS_GRAPHICS_XY, 512, 512, 0, "Excitation");
+      meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, 0, "Fluorescence");
+      meas_graphics_open(1, MEAS_GRAPHICS_XY, 512, 512, 0, "Excitation");
     } else
       if(p->display == 1) 
-	meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, NX, NY, 0, "CCD image"); /* one image */
+	meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, NX, NY, 0, "CCD image"); /* one image */
     if(!(tmp = (double *) malloc(sizeof(double) * p->dye_points))) {
       fprintf(stderr, "Out of memory.\n");
       exit(1);

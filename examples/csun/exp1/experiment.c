@@ -57,9 +57,9 @@ static void err(char *txt) {
 
 void exp_init() {
 
-  meas_hp34401a_init(0, 0, HP34401);
-  meas_scanmate_pro_init(0, SCANMATE_PRO);
-  meas_bnc565_init(0, 0, BNC565);
+  meas_hp34401a_open(0, 0, HP34401);
+  meas_scanmate_pro_open(0, SCANMATE_PRO);
+  meas_bnc565_open(0, 0, BNC565);
 }
 
 /* 
@@ -72,7 +72,7 @@ static void graph_callback(struct experiment *p) {
   static int cur = 0;
 
   // TODO: Check that this is reasonable
-  if(!cur) meas_graphics_init(1, MEAS_GRAPHICS_XY, 512, 512, 1024, "spectrum");
+  if(!cur) meas_graphics_open(1, MEAS_GRAPHICS_XY, 512, 512, 1024, "spectrum");
   /* LIF as a function of extitation wavelength */
   meas_graphics_update_xy(0, p->xdata, p->ydata, cur);
   meas_graphics_autoscale(0);

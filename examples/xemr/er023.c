@@ -3,7 +3,7 @@
 
 main() {
 
-  meas_er023_init(0, 0, 1);
+  meas_er023_open(0, 0, 1);
   meas_er023_calibrate(0, 100.0, 10.0, 180.0);
   meas_er023_resonator(0, 2);
   meas_er023_modulation_amp(0, 10.0);

@@ -100,14 +100,14 @@ int main(int argc, char **argv) {
   }
   if(mode == 1 && !access(output, F_OK)) {
     fprintf(stderr, "Warning: file exists. Do you wish to overwrite (y/n)? ");
-    gets(dummy);
+    fgets(dummy, sizeof(dummy), stdin);
     if(dummy[0] == 'n') {
       fprintf(stderr, "Not overwritten.\n");
       exit(1);
     }
   }
   
-  meas_matrix_init(0);
+  meas_matrix_open(0);
   meas_matrix_size(0, &size, NULL);
 
   if(mode == 1) {
@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
     fclose(fp);
   } /* end if mode */
 
-  if(graph) meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 2048, "abs2");
+  if(graph) meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, 2048, "abs2");
 
   while (1) {
     memset(spec, 0, sizeof(double) * size);
@@ -180,8 +180,8 @@ int main(int argc, char **argv) {
   }
   if(graph) {
     printf("Press any enter to stop:");
-    gets(dummy);
-    //meas_graphics_close();
+    fgets(dummy, sizeof(dummy), stdin);
+    meas_graphics_close(-1);
   }
   meas_matrix_close(0);
 }

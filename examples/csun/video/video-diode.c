@@ -77,8 +77,8 @@ int main(int argc, char **argv) {
 
   printf("Running... press ctrl-c to stop.\n");
 
-  meas_bnc565_init(0, 0, BNC565);
-  meas_dg535_init(0, 0, DG535);
+  meas_bnc565_open(0, 0, BNC565);
+  meas_dg535_open(0, 0, DG535);
 
   meas_bnc565_run(0, MEAS_BNC565_STOP);
   meas_dg535_run(0, MEAS_DG535_STOP);
@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
   frame_size = meas_video_set_format(cd, FORMAT, RESOL);
   width = meas_video_get_width(cd);
   height = meas_video_get_height(cd);
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, width, height, 0, "video");
+  meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, width, height, 0, "video");
   
   if(!(rgb = (unsigned char *) malloc(width * height * 3))) {
     fprintf(stderr, "Out of memory.\n");

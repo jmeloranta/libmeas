@@ -15,7 +15,6 @@ void quit() {
   exit(1);
 }
 
-
 int main(int argc, char **argv) {
 
   double *x, *y;
@@ -29,7 +28,7 @@ int main(int argc, char **argv) {
   if(atoi(argv[3]) != 0) cont = 1;
   else cont = 0;
 
-  meas_matrix_init(0);
+  meas_matrix_open(0);
   meas_matrix_size(0, &size, NULL);
   if(!(x = (double *) malloc(sizeof(double) * size))) {
     fprintf(stderr, "Memory allocation failure.");
@@ -41,7 +40,7 @@ int main(int argc, char **argv) {
   }
   signal(SIGINT, quit);
 
-  meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "takesp2");
+  meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, 1024, "takesp2");
 
   while (1) {
     bzero(y, sizeof(double) * size);
@@ -58,8 +57,8 @@ int main(int argc, char **argv) {
 
   meas_matrix_close(0);
   fprintf(stderr,"Press any enter to stop:");
-  gets(dummy);
-  meas_graphics_close();
+  fgets(dummy, sizeof(dummy), stdin);
+  meas_graphics_close(-1);
   for (i = 0; i < size; i++) printf("%le %le\n", x[i], y[i]);  
   return 0;
 }

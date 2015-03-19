@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <meas/meas.h>
 
-#define GPIB /* (problems with GPIB slowing down with long measurements) */
+#define GPIB_INTERFACE /* (problems with GPIB slowing down with long measurements) */
 
 #define MAXP 65535
 
@@ -44,10 +44,10 @@ int main(int argc, char **argv) {
     }
 
   if(graphix == 'y')
-    meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "eap");
+    meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "eap");
   i = 0;
   meas_misc_set_reftime();
-#ifdef GPIB
+#ifdef GPIB_INTERFACE
   fd = meas_gpib_open(BOARD, GPIBID);
 #else
   fd = meas_rs232_open(DEVICE, 1);
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 #endif
   fclose(fp);
   printf("Press any enter to stop:");
-  gets(buf);  
-  meas_graphics_close();
+  fgets(buf, sizeof(buf), stdin);  
+  meas_graphics_close(-1);
 }
 

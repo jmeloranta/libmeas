@@ -41,8 +41,8 @@ int main(int argc, char **argv) {
     mode = 0;  /* could be ext trigger too (fixme) */
   }
 
-  meas_newport_is_init();
-  meas_graphics_init(0, MEAS_GRAPHICS_XY, 512, 512, xsize, "takesp");
+  meas_newport_is_open();
+  meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, xsize, "takesp");
 
   while(con) {
     meas_newport_is_read(atof(argv[1]), mode, atoi(argv[3]), y);
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     meas_graphics_update();
   }
   fprintf(stderr,"Press any enter to stop:");
-  gets(dummy);
-  meas_graphics_close();  
+  fgets(dummy, sizeof(dummy), stdin);
+  meas_graphics_close(-1);
   return 0;
 }
