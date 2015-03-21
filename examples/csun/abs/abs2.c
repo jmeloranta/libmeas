@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
     }
     if(mode == 0) fprintf(fp, "%le %d\n", exp_time, averages);
     for (i = 0; i < size; i++) {
-      x[i] = meas_matrix_calib(i);
+      x[i] = meas_matrix_calib(i, MEAS_MATRIX_A, MEAS_MATRIX_B);
       fprintf(fp, "%le %le\n", x[i], spec[i]);
     }
     fclose(fp);

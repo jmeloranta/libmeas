@@ -9,7 +9,7 @@
 
 void quit() {
 
-  meas_newport_is_close();
+  meas_newport_is_close(-1);
   printf("Close device\n");
   exit(1);
 }
@@ -36,11 +36,11 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  meas_newport_is_open();
-  meas_newport_is_read(atof(argv[1]), atoi(argv[2]), atoi(argv[3]), y);
+  meas_newport_is_open(0);
+  meas_newport_is_read(0, atof(argv[1]), atoi(argv[2]), atoi(argv[3]), y);
 
   /* for now (x = pixel #) */
-  for (i = 0; i < size; i++) x[i] = meas_newport_is_calib(i);
+  for (i = 0; i < size; i++) x[i] = meas_newport_is_calib(i, MEAS_NEWPORT_IS_A, MEAS_NEWPORT_IS_B);
 
   fp = fopen("out.dat", "w");
   for (i = 0; i < size; i++)

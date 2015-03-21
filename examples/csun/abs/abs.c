@@ -1,5 +1,5 @@
 /*
- * Measure absorption spectrum with NewportIS.
+ * Measure absorption spectrum with Newport IS.
  *
  * Usage:
  *
@@ -143,11 +143,11 @@ int main(int argc, char **argv) {
   } /* end if mode */
     
   if(graph) meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, 65535, "abs");
-  meas_newport_is_open();
+  meas_newport_is_open(0);
   
   while (1) {
     memset(spec, 0, sizeof(double) * 1024);
-    meas_newport_is_read(exp_time, 0, averages, spec);
+    meas_newport_is_read(0, exp_time, 0, averages, spec);
 
     if(mode == 1) { /* spectrum */
 
@@ -160,12 +160,12 @@ int main(int argc, char **argv) {
 
     if(!(fp = fopen(output, "w"))) {
       fprintf(stderr, "Can't open file for writing.\n");
-      meas_newport_is_close();  
+      meas_newport_is_close(0);
       exit(1);
     }
     if(mode == 0) fprintf(fp, "%le %d\n", exp_time, averages);
     for (i = 0; i < 1024; i++) {
-      x[i] = meas_newport_is_calib(i);
+      x[i] = meas_newport_is_calib(i, MEAS_NEWPORT_IS_A, MEAS_NEWPORT_IS_B);
       fprintf(fp, "%le %le\n", x[i], spec[i]);
     }
     fclose(fp);
@@ -181,5 +181,5 @@ int main(int argc, char **argv) {
     fgets(dummy, sizeof(dummy), stdin);
     meas_graphics_close(-1);
   }
-  meas_newport_is_close(-1);
+  meas_newport_is_close(0);
 }

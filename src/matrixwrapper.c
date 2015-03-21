@@ -192,14 +192,14 @@ EXPORT int meas_matrix_status(int sd) {
  * Wavelength calibration.
  * 
  * pixel = Pixel number on the CCD.
+ * a     = Wavelength calibration parameter a (wl = b * (pixel #) + a).
+ * b     = Wavelength calibration parameter b
  *
  * Returns the wavelength corresponding to the given pixel.
  *
- * TODO: The chould should allow changing the calibration parameters.
- *
  */
 
-EXPORT double meas_matrix_calib(int pixel) {
+EXPORT double meas_matrix_calib(int pixel, double a, double b) {
 
-  return (MEAS_MATRIX_A + MEAS_MATRIX_B * ((double) pixel));
+  return (a + b * ((double) pixel));
 }

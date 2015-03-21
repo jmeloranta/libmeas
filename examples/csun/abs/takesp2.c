@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     meas_matrix_read(0, atof(argv[1]), atoi(argv[2]), y);
     
     /* for now (x = pixel #) */
-    for (i = 0; i < size; i++) x[i] = meas_matrix_calib(i);
+    for (i = 0; i < size; i++) x[i] = meas_matrix_calib(i, MEAS_MATRIX_A, MEAS_MATRIX_B);
     
     meas_graphics_update_xy(0, x, y, size);
     meas_graphics_autoscale(0);

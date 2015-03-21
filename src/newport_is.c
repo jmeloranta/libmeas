@@ -161,7 +161,7 @@ EXPORT int meas_newport_is_open(int cd) {
     return -1;
   }
   if(usb_set_altinterface(udevs[cd], 0) < 0) {
-    fprint(stderr, "libmeas: meas_newport_is_init - Can't set alternate interface.\n"); /* 0th alt */
+    fprintf(stderr, "libmeas: meas_newport_is_init - Can't set alternate interface.\n"); /* 0th alt */
     return -1;
   }
   meas_misc_root_off();
@@ -277,14 +277,14 @@ EXPORT int meas_newport_is_close(int cd) {
  * Wavelength calibration.
  *
  * pixel = Pixel number input.
+ * a     = Wavelength calibration parameter a (wl = b*(pixel #) + a).
+ * b     = Wavelength calibration parameter b
  *
  * Returns the corresponding wavelength in nm.
  *
- * TODO: The calibration constants are hardwired.
- *
  */
 
-EXPORT double meas_newport_is_calib(int pixel) {
+EXPORT double meas_newport_is_calib(int pixel, double a, double b) {
 
-  return (MEAS_NEWPORT_IS_A + MEAS_NEWPORT_IS_B * ((double) pixel));
+  return (a + b * ((double) pixel));
 }
