@@ -13,4 +13,6 @@
 /* In microsec */
 #define MEAS_GPIB_DELAY 10
 
+/* Maximum number of boards */
+#define MEAS_GPIB_MAXBOARDS 5
 #endif

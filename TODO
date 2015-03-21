@@ -1,6 +1,4 @@
 - complete SR810 lock in amplifier (needed for endor)
-- instead of hardcoding termination for gpib devices, add a function to 
-  deal with this.
 - we should have both rs232 and gpib interfaces available for devices that support this,
   so that they could be used in systems without GPIB and vice versa. speficy in open statement and store info
   in the device structure.

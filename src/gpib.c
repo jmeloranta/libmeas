@@ -17,7 +17,9 @@
 #include "misc.h"
 
 /* Up to 5 boards supported */
-static int board_fd[5] = {-1, -1, -1, -1, -1};
+static int board_fd[MEAS_GPIB_MAXBOARDS];
+static int been_here = 0;
+static char gpib_eos = MEAS_GPIB_EOS;
 
 /*
  * Open GPIB device.
@@ -25,16 +27,24 @@ static int board_fd[5] = {-1, -1, -1, -1, -1};
  * board = GPIB board # (0, 1, ...).
  * id    = GPIB ID.
  *
+ * Returns file descriptor to the device.
+ *
  */
 
 EXPORT int meas_gpib_open(int board, int id) {
 
-  int fd;
+  int fd, i;
   char buf[128];
+
+  if(!been_here) {
+    for(i = 0; i < MEAS_GPIB_MAXBOARDS; i++)
+      board_fd[i] = -1;
+    been_here = 1;
+  }
 
   if(board >= 5) meas_err("meas_gpib_open: Illegal board number.\n");
   meas_misc_root_on();
-  if((fd = ibdev(board, id, 0, MEAS_GPIB_TIMEOUT, MEAS_GPIB_SENDEOI, MEAS_GPIB_EOS)) < 0 ) {
+  if((fd = ibdev(board, id, 0, MEAS_GPIB_TIMEOUT, MEAS_GPIB_SENDEOI, gpib_eos)) < 0 ) {
     meas_misc_root_off();
     meas_err("meas_gpib_open: Can't open GPIB device.");
   }
@@ -88,6 +98,19 @@ EXPORT int meas_gpib_close(int board, int fd) {
 EXPORT int meas_gpib_set(int fd, int mode) {
 
   (void) ibeos(fd, mode);
+  return 0;
+}
+
+/*
+ * Set end of string character (affects all devices and only for operations after this call).
+ *
+ * eos = End of string character.
+ *
+ */
+
+EXPORT int meas_gpib_set_eos(char eos) {
+
+  gpib_eos = eos;
   return 0;
 }
 
@@ -206,7 +229,7 @@ EXPORT int meas_gpib_write(int fd, char *buf, int crlf) {
   } else {
     strcpy(tmp, buf);
     len = strlen(buf);
-    tmp[len] = MEAS_GPIB_EOS;
+    tmp[len] = gpib_eos;
     
     usleep(MEAS_GPIB_DELAY);
     if(ibwrt(fd, tmp, len+1) < 0)
@@ -319,7 +342,7 @@ EXPORT int meas_gpib_async_write(int fd, char *buf, int crlf) {
   } else {
     strcpy(tmp, buf);
     len = strlen(buf);
-    tmp[len] = MEAS_GPIB_EOS;    
+    tmp[len] = gpib_eos;    
     ibwrta(fd, tmp, len+1);
   }
   return 0;
