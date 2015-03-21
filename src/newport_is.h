@@ -5,3 +5,6 @@
 /* Electronics delay in Newport IS (ms) */
 #define MEAS_NEWPORT_IS_DELAY 18
 
+/* Maximum number of devices */
+#define MEAS_NEWPORT_IS_MAXDEV 5
+

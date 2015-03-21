@@ -21,14 +21,18 @@
 #define EP1 1 /* out to instrument */
 #define EP2 2 /* data from instrument */
 
-static usb_dev_handle *udev = NULL;
+usb_dev_handle *udevs[MEAS_NEWPORT_IS_MAXDEV];
+
+static int been_here = 0;
+
+/* This instrument is really picky and gets stuck very easily */
 
 static void err_handler(int x) {
 
-  int meas_newport_is_close();
+  int meas_newport_is_close(int);
 
   meas_misc_root_on();
-  meas_newport_is_close();
+  meas_newport_is_close(-1);
   fprintf(stderr, "newport_is: Program interrupted.\n");
   exit(1);
 }
@@ -54,7 +58,7 @@ static void enable_signals() {
   signal(SIGQUIT, &err_handler);
 }
 
-/* Byte order is different from intel */
+/* Byte order used is different from intel (TODO: Add endian support) */
 
 static void swap_bytes(unsigned short *v) {
 
@@ -85,9 +89,11 @@ static unsigned char highbyte(unsigned short v) {
 /*
  * Return the number of points in spectrum.
  *
+ * cd = Device number.
+ *
  */
 
-int meas_newport_is_size() {
+int meas_newport_is_size(int cd) {
 
   return 1024;
 }
@@ -97,15 +103,22 @@ int meas_newport_is_size() {
  * 
  */
 
-EXPORT int meas_newport_is_open() {
+EXPORT int meas_newport_is_open(int cd) {
 
   struct usb_bus *busses, *bus;
   struct usb_device *dev;
   char buf[4096];
-
+  int i;
+  
+  if(cd < 0 || cd >= MEAS_NEWPORT_IS_MAXDEV) return -1;
+  if(!been_here) {
+    for(i = 0; i < MEAS_NEWPORT_IS_MAXDEV; i++)
+      udevs[i] = NULL;
+    been_here = 1;
+  }
+  
   /* libusb requires root (we need setuid root executable) */
   meas_misc_root_on();
-  if(udev) meas_err("meas_newport_is_init: device already open.");
 
   usb_init();
   usb_find_busses();
@@ -113,32 +126,44 @@ EXPORT int meas_newport_is_open() {
     
   busses = usb_get_busses();
     
-  for (bus = busses; bus; bus = bus->next) {
+  for (bus = busses, i = 0; bus; bus = bus->next) {
     
     for (dev = bus->devices; dev; dev = dev->next)
-      if(dev->descriptor.idVendor == 0x03eb && dev->descriptor.idProduct == 0x6124) break;
-
-    if(dev) break;
+      if(dev->descriptor.idVendor == 0x03eb && dev->descriptor.idProduct == 0x6124) {
+	if(i == cd) break;
+	i++;
+      }
+    if(dev && i == cd) break;
   }
-  if(!dev) meas_err("meas_newport_is_init: Instrument not found.");
+  if(!bus) {
+    fprintf(stderr, "libmeas: meas_newport_is_init - Instrument not found.\n");
+    return -1;
+  }
 
-  if(!(udev = usb_open(dev))) 
-    meas_err("meas_newport_is_init: Can't open instrument.");
-
-  fprintf(stderr, "meas_newport_is_init: Instrument found.\n");
+  if(!(udevs[cd] = usb_open(dev))) {
+    fprintf(stderr, "libmeas: meas_newport_is_init - Can't open instrument.\n");
+    return -1;
+  }
+    
+  fprintf(stderr, "libmeas: meas_newport_is_init - Instrument found.\n");
 
   /* This instrument is basically an implementation of USB/serial interface. */
   /* One could use usbserial vendor=0x03eb product=0x6124  to talk to it. */
   /* Here I decided to use libusb instead. */
   /* EP1 = Bulk out (to instrument), EP2 = Bulk input (from instrument). */
 
-  if(usb_set_configuration(udev, 1) < 0)
-    meas_err("meas_newport_is_init: Can't set active configuration."); /* 1st config. */
-  if(usb_claim_interface(udev, 1) < 0)
-    meas_err("meas_newport_is_init: Can't claim interface."); /* 1st interface */
-  if(usb_set_altinterface(udev, 0) < 0)
-    meas_err("meas_newport_is_init: Can't set alternate interface."); /* 0th alt */
-
+  if(usb_set_configuration(udevs[cd], 1) < 0) {
+    fprintf(stderr, "libmeas; meas_newport_is_init - Can't set active configuration.\n"); /* 1st config. */
+    return -1;
+  }
+  if(usb_claim_interface(udevs[cd], 1) < 0) {
+    fprintf(stderr, "libmeas: meas_newport_is_init - Can't claim interface.\n"); /* 1st interface */
+    return -1;
+  }
+  if(usb_set_altinterface(udevs[cd], 0) < 0) {
+    fprint(stderr, "libmeas: meas_newport_is_init - Can't set alternate interface.\n"); /* 0th alt */
+    return -1;
+  }
   meas_misc_root_off();
   return 0;
 }
@@ -146,6 +171,7 @@ EXPORT int meas_newport_is_open() {
 /*
  * Take a scan.
  * 
+ * cd  = Device #
  * exp = Exposure time in s. Note that valid times for this instrument are in ms range!
  * ext = External trigger (0 = internal, > 0 external with the value giving
  *       an estimate for trigger delay time in ms - minimum 1 ms). For
@@ -165,7 +191,7 @@ EXPORT int meas_newport_is_open() {
  *
  */
 
-EXPORT int meas_newport_is_read(double exp, int ext, int ave, double *dst) {
+EXPORT int meas_newport_is_read(int cd, double exp, int ext, int ave, double *dst) {
 
   unsigned short exposure;
   unsigned short buf2[1024];
@@ -173,7 +199,7 @@ EXPORT int meas_newport_is_read(double exp, int ext, int ave, double *dst) {
   int i, j;
 
   meas_misc_root_on();
-  if(!udev) return -1;
+  if(cd < 0 || cd >= MEAS_NEWPORT_IS_MAXDEV || !udevs[cd]) return -1;
 
   /* Prepare scan request */
   memset(buf, 0x61, sizeof(buf));
@@ -191,8 +217,10 @@ EXPORT int meas_newport_is_read(double exp, int ext, int ave, double *dst) {
     fprintf(stderr, "meas_newport_is_read: Measurement cycle: %d\n", i+1);
     disable_signals();
     for (j = 0; ; j++) {
-      if(usb_bulk_write(udev, EP1, (char *) buf, sizeof(buf), 0) < 0)
-	meas_err("meas_newport_is_read: USB write failed.");
+      if(usb_bulk_write(udevs[cd], EP1, (char *) buf, sizeof(buf), 0) < 0) {
+	fprintf(stderr, "libmeas: meas_newport_is_read - USB write failed.\n");
+	return -1;
+      }
       secs = 0;
       nsecs = MEAS_NEWPORT_IS_DELAY * 1000000;
       nsecs += exp * 1000000;
@@ -206,11 +234,13 @@ EXPORT int meas_newport_is_read(double exp, int ext, int ave, double *dst) {
 	nsecs = nsecs % 999999999;
       }
       meas_misc_nsleep(secs, nsecs);
-      if(usb_bulk_read(udev, EP2, (char *) buf2, sizeof(buf2), 0) < 0)
-	meas_err("meas_newport_is_read: USB read failed.");
+      if(usb_bulk_read(udevs[cd], EP2, (char *) buf2, sizeof(buf2), 0) < 0) {
+	fprintf(stderr, "libmeas: meas_newport_is_read - USB read failed.\n");
+	return -1;
+      }
       /* early read? */
       if(highbyte(buf2[0]) != 0xF5 || lowbyte(buf2[0]) != 0xFA) break;
-      fprintf(stderr, "meas_newport_is_read: Early read - increase MEAS_NEWPORT_IS_DELAY!\n");
+      fprintf(stderr, "libmeas: meas_newport_is_read - Early read, increase MEAS_NEWPORT_IS_DELAY!\n");
     }
     enable_signals();
     for (j = 0; j < 1024; j++) swap_bytes(&buf2[j]);
@@ -226,12 +256,19 @@ EXPORT int meas_newport_is_read(double exp, int ext, int ave, double *dst) {
 /*
  * Close the spectrometer.
  *
+ * cd = Device # (-1 = all devices).
+ *
  */
 
-EXPORT int meas_newport_is_close() {
+EXPORT int meas_newport_is_close(int cd) {
+
+  int i;
 
   meas_misc_root_on();
-  if(udev) usb_close(udev);
+  if(cd == -1) {
+    for (i = 0; i < MEAS_NEWPORT_IS_MAXDEV; i++)
+      if(udevs[i]) usb_close(udevs[i]);
+  } else if(udevs[cd]) usb_close(udevs[cd]);
   meas_misc_root_off();
   return 0;
 }
