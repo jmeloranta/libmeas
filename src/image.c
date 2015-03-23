@@ -238,7 +238,9 @@ EXPORT int meas_image_pgm_to_y16(FILE *fp, unsigned char *y16, unsigned int *wid
 
   int i;
   
-  if(fscanf(fp, "P5[ \r\n\t]%u[ \r\n\t]%u[ \r\n\t]65535[ \r\n\t]", width, height) != 2) return -1;
+  /* TODO: space should be: space, return, newline, tab etc. */
+  if(fscanf(fp, "P5 %u %u 65535", width, height) != 2) return -1;
+  (void) fgetc(fp); /* read the space - note: fscanf can match actual data for white spaces! */
   /* PGM is big endian format */
   for (i = 0; i < 2 * *width * *height; i += 2) {
     if(fread((void *) (y16+i+1), 1, 1, fp) != 1) return -1;
