@@ -22,7 +22,7 @@
 #define DG535  16
 #define BNC565 15
 
-#define VEHO 1 /* For veho USB camera */
+/* #define VEHO 1 /* For veho USB camera */
 
 #ifdef VEHO
 #define FORMAT 0
@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
       fprintf(stderr, "Can't open file for writing.\n");
       exit(1);
     }
-    fprintf(fp, "%.15le %.15le %lf %.15le %d %.15le\n", t0, tstep, diode_drive, diode_length, diode_npulses, diode_delay);
+    fprintf(fp, "%.15le %.15le %lf %.15le %d %.15le %d\n", t0, tstep, diode_drive, diode_length, diode_npulses, diode_delay, gain);
     fclose(fp);
   }
   printf("Hit ctrl-C to exit...\n");
@@ -150,6 +150,8 @@ int main(int argc, char **argv) {
   atexit(&exit_handler);
 
   meas_video_start(cd);
+  meas_video_read(cd, buffer, 1);   /* we seem to be getting couple of blank frames in the very beginning ??? (TODO) */
+  meas_video_read(cd, buffer, 1);
   for(cur_time = t0; ; cur_time += tstep) {
     printf("Diode delay = %le s.\n", cur_time);
     meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time - CAMERA_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
@@ -163,9 +165,9 @@ int main(int argc, char **argv) {
     meas_graphics_update();
     if(filebase[0] != '0') {
       if(tstep != 0.0) 
-	sprintf(filename, "%s-%le.pgm", filebase, diode_delay);
+	sprintf(filename, "%s-%le.pgm", filebase, cur_time);
       else
-	sprintf(filename, "%s-%le-%d.pgm", filebase, diode_delay, nimg);
+	sprintf(filename, "%s-%le-%d.pgm", filebase, cur_time, nimg);
       if(!(fp = fopen(filename, "w"))) {
 	fprintf(stderr, "Error writing file.\n");
 	exit(1);

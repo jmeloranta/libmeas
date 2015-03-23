@@ -241,8 +241,8 @@ EXPORT int meas_image_pgm_to_y16(FILE *fp, unsigned char *y16, unsigned int *wid
   if(fscanf(fp, "P5[ \r\n\t]%u[ \r\n\t]%u[ \r\n\t]65535[ \r\n\t]", width, height) != 2) return -1;
   /* PGM is big endian format */
   for (i = 0; i < 2 * *width * *height; i += 2) {
-    fread((void *) (y16+1), 1, 1, fp);
-    fread((void *) y16, 1, 1, fp);
+    if(fread((void *) (y16+i+1), 1, 1, fp) != 1) return -1;
+    if(fread((void *) (y16+i), 1, 1, fp) != 1) return -1;
   }
   return 0;
 }
@@ -313,8 +313,8 @@ EXPORT int meas_image_y16_to_pgm(FILE *fp, unsigned char *yuv16, unsigned int wi
   if(fprintf(fp, "65535 ") < 0) return -1;
 
   for (i = 0; i < 2 * width * height; i += 2) {
-    if(fwrite((void *) (yuv16+1), 1, 1, fp) != 1) return -1;  /* Swap byte order */
-    if(fwrite((void *) yuv16, 1, 1, fp) != -1) return -1;
+    if(fwrite((void *) (yuv16+i+1), 1, 1, fp) != 1) return -1;  /* Swap byte order */
+    if(fwrite((void *) (yuv16+i), 1, 1, fp) != 1) return -1;
   }
   return 0;
 }
