@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
       if(tstep != 0.0) 
 	sprintf(filename, "%s-%le.pgm", filebase, cur_time);
       else
-	sprintf(filename, "%s-%le-%d.pgm", filebase, cur_time, nimg);
+	sprintf(filename, "%s-%le-%d.pgm", filebase, cur_time, nimg++);
       if(!(fp = fopen(filename, "w"))) {
 	fprintf(stderr, "Error writing file.\n");
 	exit(1);
