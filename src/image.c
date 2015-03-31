@@ -262,10 +262,9 @@ EXPORT int meas_image_pgm_to_y16(FILE *fp, unsigned char *y16, unsigned int *wid
 
 EXPORT int meas_image_rgb3_to_ppm(FILE *fp, unsigned char *rgb3, unsigned int width, unsigned int height) {
   
-  if(fprintf(fp, "P6 ") < 0) return -1;
-  if(fprintf(fp, "%u ", width) < 0) return -1;
-  if(fprintf(fp, "%u ", height) < 0) return -1;
-  if(fprintf(fp, "255 ") < 0) return -1;
+  if(fprintf(fp, "P6\n") < 0) return -1;
+  if(fprintf(fp, "%u %u\n", width, height) < 0) return -1;
+  if(fprintf(fp, "255\n") < 0) return -1;
   if(fwrite((void *) rgb3, 3 * width * height, 1, fp) != width * height) return -1;
   return 0;
 }
@@ -285,9 +284,8 @@ EXPORT int meas_image_rgb3_to_ppm(FILE *fp, unsigned char *rgb3, unsigned int wi
 EXPORT int meas_image_y800_to_pgm(FILE *fp, unsigned int *yuv800, unsigned int width, unsigned int height) {
 
   if(fprintf(fp, "P5\n") < 0) return -1;
-  if(fprintf(fp, "%u ", width) < 0) return -1;
-  if(fprintf(fp, "%u ", height) < 0) return -1;
-  if(fprintf(fp, "255 ") < 0) return -1;
+  if(fprintf(fp, "%u %u\n", width, height) < 0) return -1;
+  if(fprintf(fp, "255\n") < 0) return -1;
   if(fwrite((void *) yuv800, width * height, 1, fp) != width * height) return -1;
   return 0;
 }
@@ -309,9 +307,8 @@ EXPORT int meas_image_y16_to_pgm(FILE *fp, unsigned char *yuv16, unsigned int wi
   int i;
 
   if(fprintf(fp, "P5\n") < 0) return -1;
-  if(fprintf(fp, "%u ", width) < 0) return -1;
-  if(fprintf(fp, "%u ", height) < 0) return -1;
-  if(fprintf(fp, "65535 ") < 0) return -1;
+  if(fprintf(fp, "%u %u\n", width, height) < 0) return -1;
+  if(fprintf(fp, "65535\n") < 0) return -1;
 
   for (i = 0; i < 2 * width * height; i += 2) {
     if(fwrite((void *) (yuv16+i+1), 1, 1, fp) != 1) return -1;  /* Swap byte order */
