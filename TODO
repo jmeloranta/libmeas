@@ -5,3 +5,5 @@
 - we should have documentation (in LaTeX)
 - we should probably use pkg-config rather than have the makefile options in
   /usr/include/meas/make.conf
+- Since wayland is coming, we need to ditch X11 stuff in src/graphics.c
+  SDL seems like the best option for this as it already supports wayland.
