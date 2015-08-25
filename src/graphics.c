@@ -299,9 +299,9 @@ EXPORT int meas_graphics_update_image(int win, unsigned char *rgb) {
     meas_err("meas_graphics_update3d: Illegal window id.");  
 
   for (i = k = 0; i < 3*wins[win].nx * wins[win].ny; i += 3, k += 4) {
-    wins[win].img_data[k] = rgb[i]; 
+    wins[win].img_data[k] = rgb[i+2];    /* This seems to be BGR rather than RGB ! */
     wins[win].img_data[k+1] = rgb[i+1];
-    wins[win].img_data[k+2] = rgb[i+2];
+    wins[win].img_data[k+2] = rgb[i];
     wins[win].img_data[k+3] = 0;
   }
   return -1;
