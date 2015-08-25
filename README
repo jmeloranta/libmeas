@@ -50,3 +50,10 @@ The code is licensed according to ./COPYING with the exception of the
 files under pi-max and uvc-imagingsource, which were written by others.
 
 jmeloranta@gmail.com
+
+5. Problems
+-----------
+
+On XFCE with Window Compositor enabled, some windows appear as transparent.
+No idea yet why, disable Window Compositor (on Fedora: Settings->Window Manager
+Tweaks and Compositor Tab).
