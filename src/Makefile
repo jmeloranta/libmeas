@@ -1,5 +1,5 @@
 include ../make.conf
-CFLAGS += -DEXPORT="" -I.
+CFLAGS += -std=gnu89 -DEXPORT="" -I.
 
 OBJS = aspect.o bnc565.o bruker-er023.o bruker-er032.o dg535.o dk240.o \
        fl3000.o gpib.o graphics.o hp-34401a.o hp-53131a.o hp-5350b.o \
