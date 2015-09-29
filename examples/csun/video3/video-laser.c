@@ -22,7 +22,7 @@
 
 #define BNC565 15
 
-/* #define VEHO 1 /* For veho USB camera */
+#define VEHO 1 /* For veho USB camera */
 
 #ifdef VEHO
 #define FORMAT 0
@@ -79,16 +79,16 @@ int main(int argc, char **argv) {
   meas_bnc565_trigger(0, MEAS_BNC565_TRIG_INT, reprate, 0);
 
   /* Surelite triggering (channel A) -- visualization (532 nm) */
-  meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
-  meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0);
+  meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_INV);
+  meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
 
   /* Minilite triggering (channel B) -- heating (355 nm) */
-  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
-  meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0);
+  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_T0, 0.0, 10E-6, 7.5, MEAS_BNC565_POL_NORM); /* 7.5V because the additional delay generator sucks some juice too (don't run without the delay generator load!) */
+  meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
   
   /* Camera triggering */
-  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);   /* This has to go first (slow) */
-  meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0);
+  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
+  meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
 
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
 
