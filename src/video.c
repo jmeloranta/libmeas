@@ -907,7 +907,7 @@ EXPORT int meas_video_read(int cd, unsigned char *buffer, int nframes) {
   for(i = 0; i < nframes; i++) {
     FD_ZERO(&fds);
     FD_SET(devices[cd].fd, &fds);
-    tv.tv_sec = 3;
+    tv.tv_sec = 20;    /* TODO: make this user adjustable */
     tv.tv_usec = 0;
     
     if(select(devices[cd].fd + 1, &fds, NULL, NULL, &tv) <= 0) {

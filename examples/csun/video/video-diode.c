@@ -22,7 +22,7 @@
 #define DG535  16
 #define BNC565 15
 
-/* #define VEHO 1 /* For veho USB camera */
+#define VEHO 1 /* For veho USB camera */
 
 #ifdef VEHO
 #define FORMAT 0
@@ -44,7 +44,7 @@ static void exit_handler(void) {
 
 int main(int argc, char **argv) {
 
-  double tstep, cur_time, t0, diode_drive, diode_length, diode_delay;
+  double tstep, cur_time, t0, diode_drive, diode_length, diode_delay, reprate;
   char filebase[512], filename[512];
   int cd, diode_npulses, nimg = 0, width, height, one = 1, zero = 0, gain, exposure;
   size_t frame_size;
@@ -74,6 +74,8 @@ int main(int argc, char **argv) {
   printf("Camera gain (0, 3039): ");
 #endif
   scanf(" %d", &gain);
+  printf("Enter repetition rate (10 Hz): ");
+  scanf(" %le", &reprate);
 
   printf("Running... press ctrl-c to stop.\n");
 
@@ -84,7 +86,7 @@ int main(int argc, char **argv) {
   meas_dg535_run(0, MEAS_DG535_STOP);
 
   /* DG535 is the master clock at 10 Hz */
-  meas_dg535_trigger(0, MEAS_DG535_TRIG_INT, 10.0, 0, MEAS_DG535_IMP_50);
+  meas_dg535_trigger(0, MEAS_DG535_TRIG_INT, reprate, 0, MEAS_DG535_IMP_50);
 
   /* Minilite triggering */
   meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, 0.0, 4.0, MEAS_DG535_POL_INV, MEAS_DG535_IMP_50);
@@ -110,7 +112,7 @@ int main(int argc, char **argv) {
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
   meas_dg535_run(0, MEAS_DG535_RUN); /* start unit */
 
-  cd = meas_video_open("/dev/video0", 2);
+  cd = meas_video_open("/dev/video1", 2);
   frame_size = meas_video_set_format(cd, FORMAT, RESOL);
   width = meas_video_get_width(cd);
   height = meas_video_get_height(cd);

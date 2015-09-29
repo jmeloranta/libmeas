@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 
   double tstep, cur_time, t0, reprate;
   char filebase[512], filename[512];
-  int cd, diode_npulses, nimg = 0, width, height, one = 1, zero = 0, gain, exposure;
+  int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure;
   size_t frame_size;
   FILE *fp;
 
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
   
   /* Camera triggering */
   meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);   /* This has to go first (slow) */
-  meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_BURST, 1, diode_npulses, diode_delay);
+  meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0);
 
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
 
