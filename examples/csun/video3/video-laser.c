@@ -1,8 +1,9 @@
 /* 
  * BNC565 (master clock):
  * A -> Surelite flash lamp (visualization pulse; intl. delay for Q-switch; +- 10ns jitter)
- * B -> Minilite  (heating pulse)
- * C -> TTL trigger for DMK 23U445
+ * B -> Surelite q-switch
+ * C -> Minilite  (heating pulse)
+ * D -> TTL trigger for DMK 23U445
  *
  * Note: - Minilite q-switch is set by an external delay generator
  *         Not controlled by computer. The internal q-swtich timer sucks!
@@ -16,8 +17,9 @@
 #include <signal.h>
 #include <meas/meas.h>
 
-#define MINILITE_FIRE_DELAY 179.8E-6   /* 189.9E-6 */
-#define SURELITE_FIRE_DELAY 180.0E-6
+#define MINILITE_FIRE_DELAY 179.8E-6   /* Includes Q-switch */
+#define SURELITE_FIRE_DELAY 0.380E-6   /* Excluding Q-switch */
+#define SURELITE_QSWITCH  320E-6
 #define CAMERA_DELAY 10.0E-6    /* TODO: Check this (was 4E-6) */
 
 #define BNC565 15
@@ -37,12 +39,11 @@ unsigned char *rgb, *buffer;
 static void exit_handler(void) {
 
   meas_bnc565_run(0, MEAS_BNC565_STOP);
-  meas_dg535_run(0, MEAS_DG535_STOP);
 }
 
 int main(int argc, char **argv) {
 
-  double tstep, cur_time, t0, reprate;
+  double tstep, cur_time, t0, reprate, tot_minilite, tot_surelite, diff;
   char filebase[512], filename[512];
   int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure;
   size_t frame_size;
@@ -78,17 +79,19 @@ int main(int argc, char **argv) {
   /* BNC565 is the master clock at 10 Hz */
   meas_bnc565_trigger(0, MEAS_BNC565_TRIG_INT, reprate, 0);
 
-  /* Surelite triggering (channel A) -- visualization (532 nm) */
+  /* Surelite triggering (channel A & B) -- visualization (532 nm) */
   meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_INV);
   meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
-
-  /* Minilite triggering (channel B) -- heating (355 nm) */
-  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_T0, 0.0, 10E-6, 7.5, MEAS_BNC565_POL_NORM); /* 7.5V because the additional delay generator sucks some juice too (don't run without the delay generator load!) */
+  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10E-6, 5.0, MEAS_BNC565_POL_INV);
   meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
-  
-  /* Camera triggering */
-  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
+
+  /* Minilite triggering (channel C) -- heating (355 nm) */
+  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10E-6, 7.5, MEAS_BNC565_POL_NORM); /* 7.5V because the additional delay generator sucks some juice too (don't run without the external delay generator load!) */
   meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
+  
+  /* Camera triggering (channel D) */
+  meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
+  meas_bnc565_mode(0, MEAS_BNC565_CHD, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
 
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
 
@@ -135,8 +138,30 @@ int main(int argc, char **argv) {
   meas_video_read(cd, buffer, 1);   /* we seem to be getting couple of blank frames in the very beginning ??? (TODO) */
   meas_video_read(cd, buffer, 1);
   for(cur_time = t0; ; cur_time += tstep) {
-    printf("Diode delay = %le s.\n", cur_time);
-    meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, SURELITE_FIRE_DELAY + cur_time - CAMERA_DELAY, 5.0, MEAS_BNC565_POL_NORM);
+    printf("Flash laser delay = %le s.\n", cur_time);
+    /* Timings */
+    tot_minilite = MINILITE_FIRE_DELAY;
+    tot_surelite = cur_time + SURELITE_FIRE_DELAY + SURELITE_QSWITCH;    
+    diff = fabs(tot_minilite - tot_surelite);
+
+    if(tot_minilite > tot_surelite) { /* minilite goes first */
+      /* Surelite */
+      meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, diff, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
+      meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
+      /* Minilite */
+      meas_bnc565_set(0, MESA_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MESA_BNC565_POL_NORM); /* positive logic / TTL */
+    } else { /* Surelite goes first */
+      /* Surelite */
+      meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
+      meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
+      /* Minilite */
+      meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, diff, 10.0E-6, 5.0, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
+    }
+    /* camera on from t0 until flash */
+    meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, tot_surelite - CAMERA_DELAY, 200.0E-6, 5.0, MEAS_BNC565_POL_NORM);
+    /* end timings */
+
+
     meas_video_read(cd, buffer, 1);
 #ifdef VEHO
     meas_image_yuv422_to_rgb3(buffer, rgb, width, height);
