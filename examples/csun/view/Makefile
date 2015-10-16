@@ -2,8 +2,8 @@ include /usr/include/meas/make.conf
 
 all: view-img view-pgm view-img2
 
-install: view-img video-view view-img2
-	cp -f view-img view-ppm view-img2 /usr/bin
+install: view-img view-pgm view-img2
+	cp -f view-img view-pgm view-img2 /usr/bin
 
 view-img: view-img.o
 	$(CC) $(CFLAGS) -o view-img view-img.o $(LDFLAGS)
