@@ -55,7 +55,9 @@ EXPORT void meas_tty_raw() {
   raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 0;
   raw.c_cc[VMIN] = 2; raw.c_cc[VTIME] = 0;
   raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 8;
-  if (tcsetattr(ttyfd,TCSAFLUSH,&raw) < 0) fatal("can't set raw mode");
-
+  if (tcsetattr(ttyfd,TCSAFLUSH,&raw) < 0) {
+    fprintf(stderr, "libmeas: cannot set tty to raw mode.\n");
+    exit(1);
+  }
   been_here = 1;
 }
