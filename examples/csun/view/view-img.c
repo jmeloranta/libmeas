@@ -1,4 +1,4 @@
-/* View files and convert to ppm */
+/* View video frames (Veho 640 x 480) */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,6 +66,16 @@ int main(int argc, char **argv) {
 
     meas_graphics_update_image(0, rgb);
     meas_graphics_update();
+#if 0
+    sprintf(filename, "%s-%le.ppm", filebase, delay);
+    if(!(fp = fopen(filename, "w"))) {
+      fprintf(stderr, "Error writing file.\n");
+      meas_tty_normal();
+      exit(1);
+    }
+    meas_image_rgb3_to_ppm(fp, rgb, WIDTH, HEIGHT);
+    fclose(fp);
+#endif
     usleep(100000);
   }
 }

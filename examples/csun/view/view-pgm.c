@@ -1,4 +1,4 @@
-/* View files and convert to ppm */
+/* View video frames (IMGSRC camera) */
 
 #include <stdio.h>
 #include <stdlib.h>
