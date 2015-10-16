@@ -37,7 +37,6 @@ int main(int argc, char **argv) {
 	break;
       case '-':
 	tstep = -fabs(tstep);
-	if(delay < 0.0) delay = 0.0;
 	break;
       case '+':
 	tstep = fabs(tstep);
@@ -47,6 +46,7 @@ int main(int argc, char **argv) {
 	exit(1);
       }
     }
+    if(delay < 0.0) delay = 0.0;
     printf("Delay = %le ns.\n\r", delay*1E9);
     sprintf(filename, "%s-%le.img", filebase, delay);
     if(!(fp = fopen(filename, "r"))) {
