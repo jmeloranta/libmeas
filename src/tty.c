@@ -51,13 +51,26 @@ EXPORT void meas_tty_raw() {
   raw.c_oflag &= ~(OPOST);
   raw.c_cflag |= (CS8);
   raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-  raw.c_cc[VMIN] = 5; raw.c_cc[VTIME] = 8;
   raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 0;
-  raw.c_cc[VMIN] = 2; raw.c_cc[VTIME] = 0;
-  raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 8;
   if (tcsetattr(ttyfd,TCSAFLUSH,&raw) < 0) {
     fprintf(stderr, "libmeas: cannot set tty to raw mode.\n");
     exit(1);
   }
   been_here = 1;
+}
+
+/*
+ * Read one character from keyboard.
+ * For async behavior, the tty needs to be in raw mode (see above).
+ *
+ * If no character is available returns 0 (NULL).
+ *
+ */
+
+EXPORT char meas_tty_read() {
+
+  char chr;
+  
+  if(read(ttyfd, &chr, 1) < 1) return 0;
+  else return chr;
 }
