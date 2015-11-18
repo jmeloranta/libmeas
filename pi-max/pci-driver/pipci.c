@@ -154,8 +154,7 @@ int princeton_find_devices(void) {
     printk("pipci: Base address 1 0x%x\n", (unsigned int) device[0].base_address1);
     printk("pipci: Base address 2 0x%x\n", (unsigned int) device[0].base_address2);
     
-    // TODO: should we remove IRQF_DISABLED ?
-    flags = IRQF_DISABLED | ((SHARE)?IRQF_SHARED:0);
+    flags = ((SHARE)?IRQF_SHARED:0);
     status = request_irq(dev->irq, princeton_handle_irq, flags, DEVICE_NAME, &device[cards_found]);
     
     command |= PCI_COMMAND_MASTER;	
