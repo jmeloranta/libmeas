@@ -5,7 +5,8 @@ OBJS = aspect.o bnc565.o bruker-er023.o bruker-er032.o dg535.o dk240.o \
        fl3000.o gpib.o graphics.o hp-34401a.o hp-53131a.o hp-5350b.o \
        hp-5384a.o itc503.o lpt-ttl.o matrix.o matrixwrapper.o mettler.o \
        misc.o newport_is.o pdr2000.o pi-max-wrapper.o scanmate_pro.o serial.o \
-       sr245.o tr5211.o varian-e500.o wavetek80.o pdr900.o video.o image.o tty.o
+       sr245.o tr5211.o varian-e500.o wavetek80.o pdr900.o video.o image.o tty.o \
+       mfj-226.o
 
 all: libmeas.a
 
