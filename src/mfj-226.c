@@ -27,6 +27,8 @@ EXPORT int meas_mfj226_open(int unit, char *dev) {
     meas_err("meas_mfj226_init: Non-existing unit.");
   if(mfj226_fd[unit] == -1)
     mfj226_fd[unit] = meas_rs232_open(dev, MEAS_B115200);
+  // TODO: needs sleep before this? -- not really needed anyway
+  //meas_rs232_writeb(mfj226_fd[unit], 'D');
   return 0;
 }
 
@@ -47,8 +49,8 @@ EXPORT int meas_mfj226_read(int unit, double *mag, double *ang) {
 
   if(mfj226_fd[unit] == -1) meas_err("meas_mfj226_read: Non-existing unit.");
   meas_rs232_writeb(mfj226_fd[unit], 'S');
-  meas_rs232_readeot(mfj226_fd[unit], buf, NULL);
-  if(sscanf(buf, "%le,%le", mag, ang) == 2) {
+  meas_rs232_readeoc(mfj226_fd[unit], buf, '\r');
+  if(sscanf(buf, " %le, %le", mag, ang) != 2) {
     meas_err("meas_mfj226_read: Non-standard response from instrument.\n");
     return -1;
   }
@@ -59,19 +61,20 @@ EXPORT int meas_mfj226_read(int unit, double *mag, double *ang) {
  * Write to device.
  *
  * unit = Unit to write to.
- * freq = Frequency to set (double). 
+ * freq = Frequency to set (Hz, int). 
  *
  * Return value 0 for success, -1 for error.
  *
  */
 
-EXPORT int meas_mfj226_write(int unit, double freq) {
+EXPORT int meas_mfj226_write(int unit, int freq) {
 
   char buf[512];
   
+  if(freq < 1000000 || freq > 230000000) return -1;
   if(mfj226_fd[unit] == -1) meas_err("meas_mfj226_write: Non-existing unit.");
-  sprintf(buf, "%lf", freq);
-  meas_rs232_write(mfj226_fd[unit], buf, strlen(buf)+1); // include NULL
+  sprintf(buf, "%09d", freq);  // 9 digit frequency in Hz (the manual is wrong in saying 6 ...)
+  meas_rs232_write(mfj226_fd[unit], buf, strlen(buf));
   return 0;
 }
 
