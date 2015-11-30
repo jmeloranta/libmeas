@@ -14,7 +14,7 @@
 int main(int argc, char **argv) {
 
   double freq, mag, phase;
-  double complex refl;
+  double complex refl, Z;
   
   meas_mfj226_open(0, "/dev/ttyUSB0");
   if(argc != 4) {
@@ -25,7 +25,9 @@ int main(int argc, char **argv) {
     meas_mfj226_write(0, (int) freq);
     meas_mfj226_read(0, &mag, &phase);
     refl = mag * (cos(M_PI * phase / 180.0) + I * sin(M_PI * phase / 180.0));
-    printf("%le %le\n", freq, (1.0 + cabs(refl)) / (1.0 - cabs(refl)));
+    printf("SWR: %le %le\n", freq, (1.0 + cabs(refl)) / (1.0 - cabs(refl)));
+    Z = Z0 * (1.0 + refl) / (1.0 - refl);
+    printf("Z: %le %le %le\n", freq, creal(Z), cimag(Z));
   }
   meas_mfj226_close(0);
 }
