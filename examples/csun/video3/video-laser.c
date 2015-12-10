@@ -17,9 +17,10 @@
 #include <signal.h>
 #include <meas/meas.h>
 
-#define MINILITE_FIRE_DELAY 179.8E-6   /* Includes Q-switch */
-#define SURELITE_FIRE_DELAY 0.380E-6   /* Excluding Q-switch */
-#define SURELITE_QSWITCH  320E-6
+#define MINILITE_FIRE_DELAY 10.0E-6
+#define MINILITE_QSWITCH  180.0E-6
+#define SURELITE_FIRE_DELAY 0.320E-6
+#define SURELITE_QSWITCH  310E-6
 #define CAMERA_DELAY 10.0E-6    /* TODO: Check this (was 4E-6) */
 
 #define BNC565 15
@@ -140,7 +141,7 @@ int main(int argc, char **argv) {
   for(cur_time = t0; ; cur_time += tstep) {
     printf("Flash laser delay = %le s.\n", cur_time);
     /* Timings */
-    tot_minilite = MINILITE_FIRE_DELAY;
+    tot_minilite = MINILITE_FIRE_DELAY + MINILITE_QSWITCH;
     tot_surelite = cur_time + SURELITE_FIRE_DELAY + SURELITE_QSWITCH;    
     diff = fabs(tot_minilite - tot_surelite);
 
@@ -149,13 +150,13 @@ int main(int argc, char **argv) {
       meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, diff, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
       meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
       /* Minilite */
-      meas_bnc565_set(0, MESA_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MESA_BNC565_POL_NORM); /* positive logic / TTL */
+      meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10.0E-6, 7.5, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
     } else { /* Surelite goes first */
       /* Surelite */
       meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
       meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
       /* Minilite */
-      meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, diff, 10.0E-6, 5.0, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
+      meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, diff, 10.0E-6, 7.5, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
     }
     /* camera on from t0 until flash */
     meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, tot_surelite - CAMERA_DELAY, 200.0E-6, 5.0, MEAS_BNC565_POL_NORM);

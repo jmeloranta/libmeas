@@ -22,7 +22,7 @@
 #define DG535  16
 #define BNC565 15
 
-#define VEHO 1 /* For veho USB camera */
+/* #define VEHO 1 /* For veho USB camera */
 
 #ifdef VEHO
 #define FORMAT 0
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
   meas_dg535_run(0, MEAS_DG535_RUN); /* start unit */
 
-  cd = meas_video_open("/dev/video1", 2);
+  cd = meas_video_open("/dev/video0", 2);
   frame_size = meas_video_set_format(cd, FORMAT, RESOL);
   width = meas_video_get_width(cd);
   height = meas_video_get_height(cd);
@@ -128,10 +128,10 @@ int main(int argc, char **argv) {
   }
 #ifdef VEHO
   meas_video_set_control(cd, meas_video_get_control_id(cd, "exposure_auto"), &zero); /* manual exposure */
-  meas_video_exposure_time(cd, 1250);  /* exposure time (removes the scanline artefact; 1250 seems good) */
+  meas_video_exposure_time(cd, 1250);  /* exposure time: removes the scanline artefact (rolling shutter); 1250 seems good */
   meas_video_set_brightness(cd, gain);
 #else
-  meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
+  meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &zero); /* External trigger */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Delay"), &zero); /* Immediate triggering, no delay */
   exposure = 100;   /* 1 msec in units of 10 microsec */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Exposure (Absolute)"), &exposure);
@@ -154,8 +154,9 @@ int main(int argc, char **argv) {
   meas_video_start(cd);
   meas_video_read(cd, buffer, 1);   /* we seem to be getting couple of blank frames in the very beginning ??? (TODO) */
   meas_video_read(cd, buffer, 1);
+  meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
   for(cur_time = t0; ; cur_time += tstep) {
-    printf("Diode delay = %le s.\n", cur_time);
+    printf("Diode delay = %le s.\n", cur_time);fflush(stdout);
     meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time - CAMERA_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
     meas_video_read(cd, buffer, 1);
 #ifdef VEHO
