@@ -1,6 +1,6 @@
 /* 
  * BNC565 (master clock):
- * A -> Surelite flash lamp (visualization pulse; intl. delay for Q-switch; +- 10ns jitter)
+ * A -> Surelite flash lamp (visualization pulse)
  * B -> Surelite q-switch
  * C -> Minilite  (heating pulse)
  * D -> TTL trigger for DMK 23U445
@@ -161,7 +161,6 @@ int main(int argc, char **argv) {
     /* camera on from t0 until flash */
     meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, tot_surelite - CAMERA_DELAY, 200.0E-6, 5.0, MEAS_BNC565_POL_NORM);
     /* end timings */
-
 
     meas_video_read(cd, buffer, 1);
 #ifdef VEHO
