@@ -1,6 +1,6 @@
 /* 
  * BNC565 (master clock):
- * A -> Surelite flash lamp (visualization pulse; intl. delay for Q-switch; +- 10ns jitter)
+ * A -> Surelite flash lamp (visualization pulse)
  * B -> Surelite q-switch
  * C -> Minilite  (heating pulse)
  * D -> TTL trigger for DMK 23U445
