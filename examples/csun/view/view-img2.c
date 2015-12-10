@@ -1,10 +1,9 @@
-/* View files and convert to ppm */
+/* View video frames (PI-MAX) */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <meas/meas.h>
-//#include "csun.h"
 
 #define NX 512
 #define NY 512
@@ -17,6 +16,7 @@ int main(int argc, char **argv) {
   double tstep, delay, t0;
   char filebase[512], filename[512];
   int fd, i;
+  unsigned int nx = NX, ny = NY;
   FILE *fp;
 
   printf("Enter file basename: ");
@@ -28,15 +28,35 @@ int main(int argc, char **argv) {
   }
   fscanf(fp , " %*d %le %le", &t0, &tstep);
   fclose(fp);
-  meas_graphics_init(0, MEAS_GRAPHICS_IMAGE, NX, NY, 0, "video");
+  meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, NY, NX, 0, "video");
+  meas_tty_raw();
   for(delay = t0; ; delay += tstep) {
-    printf("Delay = %le ns.\n", delay*1E9);
+    char chr;
+    if((chr = meas_tty_read()) != 0) {
+      switch(chr) {
+      case ' ':
+	while(meas_tty_read() != ' ') usleep(200);
+	break;
+      case '-':
+	tstep = -fabs(tstep);
+	break;
+      case '+':
+	tstep = fabs(tstep);
+	break;
+      case 'q':
+	meas_tty_normal();
+	exit(1);
+      }
+    }
+    if(delay < 0.0) delay = 0.0;
+    printf("Delay = %le ns.\n\r", delay*1E9);
     sprintf(filename, "%s-%le.img", filebase, delay);
     if(!(fp = fopen(filename, "r"))) {
       fprintf(stderr, "Error reading file.\n");
+      meas_tty_normal();
       exit(1);
     }
-    meas_image_pgm_to_y16(fp, y16, NX, NY);
+    meas_image_pgm_to_y16(fp, y16, &nx, &ny);
     meas_image_y16_to_rgb3(y16, rgb, NX, NY);
     fclose(fp);
     meas_graphics_update_image(0, rgb);
@@ -45,6 +65,7 @@ int main(int argc, char **argv) {
     sprintf(filename, "%s-%le.ppm", filebase, delay);
     if(!(fp = fopen(filename, "w"))) {
       fprintf(stderr, "Error writing file.\n");
+      meas_tty_normal();
       exit(1);
     }
     meas_video_rgb_to_ppm(fp, r, g, b);

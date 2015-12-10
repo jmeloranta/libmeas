@@ -27,37 +27,51 @@ EXPORT int meas_rs232_open(char *dev, int speed) {
 
   struct termios newtio;
   int fd;
-  unsigned int handshake;
+  unsigned char handshake;
 
   if(speed >= MEAS_NOHANDSHAKE) {
-    speed -= MEAS_NOHANDSHAKE;
+    speed -= MEAS_NOHANDSHAKE;   /* if speed < 0, no handshake */
     handshake = 0;
-  } else handshake = CRTSCTS;
+  } else handshake = 1; /* cts/rts handshake */
   meas_misc_root_on();
   if((fd = open(dev, O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
     meas_err("meas_serial_open: Can't open device.");
-  bzero(&newtio, sizeof(newtio));
-  /*    newtio.c_cflag = B9600 | CRTSCTS | CS8 | CLOCAL | CREAD; */
-  /*    newtio.c_cflag = B9600 | CS8 | CLOCAL | CRTSCTS | CREAD | CSTOPB; */
+  tcgetattr(fd, &newtio);
   switch (speed) {
   case MEAS_B9600:
-    newtio.c_cflag = B9600 | CS8 | CLOCAL | handshake | CREAD | IGNBRK;
+    cfsetispeed(&newtio, B9600);
+    cfsetospeed(&newtio, B9600);
     break;
   case MEAS_B19200:
-    newtio.c_cflag = B19200 | CS8 | CLOCAL | handshake | CREAD | IGNBRK;
+    cfsetispeed(&newtio, B19200);
+    cfsetospeed(&newtio, B19200);
     break;
   case MEAS_B57600:
-    newtio.c_cflag = B57600 | CS8 | CLOCAL | handshake | CREAD | IGNBRK;
+    cfsetispeed(&newtio, B57600);
+    cfsetospeed(&newtio, B57600);
     break;
   case MEAS_B38400:
-    newtio.c_cflag = B38400 | CS8 | CLOCAL | handshake | CREAD | IGNBRK;
+    cfsetispeed(&newtio, B38400);
+    cfsetospeed(&newtio, B38400);
     break;
   case MEAS_B115200:
-    newtio.c_cflag = B115200 | CS8 | CLOCAL | handshake | CREAD | IGNBRK;
+    cfsetispeed(&newtio, B115200);
+    cfsetospeed(&newtio, B115200);
     break;
+  default:
+    fprintf(stderr, "libmeas: Unknown baud rate.\n");
+    exit(0);
   }
-  newtio.c_iflag = 0;
-  newtio.c_oflag = 0;             /* raw output */
+  newtio.c_cflag &= ~PARENB;
+  newtio.c_cflag &= ~CSTOPB;
+  newtio.c_cflag &= ~CSIZE;
+  newtio.c_cflag |= CS8;
+  newtio.c_cflag |= (CLOCAL | CREAD);
+  newtio.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+  newtio.c_iflag &= ~(IXON | IXOFF | IXANY);
+  newtio.c_oflag &= ~OPOST;
+  if(handshake) 
+    newtio.c_cflag |= CRTSCTS;
   newtio.c_cc[VTIME]    = 100;    /* inter-character timer unused */
   newtio.c_cc[VMIN]     = 10;     /* blocking read until 1 character arrives */
   
@@ -101,6 +115,29 @@ EXPORT int meas_rs232_readnl(int fd, char *buf) {
   while (1) {
     meas_rs232_read(fd, buf + i, 1);
     if(buf[i] == MEAS_SERIAL_EOS) break;
+    i++;
+  }
+  meas_misc_root_off();
+  buf[i] = 0;
+  return 0;
+}
+
+/*
+ * Read line from RS232 port.
+ *
+ * fd  = File descriptor for the RS232 port.
+ * buf = Output buffer for data.
+ *
+ */
+
+EXPORT int meas_rs232_readeoc(int fd, char *buf, char eoc) {
+
+  int i = 0;
+
+  meas_misc_root_on();
+  while (1) {
+    meas_rs232_read(fd, buf + i, 1);
+    if(buf[i] == eoc) break;
     i++;
   }
   meas_misc_root_off();

@@ -1,7 +1,8 @@
-/* View files and convert to ppm */
+/* View video frames (IMGSRC camera) */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <meas/meas.h>
 
 #define HEIGHT 1280
@@ -35,21 +36,42 @@ int main(int argc, char **argv) {
     exit(1);
   }
   meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, HEIGHT, WIDTH, 0, "video");
+  meas_tty_raw();
   for(delay = t0; ; delay += tstep) {
-    printf("Delay = %le ns.\n", delay*1E9);
+    char chr;
+    if((chr = meas_tty_read()) != 0) {
+      switch(chr) {
+      case ' ':
+	while(meas_tty_read() != ' ') usleep(200);
+	break;
+      case '-':
+	tstep = -fabs(tstep);
+	break;
+      case '+':
+	tstep = fabs(tstep);
+	break;
+      case 'q':
+	meas_tty_normal();
+	exit(1);
+      }
+    }
+    if(delay < 0.0) delay = 0.0;
+    printf("Delay = %le ns.\n\r", delay*1E9);
     sprintf(filename, "%s-%le.pgm", filebase, delay);
     if(!(fp = fopen(filename, "r"))) {
       fprintf(stderr, "Error opening file.\n");
+      meas_tty_normal();      
       exit(1);
     }
     if(meas_image_pgm_to_y16(fp, y16, &width, &height) < 0) {
       fprintf(stderr, "Error reading file.\n");
+      meas_tty_normal();
       exit(1);
     }
     fclose(fp);
     meas_image_y16_to_rgb3(y16, rgb, WIDTH, HEIGHT);    
     meas_graphics_update_image(0, rgb);
     meas_graphics_update();
-    //sleep(1);
+    usleep(100000);
   }
 }
