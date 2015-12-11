@@ -17,15 +17,15 @@
 #include <signal.h>
 #include <meas/meas.h>
 
-#define MINILITE_FIRE_DELAY 10.0E-6
+#define MINILITE_FIRE_DELAY 0.160E-6
 #define MINILITE_QSWITCH  180.0E-6
-#define SURELITE_FIRE_DELAY 0.320E-6
-#define SURELITE_QSWITCH  310E-6
+#define SURELITE_FIRE_DELAY 0.350E-6
+#define SURELITE_QSWITCH  260E-6
 #define CAMERA_DELAY 10.0E-6    /* TODO: Check this (was 4E-6) */
 
 #define BNC565 15
 
-#define VEHO 1 /* For veho USB camera */
+/* #define VEHO 1 /* For veho USB camera */
 
 #ifdef VEHO
 #define FORMAT 0
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
   meas_video_exposure_time(cd, 1250);  /* exposure time (removes the scanline artefact; 1250 seems good) */
   meas_video_set_brightness(cd, gain);
 #else
-  meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
+  meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &zero); /* External trigger */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Delay"), &zero); /* Immediate triggering, no delay */
   exposure = 100;   /* 1 msec in units of 10 microsec */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Exposure (Absolute)"), &exposure);
@@ -138,15 +138,17 @@ int main(int argc, char **argv) {
   meas_video_start(cd);
   meas_video_read(cd, buffer, 1);   /* we seem to be getting couple of blank frames in the very beginning ??? (TODO) */
   meas_video_read(cd, buffer, 1);
+  meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
   for(cur_time = t0; ; cur_time += tstep) {
     printf("Flash laser delay = %le s.\n", cur_time);
     /* Timings */
     tot_minilite = MINILITE_FIRE_DELAY + MINILITE_QSWITCH;
-    tot_surelite = cur_time + SURELITE_FIRE_DELAY + SURELITE_QSWITCH;    
-    diff = fabs(tot_minilite - tot_surelite);
-
-    if(tot_minilite > tot_surelite) { /* minilite goes first */
-      /* Surelite */
+    tot_surelite = SURELITE_FIRE_DELAY + SURELITE_QSWITCH;    
+    diff = tot_minilite - tot_surelite + cur_time;
+    
+    printf("%le %le %le\n", tot_minilite, tot_surelite, cur_time);
+    if(diff > 0.0) { /* minilite goes first */
+       /* Surelite */
       meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, diff, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
       meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
       /* Minilite */
@@ -156,7 +158,7 @@ int main(int argc, char **argv) {
       meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
       meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
       /* Minilite */
-      meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, diff, 10.0E-6, 7.5, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
+      meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, -diff, 10.0E-6, 7.5, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
     }
     /* camera on from t0 until flash */
     meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, tot_surelite - CAMERA_DELAY, 200.0E-6, 5.0, MEAS_BNC565_POL_NORM);
