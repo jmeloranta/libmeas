@@ -146,7 +146,6 @@ int main(int argc, char **argv) {
     tot_surelite = SURELITE_FIRE_DELAY + SURELITE_QSWITCH;    
     diff = tot_minilite - tot_surelite + cur_time;
     
-    printf("%le %le %le\n", tot_minilite, tot_surelite, cur_time);
     if(diff > 0.0) { /* minilite goes first */
        /* Surelite */
       meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, diff, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
