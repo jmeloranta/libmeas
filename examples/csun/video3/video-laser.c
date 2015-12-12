@@ -21,7 +21,7 @@
 #define MINILITE_QSWITCH  180.0E-6
 #define SURELITE_FIRE_DELAY 0.350E-6
 #define SURELITE_QSWITCH  260E-6
-#define CAMERA_DELAY 10.0E-6    /* TODO: Check this (was 4E-6) */
+#define CAMERA_DELAY 20.0E-6    /* TODO: Check this (was 4E-6) */
 
 #define BNC565 15
 
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
       meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, -diff, 10.0E-6, 7.5, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
     }
     /* camera on from t0 until flash */
-    meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, tot_surelite - CAMERA_DELAY, 200.0E-6, 5.0, MEAS_BNC565_POL_NORM);
+    meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_CHA, SURELITE_QSWITCH - CAMERA_DELAY, 200.0E-6, 5.0, MEAS_BNC565_POL_NORM);
     /* end timings */
 
     meas_video_read(cd, buffer, 1);
