@@ -44,11 +44,11 @@ static void exit_handler(void) {
 
 int main(int argc, char **argv) {
 
-  double tstep, cur_time, t0, reprate, tot_minilite, tot_surelite, diff;
+  double tstep, cur_time, t0, reprate, tot_minilite, tot_surelite, diff, intens;
   char filebase[512], filename[512];
-  int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure;
+  int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure, i;
   size_t frame_size;
-  FILE *fp;
+  FILE *fp, *fp2;
 
   printf("Enter output file name (0 = no save): ");
   scanf("%s", filebase);
@@ -131,6 +131,10 @@ int main(int argc, char **argv) {
     fprintf(fp, "%.15le %.15le %.15le %d\n", t0, tstep, reprate, gain);
     fclose(fp);
   }
+  if(!(fp2 = fopen("intens.dat", "w"))) {
+    fprintf(stderr, "Can't open intens.dat\n");
+    exit(1);
+  }
   printf("Hit ctrl-C to exit...\n");
 
   atexit(&exit_handler);
@@ -168,6 +172,10 @@ int main(int argc, char **argv) {
     meas_image_yuv422_to_rgb3(buffer, rgb, width, height);
 #else
     meas_image_y16_to_rgb3(buffer, rgb, width, height);
+    intens = 0.0;
+    for (i = 0; i < 2 * width * height; i++)
+      intens += (buffer[i+1] * 256 + buffer[i]);
+    fprintf(fp2, "%le %le\n", cur_time, intens);
 #endif
     meas_graphics_update_image(0, rgb);
     meas_graphics_update();
@@ -188,5 +196,6 @@ int main(int argc, char **argv) {
       fclose(fp);
     }
   }
+  fclose(fp2);
   meas_video_stop(cd);
 }
