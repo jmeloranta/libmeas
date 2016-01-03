@@ -29,14 +29,15 @@ EXPORT int meas_rs232_open(char *dev, int speed) {
   int fd;
   unsigned char handshake;
 
-  if(speed >= MEAS_NOHANDSHAKE) {
-    speed -= MEAS_NOHANDSHAKE;   /* if speed < 0, no handshake */
+  if(speed & MEAS_NOHANDSHAKE) {
+    speed &= ~MEAS_NOHANDSHAKE;   /* if speed < 0, no handshake */
     handshake = 0;
   } else handshake = 1; /* cts/rts handshake */
   meas_misc_root_on();
   if((fd = open(dev, O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
     meas_err("meas_serial_open: Can't open device.");
   tcgetattr(fd, &newtio);
+  printf("speed = %d\n", speed); fflush(stdout);
   switch (speed) {
   case MEAS_B9600:
     cfsetispeed(&newtio, B9600);
@@ -72,6 +73,8 @@ EXPORT int meas_rs232_open(char *dev, int speed) {
   newtio.c_oflag &= ~OPOST;
   if(handshake) 
     newtio.c_cflag |= CRTSCTS;
+  else
+    newtio.c_cflag &= ~CRTSCTS;
   newtio.c_cc[VTIME]    = 100;    /* inter-character timer unused */
   newtio.c_cc[VMIN]     = 10;     /* blocking read until 1 character arrives */
   
