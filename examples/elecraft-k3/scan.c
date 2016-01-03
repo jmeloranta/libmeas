@@ -2,7 +2,7 @@
 #include <math.h>
 #include <meas/meas.h>
 
-main() {
+int main(int argc, char **argv) {
 
   int fd, value, it, ave, cur;
   char buf[512];

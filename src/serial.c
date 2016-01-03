@@ -37,7 +37,6 @@ EXPORT int meas_rs232_open(char *dev, int speed) {
   if((fd = open(dev, O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
     meas_err("meas_serial_open: Can't open device.");
   tcgetattr(fd, &newtio);
-  printf("speed = %d\n", speed); fflush(stdout);
   switch (speed) {
   case MEAS_B9600:
     cfsetispeed(&newtio, B9600);
