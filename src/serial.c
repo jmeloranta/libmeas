@@ -70,6 +70,8 @@ EXPORT int meas_rs232_open(char *dev, int speed) {
   newtio.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
   newtio.c_iflag &= ~(IXON | IXOFF | IXANY);
   newtio.c_oflag &= ~OPOST;
+  newtio.c_iflag &= ~ICRNL;
+  newtio.c_oflag &= ~OCRNL;
   if(handshake) 
     newtio.c_cflag |= CRTSCTS;
   else

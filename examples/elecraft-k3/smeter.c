@@ -5,7 +5,7 @@
 // #define PLOT_NOISE_VARIANCE
 
 #define N 8192
-#define AVE 10
+#define AVE 1
 
 double xdata[N], ydata[N];
 

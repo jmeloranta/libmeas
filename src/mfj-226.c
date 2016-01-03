@@ -26,7 +26,7 @@ EXPORT int meas_mfj226_open(int unit, char *dev) {
   if(unit < 0 || unit > 4)
     meas_err("meas_mfj226_init: Non-existing unit.");
   if(mfj226_fd[unit] == -1)
-    mfj226_fd[unit] = meas_rs232_open(dev, MEAS_B115200);
+    mfj226_fd[unit] = meas_rs232_open(dev, MEAS_B115200 | MEAS_NOHANDSHAKE);
   // TODO: needs sleep before this? -- not really needed anyway
   //meas_rs232_writeb(mfj226_fd[unit], 'D');
   return 0;
