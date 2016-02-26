@@ -50,12 +50,13 @@ EXPORT int meas_dg535_open(int unit, int board, int dev) {
  * origin  = channel for relative timing (notation as above)
  * delay   = delay (s)
  * level   = output pulse voltage level (V)
+ * offset  = output pulse voltage offset (V) (usually 0 V).
  * polarity= output polarity (POL_NORM = normal, POL_INV = iverted).
  * imp     = impedance (IMP_50 = 50 ohm or IMP_HIGH = high Z)
  *
  */
 
-EXPORT int meas_dg535_set(int unit, int channel, int origin, double delay, double level, int polarity, int imp) {
+EXPORT int meas_dg535_set(int unit, int channel, int origin, double delay, double level, double offset, int polarity, int imp) {
 
   char buf[512];
 
@@ -68,19 +69,13 @@ EXPORT int meas_dg535_set(int unit, int channel, int origin, double delay, doubl
   }
 
   /* Output level */
-  /* Level (remove if necessary - just for safety) */
-  /* TODO: add a function that can override this */
-#if 0
-  if(level > 5.1)
-    meas_err("meas_dg535_set: Output level greater than 5 V requested! Won't do.");
-#endif
   sprintf(buf, "TZ %d,%d", channel, imp);   /* impedance */
   meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
   sprintf(buf, "OM %d,3", channel);    /* variable mode */
   meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
-  sprintf(buf, "OO %d,0", channel);    /* offset = 0 V */
+  sprintf(buf, "OO %d,%.1lf", channel, offset);    /* offset = 0 V */
   meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
-  sprintf(buf, "OA %d,+%.1lf", channel, level);   /* output level (V) (maximum 4 volts?) */
+  sprintf(buf, "OA %d,%.1lf", channel, level);   /* output level (V) (maximum 4 volts) */
   meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);
   vals[unit][channel] = level;
 
@@ -89,7 +84,7 @@ EXPORT int meas_dg535_set(int unit, int channel, int origin, double delay, doubl
     sprintf(buf, "OP %d,%d", channel, polarity);
     meas_gpib_write(dg535_fd[unit], buf, MEAS_DG535_TERM);  
   }
-
+ 
   return 0;
 }
 

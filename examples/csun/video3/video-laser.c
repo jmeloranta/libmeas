@@ -18,10 +18,12 @@
 #include <meas/meas.h>
 
 #define MINILITE_FIRE_DELAY 0.160E-6
-#define MINILITE_QSWITCH  180.0E-6
+#define MINILITE_QSWITCH  182.52E-6
 #define SURELITE_FIRE_DELAY 0.350E-6
 #define SURELITE_QSWITCH  260E-6
 #define CAMERA_DELAY 20.0E-6    /* TODO: Check this (was 4E-6) */
+
+#define AVE 1
 
 #define BNC565 15
 
@@ -46,7 +48,7 @@ int main(int argc, char **argv) {
 
   double tstep, cur_time, t0, reprate, tot_minilite, tot_surelite, diff, intens;
   char filebase[512], filename[512];
-  int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure, i;
+  int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure, i, j;
   size_t frame_size;
   FILE *fp, *fp2;
 
@@ -87,7 +89,7 @@ int main(int argc, char **argv) {
   meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
 
   /* Minilite triggering (channel C) -- heating (355 nm) */
-  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10E-6, 7.5, MEAS_BNC565_POL_NORM); /* 7.5V because the additional delay generator sucks some juice too (don't run without the external delay generator load!) */
+  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
   
   /* Camera triggering (channel D) */
@@ -155,27 +157,30 @@ int main(int argc, char **argv) {
       meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, diff, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
       meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
       /* Minilite */
-      meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10.0E-6, 7.5, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
+      meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
     } else { /* Surelite goes first */
       /* Surelite */
       meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
       meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
       /* Minilite */
-      meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, -diff, 10.0E-6, 7.5, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
+      meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, -diff, 10.0E-6, 5.0, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
     }
     /* camera on from t0 until flash */
     meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_CHA, SURELITE_QSWITCH - CAMERA_DELAY, 200.0E-6, 5.0, MEAS_BNC565_POL_NORM);
     /* end timings */
 
-    meas_video_read(cd, buffer, 1);
+    intens = 0.0;
+    for (j = 0; j < AVE; j++) {
+      meas_video_read(cd, buffer, 1);
+      for (i = 0; i < 2 * width * height; i++)
+	intens += (buffer[i+1] * 256 + buffer[i]);
+    }
+    fprintf(fp2, "%le %le\n", cur_time, intens);
+    fflush(fp2);
 #ifdef VEHO
     meas_image_yuv422_to_rgb3(buffer, rgb, width, height);
 #else
     meas_image_y16_to_rgb3(buffer, rgb, width, height);
-    intens = 0.0;
-    for (i = 0; i < 2 * width * height; i++)
-      intens += (buffer[i+1] * 256 + buffer[i]);
-    fprintf(fp2, "%le %le\n", cur_time, intens);
 #endif
     meas_graphics_update_image(0, rgb);
     meas_graphics_update();

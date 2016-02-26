@@ -58,8 +58,8 @@ int main(int argc, char **argv) {
   meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_SINGLE_SHOT, 0, 0, 0); /* regular single shot */  
   meas_bnc565_trigger(0, MEAS_BNC565_TRIG_INT, 10.0, 0); /* 10 Hz (master) */
   /* 2. CCD */
-  meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, 1E-6 + CCD_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-  meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, 1E-6 + CCD_DELAY, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   meas_dg535_trigger(0, MEAS_DG535_TRIG_EXT, 1.0, MEAS_DG535_TRIG_FALL, MEAS_DG535_IMP_50); /* triggered by BNC565 */
 
   if(filename[0] != '0') {
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
   meas_pi_max_gain(gain);   /* 0 - 255 */
   printf("Intensifier gate (s): ");
   scanf(" %le", &gate);
-  meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_CHA, gate, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_CHA, gate, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
 
   meas_pi_max_speed_index(1);
   meas_pi_max_roi(0, NX-1, 1, 0, NY-1, 1);
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
   meas_dg535_run(0, MEAS_DG535_RUN);
   for(delay = t0; ; delay += tstep) {
     printf("Delay = %le ns.\n", delay*1E9);
-    meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, delay + CCD_DELAY, 4.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+    meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, delay + CCD_DELAY, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
     meas_pi_max_read(aves, y16);
     meas_graphics_y16_to_rgb3(y16, rgbi, NX, NY);
     meas_graphics_scale_rgb3(rgbi, NX, NY, SCALE, rgbo);
