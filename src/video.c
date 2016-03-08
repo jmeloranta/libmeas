@@ -969,18 +969,7 @@ EXPORT int meas_video_flush(int cd) {
   }
   meas_misc_root_on();
 
-  while(1) {
-    FD_ZERO(&fds);
-    FD_SET(devices[cd].fd, &fds);
-    tv.tv_sec = 3;
-    tv.tv_usec = 0;
-    
-    if(select(devices[cd].fd + 1, &fds, NULL, NULL, &tv) <= 0) {
-      fprintf(stderr, "libmeas: Time out waiting for video frame.\n");
-      return -1;
-    }
-    
-    // read_frame()
+  for (i = 0; i < devices[cd].buffer_info.count; i++) {
     bzero(&buf, sizeof(buf));
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
@@ -990,7 +979,7 @@ EXPORT int meas_video_flush(int cd) {
 	fprintf(stderr, "libmeas: error in ioctl(VIDIOC_DQBUF).\n");
 	return -1;
       }
-    if(buf.index >= devices[cd].buffer_info.count) return 0; /* TODO: how could this happen? */
+    if(buf.index >= devices[cd].buffer_info.count) return -1;
     /* put the empty buffer back into the queue */
     if(ioctl(devices[cd].fd, VIDIOC_QBUF, &buf) < 0) {
       fprintf(stderr, "libmeas: Error in ioctl(VIDIOC_QBUF).\n");
