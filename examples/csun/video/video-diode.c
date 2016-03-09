@@ -1,7 +1,7 @@
 /* 
  * DG535 (Master clock):
- * A -> Surelite trigger (Flash lamp)
- * B -> Surelite trigger (Q-switch)
+ * A -> Minilite trigger (Flash lamp)
+ * B -> Minilite trigger (Q-switch)
  * C -> CCD shutter (exposure)
  * D -> BNC565 ext trigger in (diode trgger)
  * 
