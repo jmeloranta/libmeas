@@ -20,7 +20,7 @@
 #define MINILITE_FIRE_DELAY 0.160E-6
 #define MINILITE_QSWITCH  182.52E-6
 #define SURELITE_FIRE_DELAY 0.350E-6
-#define SURELITE_QSWITCH  260E-6
+#define SURELITE_QSWITCH  180E-6
 #define CAMERA_DELAY 20.0E-6    /* TODO: Check this (was 4E-6) */
 
 #define AVE 1
@@ -89,16 +89,16 @@ int main(int argc, char **argv) {
   /* BNC565 is the slave */
   meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 2.0, MEAS_BNC565_TRIG_RISE);
 
-  /* Surelite triggering (channel A & B) -- visualization (532 nm) */
+  /* Surelite triggering (channels A & B) -- visualization (532 nm) */
   meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_INV);
   meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
   meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10E-6, 5.0, MEAS_BNC565_POL_INV);
   meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
 
-  /* Minilite triggering (channel C) -- heating (355 nm) */
+  /* Minilite triggering (channels C & D) -- heating (355 nm) */
   meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
-  meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_CHC, SURELITE_QSWITCH, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
+  meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_CHC, MINILITE_QSWITCH, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHD, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
   
   /* BNC565 external triggering from DG535 (from A\B) */
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
 
   /* CCD camera shutter triggering from DG535 (from C\D) */
   meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-  meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_CHC, 100E-6, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_CHC, 500E-6, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   meas_dg535_set(0, MEAS_DG535_CHCD, 0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);  
 
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
