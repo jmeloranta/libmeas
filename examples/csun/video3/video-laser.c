@@ -1,13 +1,13 @@
 /* 
- * BNC565 (master clock):
+ * BNC565 (slave):
  * A -> Surelite flash lamp (visualization pulse)
  * B -> Surelite q-switch
- * C -> Minilite  (heating pulse)
- * D -> TTL trigger for DMK 23U445
+ * C -> Minilite flash lamp (heating pulse)
+ * D -> Minilite Q-switch
  *
- * Note: - Minilite q-switch is set by an external delay generator
- *         Not controlled by computer. The internal q-swtich timer sucks!
- *       - Surelite (532 nm) acts as a flash.
+ * DG535 (master clock):
+ * A\B -> BNC 565 ext trigger
+ * C\D -> CCD shutter
  *
  */
 
@@ -25,6 +25,7 @@
 
 #define AVE 1
 
+#define DG535  16
 #define BNC565 15
 
 /* #define VEHO 1 /* For veho USB camera */
@@ -42,6 +43,7 @@ unsigned char *rgb, *buffer;
 static void exit_handler(void) {
 
   meas_bnc565_run(0, MEAS_BNC565_STOP);
+  meas_dg535_run(0, MEAS_DG535_STOP);
 }
 
 int main(int argc, char **argv) {
@@ -76,11 +78,16 @@ int main(int argc, char **argv) {
   printf("Running... press ctrl-c to stop.\n");
 
   meas_bnc565_open(0, 0, BNC565);
+  meas_dg535_open(0, 0, DG535);
 
   meas_bnc565_run(0, MEAS_BNC565_STOP);
+  meas_dg535_run(0, MEAS_DG535_STOP);
 
-  /* BNC565 is the master clock at 10 Hz */
-  meas_bnc565_trigger(0, MEAS_BNC565_TRIG_INT, reprate, 0);
+  /* DG535 is the master clock at 10 Hz */
+  meas_dg535_trigger(0, MEAS_DG535_TRIG_INT, reprate, 0, MEAS_DG535_IMP_50);
+
+  /* BNC565 is the slave */
+  meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 2.0, MEAS_BNC565_TRIG_RISE);
 
   /* Surelite triggering (channel A & B) -- visualization (532 nm) */
   meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_INV);
@@ -91,12 +98,21 @@ int main(int argc, char **argv) {
   /* Minilite triggering (channel C) -- heating (355 nm) */
   meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
-  
-  /* Camera triggering (channel D) */
-  meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
+  meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_CHC, SURELITE_QSWITCH, 10E-6, 5.0, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHD, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
+  
+  /* BNC565 external triggering from DG535 (from A\B) */
+  meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_CHA, 10E-6, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHAB, 0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);  
+
+  /* CCD camera shutter triggering from DG535 (from C\D) */
+  meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_CHC, 100E-6, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHCD, 0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);  
 
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
+  meas_dg535_run(0, MEAS_DG535_RUN);
 
   cd = meas_video_open("/dev/video0", 2);
   frame_size = meas_video_set_format(cd, FORMAT, RESOL);
@@ -146,6 +162,7 @@ int main(int argc, char **argv) {
   meas_video_read(cd, buffer, 1);
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
   for(cur_time = t0; ; cur_time += tstep) {
+    meas_video_flush(cd);
     printf("Flash laser delay = %le s.\n", cur_time);
     /* Timings */
     tot_minilite = MINILITE_FIRE_DELAY + MINILITE_QSWITCH;
@@ -155,18 +172,18 @@ int main(int argc, char **argv) {
     if(diff > 0.0) { /* minilite goes first */
        /* Surelite */
       meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, diff, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
-      meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
       /* Minilite */
       meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
     } else { /* Surelite goes first */
       /* Surelite */
       meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
-      meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, SURELITE_QSWITCH, 10.0E-6, 5.0, MEAS_BNC565_POL_INV);
       /* Minilite */
       meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, -diff, 10.0E-6, 5.0, MEAS_BNC565_POL_NORM); /* positive logic / TTL */
     }
-    /* camera on from t0 until flash */
-    meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_CHA, SURELITE_QSWITCH - CAMERA_DELAY, 200.0E-6, 5.0, MEAS_BNC565_POL_NORM);
+    /* camera shutter */
+    diff = fabs(diff) - 10.0E-6; /* 10 us to open the shutter */
+    if(diff < 0.0) diff = 0.0;
+    meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, diff, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
     /* end timings */
 
     intens = 0.0;
