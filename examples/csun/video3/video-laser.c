@@ -177,6 +177,7 @@ int main(int argc, char **argv) {
       meas_pdr2000_close(0); /*close port*/
       exit(1);
     }
+    printf("Current pressure = %le torr.\n", cur_press);
     meas_video_flush(cd);
     printf("Flash laser delay = %le s.\n", cur_time);
     /* Timings */
@@ -219,9 +220,9 @@ int main(int argc, char **argv) {
 
     if(filebase[0] != '0') {
       if(tstep != 0.0)
-	sprintf(filename, "%s-%he-%4.2d.pgm", filebase, cur_time, cur_press);
+	sprintf(filename, "%s-%he-%4.2lf.pgm", filebase, cur_time, cur_press);
       else
-	sprintf(filename, "%s-%he-%d-%4.2d.pgm", filebase, cur_time, nimg++, cur_press);
+	sprintf(filename, "%s-%he-%d-%4.2lf.pgm", filebase, cur_time, nimg++, cur_press);
       if(!(fp = fopen(filename, "w"))) {
 	fprintf(stderr, "Cannot write data to file.\n");
 	exit(1);
