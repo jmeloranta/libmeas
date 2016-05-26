@@ -48,7 +48,7 @@ static void exit_handler(void) {
 
 int main(int argc, char **argv) {
 
-  double tstep, cur_time, t0, reprate, tot_minilite, tot_surelite, diff, intens;
+  double tstep, cur_time, t0, reprate, tot_minilite, tot_surelite, diff, intens, cur_press;
   char filebase[512], filename[512];
   int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure, i, j;
   size_t frame_size;
@@ -76,6 +76,12 @@ int main(int argc, char **argv) {
   }
   
   printf("Running... press ctrl-c to stop.\n");
+
+  /*open pdr2000 port => pressure sensor*/
+  if(meas_pdr2000_open(0, "/dev/ttyUSB0") == -1) {
+    fprintf(stderr, "Cannot open port.\n");
+    exit(1);
+  }
 
   meas_bnc565_open(0, 0, BNC565);
   meas_dg535_open(0, 0, DG535);
@@ -162,6 +168,13 @@ int main(int argc, char **argv) {
   meas_video_read(cd, buffer, 1);
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
   for(cur_time = t0; ; cur_time += tstep) {
+    /* read pressure */
+    cur_press = meas_pdr2000_read(0, 1);
+    if(cur_press < 0.0) {
+      fprintf(stderr, "Cannot read data.\n");
+      meas_pdr2000_close(0); /*close port*/
+      exit(1);
+    }
     meas_video_flush(cd);
     printf("Flash laser delay = %le s.\n", cur_time);
     /* Timings */
@@ -201,13 +214,14 @@ int main(int argc, char **argv) {
 #endif
     meas_graphics_update_image(0, rgb);
     meas_graphics_update();
+
     if(filebase[0] != '0') {
-      if(tstep != 0.0) 
-	sprintf(filename, "%s-%le.pgm", filebase, cur_time);
+      if(tstep != 0.0)
+	sprintf(filename, "%s-%he-%4.2d.pgm", filebase, cur_time, cur_press);
       else
-	sprintf(filename, "%s-%le-%d.pgm", filebase, cur_time, nimg++);
+	sprintf(filename, "%s-%he-%d-%4.2d.pgm", filebase, cur_time, nimg++, cur_press);
       if(!(fp = fopen(filename, "w"))) {
-	fprintf(stderr, "Error writing file.\n");
+	fprintf(stderr, "Cannot write data to file.\n");
 	exit(1);
       }
 #ifdef VEHO
