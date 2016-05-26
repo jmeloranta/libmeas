@@ -19,7 +19,7 @@
 
 #define MINILITE_FIRE_DELAY 0.160E-6
 #define MINILITE_QSWITCH  182.52E-6
-#define SURELITE_FIRE_DELAY 0.350E-6
+#define SURELITE_FIRE_DELAY 0.314E-6
 #define SURELITE_QSWITCH  180E-6
 #define CAMERA_DELAY 20.0E-6    /* TODO: Check this (was 4E-6) */
 
@@ -114,11 +114,13 @@ int main(int argc, char **argv) {
 
   /* CCD camera shutter triggering from DG535 (from C\D) */
   meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
-  meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_CHC, 500E-6, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_CHC, 1500E-6, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   meas_dg535_set(0, MEAS_DG535_CHCD, 0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);  
 
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
   meas_dg535_run(0, MEAS_DG535_RUN);
+
+  sleep(4);
 
   cd = meas_video_open("/dev/video0", 2);
   frame_size = meas_video_set_format(cd, FORMAT, RESOL);
