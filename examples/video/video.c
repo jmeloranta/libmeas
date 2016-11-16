@@ -68,6 +68,7 @@ main() {
     else if(!strncmp(fmt.str, "Y800", 4) || !strncmp(fmt.str, "Y8", 2) || !strncmp(fmt.str, "GREY", 4))
       meas_image_y800_to_rgb3(buffer, rgb3, width, height);
     else if(!strncmp(fmt.str, "Y12", 3) || !strncmp(fmt.str, "Y16", 3)) meas_image_y16_to_rgb3(buffer, rgb3, width, height);
+    else if(!strncmp(fmt.str, "BA81", 4)) meas_image_ba81_to_rgb3(buffer, rgb3, width, height);
     else { printf("Unknown video format.\n"); break;}
     meas_image_scale_rgb3(rgb3, width, height, SCALE, rgb3s);
     meas_graphics_update_image(0, rgb3s);
