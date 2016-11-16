@@ -408,8 +408,8 @@ EXPORT meas_image_ba81_to_rgb(unsigned char *ba1, unsigned char *img_r, unsigned
 
   int i, j, ii, jj, w2 = width / 2;
 
-  for (i = 0; i < height/2; i++, ii += 2)
-    for (j = 0; j < w2; j++, jj += 2) {
+  for (i = ii = 0; i < height/2; i++, ii += 2)
+    for (j = jj = 0; j < w2; j++, jj += 2) {
       img_r[i * w2 + j] = ba1[(ii + 1) * width + (jj + 1)]; /* R11 */
       img_g[i * w2 + j] = (ba1[ii * width + (jj + 1)] + ba1[(ii + 1) * width + jj]) / 2;   /* average of G01 and G10 */
       img_b[i * w2 + j] = ba1[ii * width + jj]; /* B00 */
@@ -430,8 +430,8 @@ EXPORT meas_image_ba81_to_rgb3(unsigned char *ba1, unsigned char *rgb3, int widt
 
   int i, j, ii, jj, w2 = width / 2;
 
-  for (i = 0; i < height/2; i++, ii += 2)
-    for (j = 0; j < w2; j++, jj += 2) {
+  for (i = ii = 0; i < height/2; i++, ii += 2)
+    for (j = jj = 0; j < w2; j++, jj += 2) {
       rgb3[i * w2 * 3 + 3 * j    ] = ba1[(ii + 1) * width + (jj + 1)]; /* R11 */
       rgb3[i * w2 * 3 + 3 * j + 1] = (ba1[ii * width + (jj + 1)] + ba1[(ii + 1) * width + jj]) / 2;   /* average of G01 and G10 */
       rgb3[i * w2 * 3 + 3 * j + 2] = ba1[ii * width + jj]; /* B00 */

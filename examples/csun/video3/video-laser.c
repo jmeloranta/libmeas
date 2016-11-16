@@ -172,11 +172,11 @@ int main(int argc, char **argv) {
   for(cur_time = t0; ; cur_time += tstep) {
     /* read pressure */
     cur_press = meas_pdr2000_read(0, 1);
-    if(cur_press < 0.0) {
-      fprintf(stderr, "Cannot read data.\n");
-      meas_pdr2000_close(0); /*close port*/
-      exit(1);
-    }
+    //if(cur_press < 0.0) {
+    //  fprintf(stderr, "Cannot read data.\n");
+    //  meas_pdr2000_close(0); /*close port*/
+    //  exit(1);
+    //}
     printf("Current pressure = %le torr.\n", cur_press);
     meas_video_flush(cd);
     printf("Flash laser delay = %le s.\n", cur_time);
