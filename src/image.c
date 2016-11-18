@@ -430,7 +430,6 @@ EXPORT meas_image_ba81_to_rgb3(unsigned char *ba81, unsigned char *rgb3, int wid
 
   int i, j, ii, jj, w2 = width / 2, w4 = width / 4;
 
-  bzero(rgb3, sizeof(unsigned char) * w2 * height/2);
   for (i = ii = 0; i < height/4; i += 1, ii += 2) /* vertical */
     for (j = jj = 0; j < w4; j += 1, jj += 2) {   /* horzontal */
       /* 0 */
