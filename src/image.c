@@ -430,8 +430,9 @@ EXPORT meas_image_ba81_to_rgb3(unsigned char *ba81, unsigned char *rgb3, int wid
 
   int i, j, ii, jj, w2 = width / 2, w4 = width / 4;
 
-  for (i = ii = 0; i < height/2; i += 1, ii += 2) /* vertical */
-    for (j = jj = 0; j < w2; j += 1, jj += 2) {   /* horzontal */
+  bzero(rgb3, sizeof(unsigned char) * w2 * height/2);
+  for (i = ii = 0; i < height/4; i += 1, ii += 2) /* vertical */
+    for (j = jj = 0; j < w4; j += 1, jj += 2) {   /* horzontal */
       /* 0 */
       rgb3[ii * 3 * w2 + 3 * jj    ] = ba81[i * 16 * w4 + 16 * j + 5]; /* R11 */
       rgb3[ii * 3 * w2 + 3 * jj + 1] = (ba81[i * 16 * w4 + 16 * j + 1] + ba81[i * 16 * w4 + 16 * j + 4]) / 2;   /* average of G01 and G10 */
@@ -444,8 +445,8 @@ EXPORT meas_image_ba81_to_rgb3(unsigned char *ba81, unsigned char *rgb3, int wid
 
       /* 2 */
       rgb3[(ii+1) * 3 * w2 + 3 * jj    ] = ba81[i * 16 * w4 + 16 * j + 13]; /* R31 */
-      rgb3[(ii+1) * 3 * w2 + 3 * jj + 1] = (ba81[i * 16 * w4 + 16 * j + 9] + ba81[i * 16 * w4 + 16 * j + 16]) / 2;   /* average of G21 and G30 */
-      rgb3[(ii+1) * 3 * w2 + 3 * jj + 2] = ba81[i * 16 * w4 + 16 * j + 8]; /* B30 */
+      rgb3[(ii+1) * 3 * w2 + 3 * jj + 1] = (ba81[i * 16 * w4 + 16 * j + 9] + ba81[i * 16 * w4 + 16 * j + 12]) / 2;   /* average of G21 and G30 */
+      rgb3[(ii+1) * 3 * w2 + 3 * jj + 2] = ba81[i * 16 * w4 + 16 * j + 8]; /* B20 */
 
       /* 3 */
       rgb3[(ii+1) * 3 * w2 + 3 * (jj+1)    ] = ba81[i * 16 * w4 + 16 * j + 15]; /* R33 */

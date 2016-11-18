@@ -10,7 +10,7 @@ int ndevs = MAXDEVS;
 
 main() {
 
-  int i, d, f, r, width, height;
+  int i, d, f, r, width, height, been_here = 0;
   double mi, ma;
   unsigned int frame_size;
   unsigned char *buffer, *rgb3, *rgb3s;
@@ -42,7 +42,6 @@ main() {
   width = meas_video_get_width(d);
   height = meas_video_get_height(d);
   printf("Frame size %dX%d.\n", width, height);
-  meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, SCALE*width, SCALE*height, 0, "test");
   if(!(buffer = (unsigned char *) malloc(frame_size))) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
@@ -69,10 +68,14 @@ main() {
       meas_image_y800_to_rgb3(buffer, rgb3, width, height);
     else if(!strncmp(fmt.str, "Y12", 3) || !strncmp(fmt.str, "Y16", 3)) meas_image_y16_to_rgb3(buffer, rgb3, width, height);
     else if(!strncmp(fmt.str, "BA81", 4)) {
-      meas_image_ba81_to_rgb3(buffer, rgb3, width, height);
+      meas_image_ba81_to_rgb3(buffer, rgb3, meas_video_get_width(d), meas_video_get_width(d));
       width = meas_video_get_width(d)/2;
       height = meas_video_get_height(d)/2;
     } else { printf("Unknown video format.\n"); break;}
+    if(!been_here) {
+      been_here = 1;
+      meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, SCALE*width, SCALE*height, 0, "test");
+    }
     meas_image_scale_rgb3(rgb3, width, height, SCALE, rgb3s);
     meas_graphics_update_image(0, rgb3s);
     meas_graphics_update();
