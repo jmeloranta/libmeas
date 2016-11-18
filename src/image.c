@@ -393,7 +393,7 @@ EXPORT void meas_image_rgb3_horizontal_flip(unsigned char *rgb3, int width, int 
 }
 
 /*
- * Split BA81 format color image into R, G, B components.
+ * Split BA81 format color image into R, G, B components. Raw conversion - no interpolation.
  *
  * ba81   = array of pixel values (unsigned char *).
  * img_r  = array of red pixels (unsighed char *). Dimension is width / 2 x height / 2
@@ -402,17 +402,35 @@ EXPORT void meas_image_rgb3_horizontal_flip(unsigned char *rgb3, int width, int 
  * width  = image width in pixels of BA81 image (int).
  * height = image height in pixels of BA81 image (int).
  *
+ * TODO: clean up indexing
+ *
  */
 
 EXPORT meas_image_ba81_to_rgb(unsigned char *ba81, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, int width, int height) {
 
-  int i, j, ii, jj, w2 = width / 2;
+  int i, j, ii, jj, w2 = width / 2, w4 = width / 4;
 
-  for (i = ii = 0; i < height/2; i++, ii += 2)
-    for (j = jj = 0; j < w2; j++, jj += 2) {
-      img_r[i * w2 + j] = ba81[(ii + 1) * width + (jj + 1)]; /* R11 */
-      img_g[i * w2 + j] = (ba81[ii * width + (jj + 1)] + ba81[(ii + 1) * width + jj]) / 2;   /* average of G01 and G10 */
-      img_b[i * w2 + j] = ba81[ii * width + jj]; /* B00 */
+  for (i = ii = 0; i < height/4; i += 1, ii += 2) /* vertical */
+    for (j = jj = 0; j < w4; j += 1, jj += 2) {   /* horzontal */
+      /* 0 */
+      img_r[ii * w2 + jj] = ba81[i * 16 * w4 + 16 * j + 5]; /* R11 */
+      img_g[ii * w2 + jj] = (ba81[i * 16 * w4 + 16 * j + 1] + ba81[i * 16 * w4 + 16 * j + 4]) / 2;   /* average of G01 and G10 */
+      img_b[ii * w2 + jj] = ba81[i * 16 * w4 + 16 * j]; /* B00 */
+
+      /* 1 */
+      img_r[ii * w2 + (jj+1)] = ba81[i * 16 * w4 + 16 * j + 7]; /* R13 */
+      img_g[ii * w2 + (jj+1)] = (ba81[i * 16 * w4 + 16 * j + 3] + ba81[i * 16 * w4 + 16 * j + 6]) / 2;   /* average of G03 and G12 */
+      img_b[ii * w2 + (jj+1)] = ba81[i * 16 * w4 + 16 * j + 2]; /* B02 */
+
+      /* 2 */
+      img_r[(ii+1) * w2 + jj] = ba81[i * 16 * w4 + 16 * j + 13]; /* R31 */
+      img_g[(ii+1) * w2 + jj] = (ba81[i * 16 * w4 + 16 * j + 9] + ba81[i * 16 * w4 + 16 * j + 12]) / 2;   /* average of G21 and G30 */
+      img_b[(ii+1) * w2 + jj] = ba81[i * 16 * w4 + 16 * j + 8]; /* B20 */
+
+      /* 3 */
+      img_r[(ii+1) * w2 + (jj+1)] = ba81[i * 16 * w4 + 16 * j + 15]; /* R33 */
+      img_g[(ii+1) * w2 + (jj+1)] = (ba81[i * 16 * w4 + 16 * j + 11] + ba81[i * 16 * w4 + 16 * j + 14]) / 2;   /* average of G23 and G32 */
+      img_b[(ii+1) * w2 + (jj+1)] = ba81[i * 16 * w4 + 16 * j + 10]; /* B22 */
     }
 }
 
@@ -423,6 +441,8 @@ EXPORT meas_image_ba81_to_rgb(unsigned char *ba81, unsigned char *img_r, unsigne
  * rgb3  = array of red pixels (unsighed char *). Dimension is 3 * width / 2 x height / 2.
  * width  = image width in pixels (int) of BA81 image.
  * height = image height in pixels (int) of BA81 image.
+ *
+ * TODO: clean up indexing
  *
  */
 
