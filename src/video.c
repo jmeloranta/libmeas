@@ -430,11 +430,11 @@ EXPORT unsigned int meas_video_get_height(int cd) {
  *
  * d = Camera #.
  *
- * Returns pxiel format or -1 for error.
+ * Returns pixel format or -1 for error.
  *
  */
 
-EXPORT unsigned int meas_video_get_pxielformat(int cd) {
+EXPORT unsigned int meas_video_get_pixelformat(int cd) {
 
   if(cd < 0 || cd >= MEAS_VIDEO_MAXDEV || devices[cd].fd == -1) return -1;
   return devices[cd].current_format.fmt.pix.pixelformat;

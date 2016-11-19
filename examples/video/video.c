@@ -55,7 +55,7 @@ main() {
     exit(1);
   }
   printf("Frame size = %u bytes.\n", frame_size);
-  fmt.val = meas_video_get_pxielformat(d);
+  fmt.val = meas_video_get_pixelformat(d);
   printf("Image format = %c%c%c%c\n", fmt.str[0], fmt.str[1], fmt.str[2], fmt.str[3]);
   meas_video_info_controls(d);
   meas_video_start(d);
