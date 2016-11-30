@@ -412,9 +412,9 @@ EXPORT meas_image_ba81_to_rgb(unsigned char *ba81, unsigned char *img_r, unsigne
 
   for (i = 0; i < height/2; i++) /* vertical */
     for (j = 0; j < w2; j++) {   /* horzontal */
-      img_r[i * w2 + j] = ba81[(2 * i + 1) * width + (2 * j + 1)]; /* red */
-      img_g[i * w2 + j] = (ba81[2 * i * width + (2 * j + 1)] + ba81[(2 * i + 1) * width + 2 * j]) / 2; /* green */
-      img_b[i * w2 + j] = ba81[2 * i * width + 2 * j]; /* blue */
+      img_r[i * w2 + j]    = ba81[(2 * i + 1) * width + 2 * j]; /* red */
+      img_g[i * w2 + j] = (ba81[2 * i * width + 2 * j] + ba81[(2 * i + 1) * width + (2 * j + 1)]) / 2; /* green */
+      img_b[i * w2 + j] = ba81[2 * i * width + (2 * j + 1)]; /* blue */
     }
 }
 
@@ -433,11 +433,14 @@ EXPORT meas_image_ba81_to_rgb(unsigned char *ba81, unsigned char *img_r, unsigne
 EXPORT meas_image_ba81_to_rgb3(unsigned char *ba81, unsigned char *rgb3, int width, int height) {
 
   int i, j, w2 = width / 2;
-
+  unsigned int tmp;
+  
   for (i = 0; i < height/2; i++) /* vertical */
     for (j = 0; j < w2; j++) {   /* horzontal */
-      rgb3[i * 3 * w2  + 3 * j]    = ba81[(2 * i + 1) * width + (2 * j + 1)]; /* red */
-      rgb3[i * 3 * w2 + 3 * j + 1] = (ba81[2 * i * width + (2 * j + 1)] + ba81[(2 * i + 1) * width + 2 * j]) / 2; /* green */
+      rgb3[i * 3 * w2 + 3 * j + 0] = ba81[(2 * i + 1) * width + (2 * j + 1)]; /* red */
+      /* make sure not to overflow */
+      tmp = (((unsigned int) ba81[(2 * i + 1) * width + 2 * j]) + ((unsigned int) ba81[2 * i * width + (2 * j + 1)])) / 2; /* green */
+      rgb3[i * 3 * w2 + 3 * j + 1] = tmp;
       rgb3[i * 3 * w2 + 3 * j + 2] = ba81[2 * i * width + 2 * j]; /* blue */
     }
 }
