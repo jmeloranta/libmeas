@@ -406,15 +406,17 @@ EXPORT void meas_image_rgb3_horizontal_flip(unsigned char *rgb3, int width, int 
  *
  */
 
-EXPORT meas_image_ba81_to_rgb(unsigned char *ba81, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, int width, int height) {
+EXPORT void meas_image_ba81_to_rgb(unsigned char *ba81, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, int width, int height) {
 
   int i, j, w2 = width / 2;
+  unsigned int tmp;
 
   for (i = 0; i < height/2; i++) /* vertical */
     for (j = 0; j < w2; j++) {   /* horzontal */
-      img_r[i * w2 + j]    = ba81[(2 * i + 1) * width + 2 * j]; /* red */
-      img_g[i * w2 + j] = (ba81[2 * i * width + 2 * j] + ba81[(2 * i + 1) * width + (2 * j + 1)]) / 2; /* green */
-      img_b[i * w2 + j] = ba81[2 * i * width + (2 * j + 1)]; /* blue */
+      img_r[i * w2 + j] = ba81[(2 * i + 1) * width + (2 * j + 1)]; /* red */
+      tmp = (((unsigned int) ba81[(2 * i + 1) * width + 2 * j]) + ((unsigned int) ba81[2 * i * width + (2 * j + 1)])) / 2; /* green */      
+      img_g[i * w2 + j] = tmp;
+      img_b[i * w2 + j] = ba81[2 * i * width + 2 * j]; /* blue */
     }
 }
 
@@ -430,7 +432,7 @@ EXPORT meas_image_ba81_to_rgb(unsigned char *ba81, unsigned char *img_r, unsigne
  *
  */
 
-EXPORT meas_image_ba81_to_rgb3(unsigned char *ba81, unsigned char *rgb3, int width, int height) {
+EXPORT void meas_image_ba81_to_rgb3(unsigned char *ba81, unsigned char *rgb3, int width, int height) {
 
   int i, j, w2 = width / 2;
   unsigned int tmp;

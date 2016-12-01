@@ -69,6 +69,23 @@ main() {
     else if(!strncmp(fmt.str, "Y12", 3) || !strncmp(fmt.str, "Y16", 3)) meas_image_y16_to_rgb3(buffer, rgb3, width, height);
     else if(!strncmp(fmt.str, "BA81", 4)) {
       meas_image_ba81_to_rgb3(buffer, rgb3, meas_video_get_width(d), meas_video_get_height(d));
+#if 1
+      { 
+	unsigned char red[640*480], green[640*480], blue[640*480];
+	FILE *fp;
+	meas_image_ba81_to_rgb(buffer, red, green, blue, meas_video_get_width(d), meas_video_get_height(d));
+	if(!(fp = fopen("red", "w"))) {fprintf(stderr, "Error opening file.\n"); exit(1);}
+	meas_image_y800_to_pgm(fp, red, 640, 480);
+	fclose(fp);
+	if(!(fp = fopen("green", "w"))) {fprintf(stderr, "Error opening file.\n"); exit(1);}
+	meas_image_y800_to_pgm(fp, green, 640, 480);
+	fclose(fp);
+	if(!(fp = fopen("blue", "w"))) {fprintf(stderr, "Error opening file.\n"); exit(1);}
+	meas_image_y800_to_pgm(fp, blue, 640, 480);
+	fclose(fp);
+	sleep(5);
+      }
+#endif
       width = meas_video_get_width(d)/2;
       height = meas_video_get_height(d)/2;
     } else { printf("Unknown video format.\n"); break;}

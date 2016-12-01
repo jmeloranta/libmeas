@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
     printf("Diode delay = %le s.\n", cur_time);fflush(stdout);
     meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
     meas_video_read(cd, buffer, 1);
-    meas_image_ba81_to_rgb(buffer, red, green, blue, meas_video_get_width(cd), meas_video_get_height(d));
+    meas_image_ba81_to_rgb(buffer, red, green, blue, meas_video_get_width(cd), meas_video_get_height(cd));
     meas_image_y16_to_rgb3(red, rgb, width, height);
     meas_graphics_update_image(0, rgb);
     meas_image_y16_to_rgb3(green, rgb, width, height);
