@@ -215,7 +215,7 @@ EXPORT int meas_image_ppm_to_rgb3(FILE *fp, unsigned char *rgb3, unsigned int *w
  *
  */
 
-EXPORT int meas_image_pgm_to_y800(FILE *fp, unsigned int *y800, unsigned int *width, unsigned int *height) {
+EXPORT int meas_image_pgm_to_y800(FILE *fp, unsigned char *y800, unsigned int *width, unsigned int *height) {
 
   if(fscanf(fp, "P5%*[ \r\n\t]%u%*[ \r\n\t]%u%*[ \r\n\t]255%*[ \r\n\t]", width, height) != 2) return -1;
   fread((void *) y800, *width * *height, 1, fp);
@@ -281,7 +281,7 @@ EXPORT int meas_image_rgb3_to_ppm(FILE *fp, unsigned char *rgb3, unsigned int wi
  *
  */
 
-EXPORT int meas_image_y800_to_pgm(FILE *fp, unsigned int *yuv800, unsigned int width, unsigned int height) {
+EXPORT int meas_image_y800_to_pgm(FILE *fp, unsigned char *yuv800, unsigned int width, unsigned int height) {
 
   if(fprintf(fp, "P5\n") < 0) return -1;
   if(fprintf(fp, "%u %u\n", width, height) < 0) return -1;
