@@ -69,7 +69,7 @@ main() {
     else if(!strncmp(fmt.str, "Y12", 3) || !strncmp(fmt.str, "Y16", 3)) meas_image_y16_to_rgb3(buffer, rgb3, width, height);
     else if(!strncmp(fmt.str, "BA81", 4)) {
       meas_image_ba81_to_rgb3(buffer, rgb3, meas_video_get_width(d), meas_video_get_height(d));
-#if 1
+#if 0
       { 
 	unsigned char red[640*480], green[640*480], blue[640*480];
 	FILE *fp;
