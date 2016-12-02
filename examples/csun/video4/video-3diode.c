@@ -100,12 +100,12 @@ int main(int argc, char **argv) {
   meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_T0, MINILITE_FIRE_DELAY, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   
   /* Diode triggering (from channel D of DG535) */
-  meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
-  meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_CONTINUOUS, diode_npulses, diode_npulses, diode_delay1);
-  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, 0.0, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
-  meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_CONTINUOUS, diode_npulses, diode_npulses, diode_delay2);
-  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_CHB, 0.0, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
-  meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_CONTINUOUS, diode_npulses, diode_npulses, diode_delay3);
+  meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, diode_delay1, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
+  meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
+  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, diode_delay2, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
+  meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
+  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_CHB, diode_delay3, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
+  meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
 
   /* Clear other BNC565 channels just to be safe -- CHD not in use */
   meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, 0.0, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
       fprintf(stderr, "Can't open file for writing.\n");
       exit(1);
     }
-    fprintf(fp, "%.15le %.15le %lf %.15le %d %.15le %d\n", t0, tstep, diode_drive, diode_length, diode_npulses, diode_delay, gain);
+    fprintf(fp, "%.15le %.15le %lf %.15le %.15le %.15le %.15le %d\n", t0, tstep, diode_drive, diode_length, diode_delay1, diode_delay2, diode_delay3, gain);
     fclose(fp);
   }
   printf("Hit ctrl-C to exit...\n");

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <meas/meas.h>
 
-#define SCALE 1
+#define SCALE 2
 
 #define MAXDEVS 2
 char *devs[MAXDEVS];  /* actually file names can be longer but these video devices won't be */
