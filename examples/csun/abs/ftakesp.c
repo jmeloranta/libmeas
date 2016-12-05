@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
   int i, size;
   FILE *fp;
 
-  size = meas_newport_is_size();
+  size = meas_newport_is_size(0);
   if(!(x = (double *) malloc(sizeof(double) * size))) {
     fprintf(stderr,"Memory allocation failure.");
     exit(1);
