@@ -93,7 +93,7 @@ static unsigned char highbyte(unsigned short v) {
  *
  */
 
-int meas_newport_is_size(int cd) {
+EXPORT int meas_newport_is_size(int cd) {
 
   return 1024;
 }

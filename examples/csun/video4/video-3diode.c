@@ -39,7 +39,7 @@ static void exit_handler(void) {
 
 int main(int argc, char **argv) {
 
-  double tstep, cur_time, t0, diode_drive, diode_length, diode_delay1, diode_delay2, diode_delay3, reprate;
+  double tstep, cur_time, t0, diode_drive1, diode_drive2, diode_drive3, diode_length, diode_delay1, diode_delay2, diode_delay3, reprate;
   char filebase[512], filename[512];
   int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure;
   size_t frame_size;
@@ -53,8 +53,12 @@ int main(int argc, char **argv) {
   printf("Enter time step (microsec): ");
   scanf(" %le", &tstep);
   tstep *= 1E-6;
-  printf("Enter diode drive (V): ");
-  scanf(" %le", &diode_drive);
+  printf("Enter diode1 drive (V): ");
+  scanf(" %le", &diode_drive1);
+  printf("Enter diode2 drive (V): ");
+  scanf(" %le", &diode_drive2);
+  printf("Enter diode3 drive (V): ");
+  scanf(" %le", &diode_drive3);
   printf("Diode pulse length (microsec.): ");
   scanf(" %le", &diode_length);
   diode_length *= 1E-6;
@@ -100,15 +104,15 @@ int main(int argc, char **argv) {
   meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_T0, MINILITE_FIRE_DELAY, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
   
   /* Diode triggering (from channel D of DG535) */
-  meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, diode_delay1, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
+  meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, diode_delay1, diode_length, diode_drive1, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHA, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
-  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, diode_delay2, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
+  meas_bnc565_set(0, MEAS_BNC565_CHB, MEAS_BNC565_CHA, diode_delay2, diode_length, diode_drive2, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
-  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_CHB, diode_delay3, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
+  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_CHB, diode_delay3, diode_length, diode_drive3, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
 
   /* Clear other BNC565 channels just to be safe -- CHD not in use */
-  meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, 0.0, diode_length, diode_drive, MEAS_BNC565_POL_NORM);
+  meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, 0.0, diode_length, diode_drive3, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHD, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0.0);
 
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
@@ -154,7 +158,7 @@ int main(int argc, char **argv) {
       fprintf(stderr, "Can't open file for writing.\n");
       exit(1);
     }
-    fprintf(fp, "%.15le %.15le %lf %.15le %.15le %.15le %.15le %d\n", t0, tstep, diode_drive, diode_length, diode_delay1, diode_delay2, diode_delay3, gain);
+    fprintf(fp, "%.15le %.15le %lf %lf %lf %.15le %.15le %.15le %.15le %d\n", t0, tstep, diode_drive1, diode_drive2, diode_drive3, diode_length, diode_delay1, diode_delay2, diode_delay3, gain);
     fclose(fp);
   }
   printf("Hit ctrl-C to exit...\n");
@@ -171,11 +175,11 @@ int main(int argc, char **argv) {
     meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
     meas_video_read(cd, buffer, 1);
     meas_image_ba81_to_rgb(buffer, red, green, blue, meas_video_get_width(cd), meas_video_get_height(cd));
-    meas_image_y16_to_rgb3(red, rgb, width, height);
+    meas_image_y800_to_rgb3(red, rgb, width, height);
     meas_graphics_update_image(0, rgb);
-    meas_image_y16_to_rgb3(green, rgb, width, height);
+    meas_image_y800_to_rgb3(green, rgb, width, height);
     meas_graphics_update_image(1, rgb);
-    meas_image_y16_to_rgb3(blue, rgb, width, height);
+    meas_image_y800_to_rgb3(blue, rgb, width, height);
     meas_graphics_update_image(2, rgb);
     meas_graphics_update();
     if(filebase[0] != '0') {
