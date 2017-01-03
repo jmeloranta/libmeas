@@ -1,16 +1,29 @@
 /* 
  * DG535 (Master clock):
- * A -> Minilite trigger (Flash lamp)
- * B -> Minilite trigger (Q-switch)
- * C -> CCD shutter (exposure)
- * D -> BNC565 ext trigger in (diode trgger)
+ * A -> Minilite trigger (Flash lamp; TTL high Z)
+ * B -> Minilite trigger (Q-switch; TTL high Z)
+ * C -> CCD shutter (exposure; TTL high Z)
+ * D -> BNC565 ext trigger in (diode trgger through BNC565)
  * 
  * BNC565 (slave):
- * A -> Diode(R) flash signal
- * B -> Diode(G) flash signal
- * C -> Diode(B) flash signal
+ * A -> Diode(R) flash signal (tri-color LED; up to 12 V)
+ * B -> Diode(G) flash signal (tri-color LED; up to 12 V)
+ * C -> Diode(B) flash signal (tri-color LED) up to 12 V)
+ * D -> Not in use
  * 
- * CCD = DFK 23U445 (ImagingSource)
+ * CCD = DFK 23U445 (ImagingSource; USB3)
+ *
+ * NOTE: THe old BNC one channel delay gnerator is no longer needed.
+ *   
+ *  ---------                               -----------                -------------                ------------
+ *  !       !                               !         !                !           !                !          !
+ *  !  Abl  !                               ! Red LED !                ! Green LED !                ! Blue LED !    ....
+ *  ! laser !   <t0+tstep> + <diode_delay1> !         ! <diode_delay2> !           ! <diode_delay3> !          !
+ *  !       !                               !         !                !           !                !          !
+ * --------------------------------------------------------------------------------------------------------------------------
+ *  Time ->
+ *
+ * The first delay can be scanned in increments of tstep. The CCD (global mechanical shutter) is open during the diode sequence.
  *
  */
 
@@ -47,7 +60,7 @@ int main(int argc, char **argv) {
 
   printf("Enter output file name (0 = no save): ");
   scanf("%s", filebase);
-  printf("Enter T0 (microsec): ");
+  printf("Enter T0 (microsec): ");    /* adjustable delay between ablation laser and the diode sequence */
   scanf("%le", &t0);
   t0 *= 1E-6;
   printf("Enter time step (microsec): ");
@@ -76,7 +89,11 @@ int main(int argc, char **argv) {
   scanf(" %d", &gain);
   printf("Enter repetition rate (10 Hz): ");
   scanf(" %le", &reprate);
-
+  if(reprate > 10.0) {
+    fprintf(stderr, "Repetition rate too high.\n");
+    exit(1);
+  }
+  
   printf("Running... press ctrl-c to stop.\n");
 
   meas_bnc565_open(0, 0, BNC565);
@@ -92,16 +109,16 @@ int main(int argc, char **argv) {
   meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 2.0, MEAS_BNC565_TRIG_RISE);
 
   /* Surelite flash lamp */
-  meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
 
   /* Surelite Q-switch */
   meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_T0, QSWITCH, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
   
   /* Camera shutter trigger */
-  meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, MINILITE_FIRE_DELAY - CAMERA_DELAY, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, MINILITE_FIRE_DELAY - CAMERA_DELAY, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
   
   /* Diode triggering through BNC565 */
-  meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_T0, MINILITE_FIRE_DELAY, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_T0, MINILITE_FIRE_DELAY, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
   
   /* Diode triggering (from channel D of DG535) */
   meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, diode_delay1, diode_length, diode_drive1, MEAS_BNC565_POL_NORM);
