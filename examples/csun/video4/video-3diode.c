@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
   meas_dg535_trigger(0, MEAS_DG535_TRIG_INT, reprate, 0, MEAS_DG535_IMP_50);
 
   /* BNC565 to external trigger (slave) */
-  meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 11.0, MEAS_BNC565_TRIG_RISE);
+  meas_bnc565_trigger(0, MEAS_BNC565_TRIG_EXT, 2.0, MEAS_BNC565_TRIG_RISE);
 
   /* Surelite flash lamp */
   meas_dg535_set(0, MEAS_DG535_CHA, MEAS_DG535_T0, 0.0, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
   meas_dg535_set(0, MEAS_DG535_CHB, MEAS_DG535_T0, QSWITCH, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
   
   /* Camera shutter trigger */
-  meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, MINILITE_FIRE_DELAY - CAMERA_DELAY, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+  meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, MINILITE_FIRE_DELAY - CAMERA_DELAY, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
   
   /* Diode triggering through BNC565 */
   meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_T0, MINILITE_FIRE_DELAY, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_HIGH);
@@ -204,23 +204,25 @@ int main(int argc, char **argv) {
       if(tstep != 0.0) 
 	sprintf(filename, "%s-%le-red.pgm", filebase, cur_time);
       else
-	sprintf(filename, "%s-%le-%d-red.pgm", filebase, cur_time, nimg++);
+	sprintf(filename, "%s-%le-%d-red.pgm", filebase, cur_time, nimg);
       if(!(fp = fopen(filename, "w"))) {
 	fprintf(stderr, "Error writing file.\n");
 	exit(1);
       }
-      meas_image_y16_to_pgm(fp, red, width, height);
+      /* was y16 by mistake */
+      meas_image_y800_to_pgm(fp, red, width, height);
       fclose(fp);
       /* green */
       if(tstep != 0.0) 
 	sprintf(filename, "%s-%le-green.pgm", filebase, cur_time);
       else
-	sprintf(filename, "%s-%le-%d-green.pgm", filebase, cur_time, nimg++);
+	sprintf(filename, "%s-%le-%d-green.pgm", filebase, cur_time, nimg);
       if(!(fp = fopen(filename, "w"))) {
 	fprintf(stderr, "Error writing file.\n");
 	exit(1);
       }
-      meas_image_y16_to_pgm(fp, green, width, height);
+      /* was y16 by mistake */
+      meas_image_y800_to_pgm(fp, green, width, height);
       fclose(fp);
       /* blue */
       if(tstep != 0.0) 
@@ -231,7 +233,8 @@ int main(int argc, char **argv) {
 	fprintf(stderr, "Error writing file.\n");
 	exit(1);
       }
-      meas_image_y16_to_pgm(fp, blue, width, height);
+      /* was y16 by mistake */
+      meas_image_y800_to_pgm(fp, blue, width, height);
       fclose(fp);
     }
   }
