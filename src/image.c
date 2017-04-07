@@ -105,7 +105,7 @@ EXPORT void meas_image_yuv_to_rgb3(unsigned char *yuv, unsigned char *rgb3, unsi
 }
 
 /*
- * Conver RGB3 to YUV.
+ * Convert RGB3 to YUV.
  *
  * yuv    = YUV image (source).
  * rgb    = RGB3 image (destination).
@@ -181,6 +181,64 @@ EXPORT void meas_image_yuv422_to_rgb3(unsigned char *yuv, unsigned char *rgb3, u
     if(tmp < 0.0) tmp = 0.0;
     if(tmp > 255.0) tmp = 255.0;
     rgb3[i+5] = (unsigned char) tmp;
+  }
+}
+
+/*
+ * Convert YUV422 to RGB.
+ *
+ * yuv    = YUV image (source).
+ * red    = red image (destination).
+ * green  = red image (destination).
+ * blue   = red image (destination).
+ * width  = Image width.
+ * height = Image height.
+ *
+ */
+
+EXPORT void meas_image_yuv422_to_rgb(unsigned char *yuv, unsigned char *red, unsigned char *green, unsigned char *blue, unsigned int width, unsigned int height) {
+
+  int i, j;
+  double tmp;
+  unsigned char y1, y2, u, v;
+
+  /* for two pixels: 4 bytes of YUV (butes / pixel) -> 6 bytes of RGB (3 bytes/pixel) */
+  for(i = j = 0; i < height * width; i += 2, j += 4) {
+    /* two pixels interleaved */
+    y1 = yuv[j];
+    y2 = yuv[j+2];
+    u = yuv[j+1];
+    v = yuv[j+3];
+    /* yuv -> rgb */
+    tmp = (1.164 * (((double) y1) - 16.0) + 1.596 * (((double) v) - 128.0));
+    if(tmp < 0.) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    red[i] = (unsigned char) tmp;
+    
+    tmp = (1.164 * (((double) y1) - 16.0) - 0.813 * (((double) v) - 128.0) - 0.391 * (((double) u) - 128.0));
+    if(tmp < 0.0) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    green[i] = (unsigned char) tmp;
+    
+    tmp = (1.164 * (((double) y1) - 16.0) + 2.018 * (((double) u) - 128.0));
+    if(tmp < 0.0) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    blue[i] = (unsigned char) tmp;
+
+    tmp = (1.164 * (((double) y2) - 16.0) + 1.596 * (((double) v) - 128.0));
+    if(tmp < 0.0) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    red[i+1] = (unsigned char) tmp;
+    
+    tmp = (1.164 * (((double) y2) - 16.0) - 0.813 * (((double) v) - 128.0) - 0.391 * (((double) u) - 128.0));
+    if(tmp < 0.0) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    green[i+1] = (unsigned char) tmp;
+    
+    tmp = (1.164 * (((double) y2) - 16.0) + 2.018 * (((double) u) - 128.0));
+    if(tmp < 0.0) tmp = 0.0;
+    if(tmp > 255.0) tmp = 255.0;
+    blue[i+1] = (unsigned char) tmp;
   }
 }
 
@@ -413,10 +471,10 @@ EXPORT void meas_image_ba81_to_rgb(unsigned char *ba81, unsigned char *img_r, un
 
   for (i = 0; i < height/2; i++) /* vertical */
     for (j = 0; j < w2; j++) {   /* horzontal */
-      img_r[i * w2 + j] = ba81[(2 * i + 1) * width + (2 * j + 1)]; /* red */
+      if(img_r) img_r[i * w2 + j] = ba81[(2 * i + 1) * width + (2 * j + 1)]; /* red */
       tmp = (((unsigned int) ba81[(2 * i + 1) * width + 2 * j]) + ((unsigned int) ba81[2 * i * width + (2 * j + 1)])) / 2; /* green */      
-      img_g[i * w2 + j] = tmp;
-      img_b[i * w2 + j] = ba81[2 * i * width + 2 * j]; /* blue */
+      if(img_g) img_g[i * w2 + j] = tmp;
+      if(img_b) img_b[i * w2 + j] = ba81[2 * i * width + 2 * j]; /* blue */
     }
 }
 

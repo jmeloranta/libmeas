@@ -74,6 +74,10 @@ int main(int argc, char **argv) {
   scanf(" %d", &gain);
   printf("Enter repetition rate (10 Hz): ");
   scanf(" %le", &reprate);
+  if(reprate > 10.0) {
+    fprintf(stderr, "Repetition rate too high.\n");
+    exit(1);
+  }
 
   printf("Running... press ctrl-c to stop.\n");
 

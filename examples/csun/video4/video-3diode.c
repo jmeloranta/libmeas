@@ -39,8 +39,16 @@
 #define DG535  16
 #define BNC565 15
 
+#define VEHO 1  /* Use Veho microscope */
+/* #define DFK23U445 1 /* Use Imaging Source DFK 23U445 (color) camera */
+
+#ifdef VEHO
+#define FORMAT 0    /* YUV422 for veho */
+#define RESOL 0
+#else
 #define FORMAT 0    /* BA81 for DFK 23U445 */
 #define RESOL  0
+#endif
 
 unsigned char *rgb, *red, *green, *blue, *buffer;
 
@@ -54,7 +62,7 @@ int main(int argc, char **argv) {
 
   double tstep, cur_time, t0, diode_drive1, diode_drive2, diode_drive3, diode_length, diode_delay1, diode_delay2, diode_delay3, reprate;
   char filebase[512], filename[512];
-  int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure;
+  int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure, dev;
   size_t frame_size;
   FILE *fp;
 
@@ -85,7 +93,11 @@ int main(int argc, char **argv) {
   printf("DelayB between diode(G) and diode(B) (microsec.): ");
   scanf(" %le", &diode_delay3);
   diode_delay3 *= 1E-6;
+#ifdef VEHO
+  printf("Camera gain (-16 to 16): ");
+#else
   printf("Camera gain (0, 3039): ");
+#endif
   scanf(" %d", &gain);
   printf("Enter repetition rate (10 Hz): ");
   scanf(" %le", &reprate);
@@ -93,6 +105,8 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Repetition rate too high.\n");
     exit(1);
   }
+  printf("Video device (0, 1, 2, ...): ");
+  scanf(" %d", &dev);
   
   printf("Running... press ctrl-c to stop.\n");
 
@@ -135,10 +149,16 @@ int main(int argc, char **argv) {
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
   meas_dg535_run(0, MEAS_DG535_RUN); /* start unit */
 
-  cd = meas_video_open("/dev/video0", 2);
+  sprintf(filename, "/dev/video%d", dev);  
+  cd = meas_video_open(filename, 2);
   frame_size = meas_video_set_format(cd, FORMAT, RESOL);
+#ifdef VEHO
+  width = meas_video_get_width(cd);
+  height = meas_video_get_height(cd);
+#else
   width = meas_video_get_width(cd)/2;
   height = meas_video_get_height(cd)/2;
+#endif
   meas_graphics_open(0, MEAS_GRAPHICS_IMAGE, width, height, 0, "red");
   meas_graphics_open(1, MEAS_GRAPHICS_IMAGE, width, height, 0, "green");
   meas_graphics_open(2, MEAS_GRAPHICS_IMAGE, width, height, 0, "blue");
@@ -163,11 +183,17 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Out of memory.\n");
     exit(1);
   }
+#ifdef VEHO
+  meas_video_set_control(cd, meas_video_get_control_id(cd, "exposure_auto"), &zero); /* manual exposure */
+  meas_video_exposure_time(cd, 1250);  /* exposure time: removes the scanline artefact (rolling shutter); 1250 seems good */
+  meas_video_set_brightness(cd, gain);
+#else
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &zero); /* External trigger */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Delay"), &zero); /* Immediate triggering, no delay */
   exposure = 100;   /* 1 msec in units of 10 microsec */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Exposure (Absolute)"), &exposure);
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Gain (dB/100)"), &gain);
+#endif
   meas_video_info_controls(cd);
   if(filebase[0] != '0') {
     sprintf(filename, "%s.info", filebase);
@@ -186,12 +212,22 @@ int main(int argc, char **argv) {
   meas_video_read(cd, buffer, 1);
   meas_video_read(cd, buffer, 1);  /* TODO: why do we need to fill buffers before switching to ext trigger? */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
+  // TODO: Why is this hack needed? Otherwise external triggering gets stuck...
+  sleep(1);
+  meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &zero); /* External trigger */
+  sleep(1);
+  meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
+  // End hack
   for(cur_time = t0; ; cur_time += tstep) {
     meas_video_flush(cd);   // make sure that we get the frame with current delay settings
     printf("Diode delay = %le s.\n", cur_time);fflush(stdout);
     meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
     meas_video_read(cd, buffer, 1);
+#ifdef VEHO
+    meas_image_yuv422_to_rgb(buffer, red, green, blue, meas_video_get_width(cd), meas_video_get_height(cd));
+#else
     meas_image_ba81_to_rgb(buffer, red, green, blue, meas_video_get_width(cd), meas_video_get_height(cd));
+#endif
     meas_image_y800_to_rgb3(red, rgb, width, height);
     meas_graphics_update_image(0, rgb);
     meas_image_y800_to_rgb3(green, rgb, width, height);
