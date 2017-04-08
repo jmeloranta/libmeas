@@ -43,7 +43,7 @@
 /* #define DFK23U445 1 /* Use Imaging Source DFK 23U445 (color) camera */
 
 #ifdef VEHO
-#define FORMAT 0    /* YUV422 for veho */
+#define FORMAT 1    /* RGB3 for veho */
 #define RESOL 0
 #else
 #define FORMAT 0    /* BA81 for DFK 23U445 */
