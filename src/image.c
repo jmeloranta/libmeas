@@ -514,3 +514,26 @@ EXPORT void meas_image_ba81_to_rgb3(unsigned char *ba81, unsigned char *rgb3, in
       rgb3[i * 3 * w2 + 3 * j + 2] = ba81[2 * i * width + 2 * j]; /* blue */
     }
 }
+
+/*
+ * Separate colors from rgb3 image.
+ *
+ * rgb3   = Input image (unsigned char *)
+ * red    = Output red image (unsigned char *)
+ * green  = Output green image (unsigned char *)
+ * blue   = Output blue image (unsigned char *)
+ * width  = Image width (int)
+ * height = Image height (int)
+ *
+ */
+
+EXPORT void meas_image_rgb3_to_rgb(unsigned char *rgb3, unsigned char *red, unsigned char *green, unsigned char *blue, int width, int height) {
+
+  int i, j;
+
+  for (i = j = 0; j < width * height; i += 3, j++) {
+    red[j] = rgb3[i];
+    green[j] = rgb3[i+1];
+    blue[j] = rgb3[i+2];
+  }
+}
