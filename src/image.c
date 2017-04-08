@@ -151,6 +151,15 @@ EXPORT void meas_image_yuv422_to_rgb3(unsigned char *yuv, unsigned char *rgb3, u
     y2 = yuv[j+2];
     u = yuv[j+1];
     v = yuv[j+3];
+#if 1
+    tmp = y1 + (1.403 * (char) v); if(tmp < 0) rgb3[i] = 0; else if (tmp > 255) rgb3[i] = 255; else rgb3[i] = (unsigned char) tmp;
+    tmp = y1 - (0.344 * (char) u) - (0.714 * (char) v); if (tmp < 0) rgb3[i+1] = 0; else if (tmp > 255) rgb3[i+1] = 255; else rgb3[i+1] = (unsigned char) tmp;
+    tmp = y1 + (1.770 * (char) u); if (tmp < 0) rgb3[i+2] = 0; else if (tmp > 255) rgb3[i+2] = 255; else rgb3[i+2] = (unsigned char) tmp;
+
+    tmp = y2 + (1.403 * (char) v); if(tmp < 0) rgb3[i+3] = 0; else if (tmp > 255) rgb3[i+3] = 255; else rgb3[i+3] = (unsigned char) tmp;
+    tmp = y2 - (0.344 * (char) u) - (0.714 * (char) v); if (tmp < 0) rgb3[i+4] = 0; else if (tmp > 255) rgb3[i+4] = 255; else rgb3[i+4] = (unsigned char) tmp;
+    tmp = y2 + (1.770 * (char) u); if (tmp < 0) rgb3[i+5] = 0; else if (tmp > 255) rgb3[i+5] = 255; else rgb3[i+5] = (unsigned char) tmp;
+#else
     /* yuv -> rgb */
     tmp = (1.164 * (((double) y1) - 16.0) + 1.596 * (((double) v) - 128.0));
     if(tmp < 0.) tmp = 0.0;
@@ -181,6 +190,7 @@ EXPORT void meas_image_yuv422_to_rgb3(unsigned char *yuv, unsigned char *rgb3, u
     if(tmp < 0.0) tmp = 0.0;
     if(tmp > 255.0) tmp = 255.0;
     rgb3[i+5] = (unsigned char) tmp;
+#endif
   }
 }
 
