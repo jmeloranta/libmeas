@@ -151,7 +151,8 @@ EXPORT void meas_image_yuv422_to_rgb3(unsigned char *yuv, unsigned char *rgb3, u
     y2 = yuv[j+2];
     u = yuv[j+1];
     v = yuv[j+3];
-#if 1
+    /* There are many different variants of this conversion out there :-( */
+#if 0
     tmp = y1 + (1.403 * (char) v); if(tmp < 0) rgb3[i] = 0; else if (tmp > 255) rgb3[i] = 255; else rgb3[i] = (unsigned char) tmp;
     tmp = y1 - (0.344 * (char) u) - (0.714 * (char) v); if (tmp < 0) rgb3[i+1] = 0; else if (tmp > 255) rgb3[i+1] = 255; else rgb3[i+1] = (unsigned char) tmp;
     tmp = y1 + (1.770 * (char) u); if (tmp < 0) rgb3[i+2] = 0; else if (tmp > 255) rgb3[i+2] = 255; else rgb3[i+2] = (unsigned char) tmp;

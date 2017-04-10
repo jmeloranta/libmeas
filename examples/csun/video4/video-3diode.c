@@ -43,7 +43,7 @@
 /* #define DFK23U445 1 /* Use Imaging Source DFK 23U445 (color) camera */
 
 #ifdef VEHO
-#define FORMAT 1    /* RGB3 for veho */
+#define FORMAT 0    /* Only YUV422 available */
 #define RESOL 0
 #else
 #define FORMAT 0    /* BA81 for DFK 23U445 */
@@ -153,8 +153,10 @@ int main(int argc, char **argv) {
   cd = meas_video_open(filename, 2);
   meas_video_info_camera(cd);
   frame_size = meas_video_set_format(cd, FORMAT, RESOL);
-  printf("Frame size = %ld\n", frame_size);
-  exit(0);
+  if(!frame_size) {
+    fprintf(stderr, "Illegal video format.\n");
+    exit(1);
+  }
 #ifdef VEHO
   width = meas_video_get_width(cd);
   height = meas_video_get_height(cd);
@@ -212,22 +214,25 @@ int main(int argc, char **argv) {
   atexit(&exit_handler);
 
   meas_video_start(cd);
-  meas_video_read(cd, buffer, 1);
-  meas_video_read(cd, buffer, 1);  /* TODO: why do we need to fill buffers before switching to ext trigger? */
+  meas_video_flush(cd);
+  //meas_video_read(cd, buffer, 1);
+  //meas_video_read(cd, buffer, 1);  /* TODO: why do we need to fill buffers before switching to ext trigger? */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
+#if 0
   // TODO: Why is this hack needed? Otherwise external triggering gets stuck...
   sleep(1);
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &zero); /* External trigger */
   sleep(1);
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
   // End hack
+#endif
   for(cur_time = t0; ; cur_time += tstep) {
     meas_video_flush(cd);   // make sure that we get the frame with current delay settings
     printf("Diode delay = %le s.\n", cur_time);fflush(stdout);
     meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
     meas_video_read(cd, buffer, 1);
 #ifdef VEHO
-    meas_image_rgb3_to_rgb(buffer, red, green, blue, meas_video_get_width(cd), meas_video_get_height(cd));
+    meas_image_yuv422_to_rgb(buffer, red, green, blue, meas_video_get_width(cd), meas_video_get_height(cd));
 #else
     meas_image_ba81_to_rgb(buffer, red, green, blue, meas_video_get_width(cd), meas_video_get_height(cd));
 #endif
