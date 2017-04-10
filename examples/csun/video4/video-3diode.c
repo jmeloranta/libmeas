@@ -151,7 +151,10 @@ int main(int argc, char **argv) {
 
   sprintf(filename, "/dev/video%d", dev);  
   cd = meas_video_open(filename, 2);
+  meas_video_info_camera(cd);
   frame_size = meas_video_set_format(cd, FORMAT, RESOL);
+  printf("Frame size = %ld\n", frame_size);
+  exit(0);
 #ifdef VEHO
   width = meas_video_get_width(cd);
   height = meas_video_get_height(cd);
@@ -224,7 +227,7 @@ int main(int argc, char **argv) {
     meas_dg535_set(0, MEAS_DG535_CHD, MEAS_DG535_T0, MINILITE_FIRE_DELAY + cur_time, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
     meas_video_read(cd, buffer, 1);
 #ifdef VEHO
-    meas_image_yuv422_to_rgb(buffer, red, green, blue, meas_video_get_width(cd), meas_video_get_height(cd));
+    meas_image_rgb3_to_rgb(buffer, red, green, blue, meas_video_get_width(cd), meas_video_get_height(cd));
 #else
     meas_image_ba81_to_rgb(buffer, red, green, blue, meas_video_get_width(cd), meas_video_get_height(cd));
 #endif

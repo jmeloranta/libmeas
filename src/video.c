@@ -376,6 +376,8 @@ EXPORT int meas_video_open(char *device, int nbuffers) {
     return -1;
   }
 
+  bcopy(&tmp, &(devices[cd].camera_info), sizeof(struct v4l2_capability));
+  
   setup_cropping(cd);
 
   enumerate_formats(cd);
@@ -456,6 +458,8 @@ EXPORT int meas_video_info_camera(int cd) {
   if(!been_here || cd >= MEAS_VIDEO_MAXDEV || cd < 0 || devices[cd].fd == -1) return -1;
   
   printf("Camera %d\n", cd);
+  printf("Camera info: %s\n", devices[cd].camera_info.card);
+  printf("Camera driver: %s\n", devices[cd].camera_info.driver);
   for (i = 0; i < devices[cd].nframe_formats; i++) {
     printf("Format %d/%s with resolutions:\n", i, devices[cd].frame_formats[i]->description);
     for (j = 0; j < devices[cd].nframe_sizes[i]; j++)
