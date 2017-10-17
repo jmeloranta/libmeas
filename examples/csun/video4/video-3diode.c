@@ -43,7 +43,7 @@
 /* #define DFK23U445 1 /* Use Imaging Source DFK 23U445 (color) camera */
 
 #ifdef VEHO
-#define FORMAT 1    /* RGB3 for veho */
+#define FORMAT 0    /* Only YUV422 available */
 #define RESOL 0
 #else
 #define FORMAT 0    /* BA81 for DFK 23U445 */
@@ -151,7 +151,12 @@ int main(int argc, char **argv) {
 
   sprintf(filename, "/dev/video%d", dev);  
   cd = meas_video_open(filename, 2);
+  meas_video_info_camera(cd);
   frame_size = meas_video_set_format(cd, FORMAT, RESOL);
+  if(!frame_size) {
+    fprintf(stderr, "Illegal video format.\n");
+    exit(1);
+  }
 #ifdef VEHO
   width = meas_video_get_width(cd);
   height = meas_video_get_height(cd);
@@ -209,15 +214,18 @@ int main(int argc, char **argv) {
   atexit(&exit_handler);
 
   meas_video_start(cd);
-  meas_video_read(cd, buffer, 1);
-  meas_video_read(cd, buffer, 1);  /* TODO: why do we need to fill buffers before switching to ext trigger? */
+  meas_video_flush(cd);
+  //meas_video_read(cd, buffer, 1);
+  //meas_video_read(cd, buffer, 1);  /* TODO: why do we need to fill buffers before switching to ext trigger? */
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
+#if 0
   // TODO: Why is this hack needed? Otherwise external triggering gets stuck...
   sleep(1);
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &zero); /* External trigger */
   sleep(1);
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
   // End hack
+#endif
   for(cur_time = t0; ; cur_time += tstep) {
     meas_video_flush(cd);   // make sure that we get the frame with current delay settings
     printf("Diode delay = %le s.\n", cur_time);fflush(stdout);
