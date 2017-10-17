@@ -7,7 +7,8 @@ PIUSER=eloranta
 # Directory for the linux gpib package
 GPIB="/home/eloranta/linux-gpib-3.2.20"
 # GPIB board driver
-GPIB_DRIVER=tnt4882
+#GPIB_DRIVER=tnt4882
+GPIB_DRIVER=gpib_bitbang
 
 # Princeton camera
 modprobe pipci

@@ -1,6 +1,11 @@
 
 libmeas - a simplified C programming interface for research instruments (Linux).
 
+Note: Everything here works well on Raspberry Pi 3 (with the exception of
+the PVCAM camera interface, which is a proprietary PC only interface). PVCAM
+is only needed for the pi-max CCD camera. Skip the pi-max related steps below
+if this camera is not used.
+
 1. Supported devices:
 ---------------------
 
@@ -47,7 +52,8 @@ comments there. Look also at the example applications under examples directory.
 ----------
 
 The code is licensed according to ./COPYING with the exception of the
-files under pi-max and uvc-imagingsource, which were written by others.
+files under pi-max, uvc-imagingsource, and rpi3-gpib, which were written by 
+others.
 
 jmeloranta@gmail.com
 
