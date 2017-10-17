@@ -1,44 +1,14 @@
 #!/bin/bash
 
-# Directory for the PI-MAX driver
-PIMAX="/home/eloranta/libmeas/pi-max/pci-driver"
-# PI-MAX user
-PIUSER=eloranta
-# Directory for the linux gpib package
-GPIB="/home/eloranta/linux-gpib-3.2.20"
-# GPIB board driver
+# GPIB board driver (tnt4882 is the NI pci card; gpib_bitbang raspi3 GPIO line hack)
 #GPIB_DRIVER=tnt4882
 GPIB_DRIVER=gpib_bitbang
 
-# Princeton camera
-modprobe pipci
-if [ $? -ne 0 ]; then 
-  echo "Princeton module load failed -- attempting recompile"
-  cd $PIMAX
-  make clean
-  make
-  make install
-  modprobe pipci
-fi
-/usr/bin/mknod /dev/rspipci0 c 177 0
-/usr/bin/chown $PIUSER /dev/rspipci0
-/usr/bin/chmod 700 /dev/rspipci0
-
-# GPIB board
-modprobe $GPIB_DRIVER
-if [ $? -ne 0 ]; then 
-  echo "GPIB module load failed -- attempting recompile"
-  cd $GPIB
-  make clean
-  ./configure --prefix=/usr
-  make
-  make install
-  modprobe $GPIB_DRIVER
-fi
+/usr/sbin/modprobe $GPIB_DRIVER
 /usr/sbin/gpib_config --minor 0
 # Without the following sleep, the owners & permissions go wrong...
 sleep 2
 /usr/bin/chgrp gpib /dev/gpib*
-/usr/bin/chmod 770 /dev/gpib*
 # After this, accessible to users in gpib group
+/usr/bin/chmod 770 /dev/gpib*
 exit 0

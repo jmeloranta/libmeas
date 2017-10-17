@@ -1,0 +1,1 @@
+In new Fedora systems, this should go to /etc/rc.d/rc.local (and chmod +x it).
