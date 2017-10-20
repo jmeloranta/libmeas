@@ -13,7 +13,7 @@
  * 
  * CCD = DFK 23U445 (ImagingSource; USB3)
  *
- * NOTE: THe old BNC one channel delay gnerator is no longer needed.
+ * NOTE: The old BNC one channel delay gnerator is no longer needed.
  *   
  *  ---------                               -----------                -------------                ------------
  *  !       !                               !         !                !           !                !          !
@@ -24,6 +24,10 @@
  *  Time ->
  *
  * The first delay can be scanned in increments of tstep. The CCD (global mechanical shutter) is open during the diode sequence.
+ *
+ * FIXME: If the first pulse length is longer than t0+tstep+diode_delay1 then
+ * CHA in BNC565 will output a double pulse!? This should not be encountered
+ * in any reasonable experiment though.
  *
  */
 
