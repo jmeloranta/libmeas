@@ -147,9 +147,9 @@ MODULE_LICENSE("GPL");
 
 /****  global variables  ****/
 
-static int debug=1;
+static int debug = 1;
 
-module_param (debug, int, S_IRUGO | S_IWUSR);
+module_param(debug, int, S_IRUGO | S_IWUSR);
 
 char printable(char x) {
 
