@@ -13,8 +13,14 @@
 #include <signal.h>
 #include <meas/meas.h>
 
-#define SURELITE_FIRE_DELAY 0.314E-6
+#define SURELITE_FIRE_DELAY 101.1E-6
 #define SURELITE_QSWITCH  300E-6
+
+#define DIODE_PULSE_LENGTH 90E-9
+#define DIODE_PULSE_VOLTAGE 12.0
+
+#define CAMERA_BEFORE 300E-6
+#define CAMERA_AFTER  100E-3
 
 #define BNC565 15
 
@@ -33,17 +39,23 @@ unsigned char *rgb, *buffer;
 static void exit_handler(void) {
 
   meas_bnc565_run(0, MEAS_BNC565_STOP);
-  meas_dg535_run(0, MEAS_DG535_STOP);
+}
+
+static void sig_handler(int x) {
+
+  meas_bnc565_run(0, MEAS_BNC565_STOP);
+  exit(0);
 }
 
 int main(int argc, char **argv) {
 
-  double tstep, delay, t0, reprate;
+  double tstep, delay, t0, reprate, cur_time;
   char filebase[512], filename[512];
   int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure, i, j;
   size_t frame_size;
   FILE *fp, *fp2;
 
+  signal(SIGINT, &sig_handler);
   printf("Enter output file name (0 = no save): ");
   scanf("%s", filebase);
   printf("Enter T0 (microsec): ");
@@ -72,7 +84,7 @@ int main(int argc, char **argv) {
   meas_bnc565_run(0, MEAS_BNC565_STOP);
 
   /* BNC565 is the master */
-  meas_bnc565_trigger(0, MEAS_BNC565_TRIG_INT, 2.0, MEAS_BNC565_TRIG_RISE);
+  meas_bnc565_trigger(0, MEAS_BNC565_TRIG_INT, reprate, 0);
 
   /* Surelite triggering (channels A & B) */
   meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10E-6, 5.0, MEAS_BNC565_POL_INV);
@@ -81,11 +93,16 @@ int main(int argc, char **argv) {
   meas_bnc565_mode(0, MEAS_BNC565_CHB, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
 
   /* Camera shutter triggering (C) */
-  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, SURELITE_QSWITCH + SURELITE_FIRE_DELAY + t0, 10E-3, 5.0, MEAS_BNC565_POL_NORM);
+  meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, CAMERA_AFTER, 4.0, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHC, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
 
   /* Backlight diode triggering (D) */
-  meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_CHC, MINILITE_QSWITCH + SURELITE_FIRE_DELAY + t0, 10E-9, 12.0, MEAS_BNC565_POL_NORM);
+  delay = SURELITE_QSWITCH - SURELITE_FIRE_DELAY + t0;
+  if(delay < 0.0) {
+    fprintf(stderr, "Warning: delay < 0.0 !\n");
+    delay = 0.0;
+  }
+  meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, delay, DIODE_PULSE_LENGTH, DIODE_PULSE_VOLTAGE, MEAS_BNC565_POL_NORM);
   meas_bnc565_mode(0, MEAS_BNC565_CHD, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
   
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
@@ -117,7 +134,6 @@ int main(int argc, char **argv) {
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Exposure (Absolute)"), &exposure);
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Gain (dB/100)"), &gain);
 #endif
-  meas_video_info_controls(cd);
   if(filebase[0] != '0') {
     sprintf(filename, "%s.info", filebase);
     if(!(fp = fopen(filename, "w"))) {
@@ -133,19 +149,29 @@ int main(int argc, char **argv) {
   atexit(&exit_handler);
 
   meas_video_start(cd);
-  meas_video_read(cd, buffer, 1);   /* we seem to be getting couple of blank frames in the very beginning ??? (TODO) */
-  meas_video_read(cd, buffer, 1);
+  meas_video_flush(cd);
   meas_video_set_control(cd, meas_video_get_control_id(cd, "Trigger Mode"), &one); /* External trigger */
+  meas_video_info_controls(cd);
   for(cur_time = t0; ; cur_time += tstep) {
     /* Timings */
-    delay = SURELITE_FIRE_DELAY + SURELITE_QSWITCH + cur_time;
+    delay = SURELITE_QSWITCH - SURELITE_FIRE_DELAY + cur_time;
+    if(delay < 0.0) {
+      fprintf(stderr, "Warning: delay < 0.0 !\n");
+      delay = 0.0;
+    }
     
     /* Surelite */
     meas_bnc565_set(0, MEAS_BNC565_CHA, MEAS_BNC565_T0, 0.0, 10.0E-6, 5.0, MEAS_BNC565_POL_INV); /* negative logic / TTL */
 
     /* camera shutter */
-    meas_dg535_set(0, MEAS_DG535_CHC, MEAS_DG535_T0, delay - 100E-6, 4.0, 0.0, MEAS_DG535_POL_NORM, MEAS_DG535_IMP_50);
+    meas_bnc565_set(0, MEAS_BNC565_CHC, MEAS_BNC565_T0, 0.0, CAMERA_AFTER, 5.0, MEAS_BNC565_POL_NORM);
 
+    /* backlight diode */
+    meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, delay, DIODE_PULSE_LENGTH, DIODE_PULSE_VOLTAGE, MEAS_BNC565_POL_NORM);
+
+    meas_video_flush(cd);
+
+    meas_video_read(cd, buffer, 1);
 #ifdef VEHO
     meas_image_yuv422_to_rgb3(buffer, rgb, width, height);
 #else
@@ -154,11 +180,12 @@ int main(int argc, char **argv) {
     meas_graphics_update_image(0, rgb);
     meas_graphics_update();
 
+    printf("Time = %le\n", cur_time); fflush(stdout);
     if(filebase[0] != '0') {
       if(tstep != 0.0)
-	sprintf(filename, "%s-%he-%4.2lf.pgm", filebase, cur_time, cur_press);
+	sprintf(filename, "%s-%le.pgm", filebase, cur_time);
       else
-	sprintf(filename, "%s-%he-%d-%4.2lf.pgm", filebase, cur_time, nimg++, cur_press);
+	sprintf(filename, "%s-%le-%d.pgm", filebase, cur_time, nimg++);
       if(!(fp = fopen(filename, "w"))) {
 	fprintf(stderr, "Cannot write data to file.\n");
 	exit(1);
@@ -171,6 +198,5 @@ int main(int argc, char **argv) {
       fclose(fp);
     }
   }
-  fclose(fp2);
   meas_video_stop(cd);
 }
