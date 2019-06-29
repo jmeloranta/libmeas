@@ -1,0 +1,4 @@
+There is updated version available for the new descriptor based GPIO interface at:
+https://github.com/elektronomikon/raspi_gpib_driver
+
+So, use that for new kernels.
