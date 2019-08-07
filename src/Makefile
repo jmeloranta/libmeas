@@ -15,7 +15,7 @@ libmeas.a: prototypes $(OBJS)
 
 prototypes:
 	egrep -h \^EXPORT *.c | tr \{ \; | sed -e "s/EXPORT //g" > proto.h
-	ls *.h | grep -v meas.h | awk -e '{print "#include <meas/" $$1 ">"}' > meas.h
+	ls *.h | grep -v meas.h | gawk -e '{print "#include <meas/" $$1 ">"}' > meas.h
 
 %.o:	%.c %.h
 	cc -c $(CFLAGS) $< 

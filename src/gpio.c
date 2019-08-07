@@ -285,7 +285,7 @@ EXPORT int meas_gpio_interrupt(char flag) {
  *
  */
 
-EXPORT int gpio_mode(char port, char mo) {
+EXPORT int meas_gpio_mode(char port, char mo) {
 
   if(port < 0 || port > MAX_GPIO) {
     fprintf(stderr, "libmeas: Invalid GPIO pin.\n");
@@ -315,7 +315,7 @@ EXPORT int gpio_mode(char port, char mo) {
  *
  */
 
-EXPORT int gpio_read(char port) {
+EXPORT int meas_gpio_read(char port) {
 
   int value;
 
@@ -342,7 +342,7 @@ EXPORT int gpio_read(char port) {
  *
  */
 
-EXPORT int gpio_write(char port, char value) {
+EXPORT int meas_gpio_write(char port, char value) {
 
   if(port < 0 || port > MAX_GPIO) {
     fprintf(stderr, "libmeas: Invalid GPIO pin.\n");
@@ -367,7 +367,7 @@ EXPORT int gpio_write(char port, char value) {
  *
  */
 
-EXPORT void gpio_timer(unsigned int dtim) {
+EXPORT void meas_gpio_timer(unsigned int dtim) {
 
   timend = *timer + dtim;
   TIMERLOOP;
