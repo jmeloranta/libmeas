@@ -49,9 +49,9 @@ static void sig_handler(int x) {
 
 int main(int argc, char **argv) {
 
-  double tstep, delay, t0, reprate, cur_time, diode_length;
+  double tstep, delay, t0, reprate, cur_time;
   char filebase[512], filename[512];
-  int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure, i, j, diode_npulses;
+  int cd, nimg = 0, width, height, one = 1, zero = 0, gain, exposure, i, j;
   size_t frame_size;
   FILE *fp, *fp2;
 
@@ -64,10 +64,6 @@ int main(int argc, char **argv) {
   printf("Enter time step (microsec): ");
   scanf(" %le", &tstep);
   tstep *= 1E-6;
-  printf("Number of diode pulses: ");
-  scanf(" %d", &diode_npulses);
-  printf("Delay between pulses (microsec): ");
-  scanf(" %le", &diode_length);
 #ifdef VEHO
   printf("Camera brightness (-16 to 16): ");
 #else
@@ -107,8 +103,7 @@ int main(int argc, char **argv) {
     delay = 0.0;
   }
   meas_bnc565_set(0, MEAS_BNC565_CHD, MEAS_BNC565_T0, delay, DIODE_PULSE_LENGTH, DIODE_PULSE_VOLTAGE, MEAS_BNC565_POL_NORM);
-//  meas_bnc565_mode(0, MEAS_BNC565_CHD, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
-  meas_bnc565_mode(0, MEAS_BNC565_CHD, MEAS_BNC565_MODE_BURST, diode_npulses, diode_npulses, diode_length);
+  meas_bnc565_mode(0, MEAS_BNC565_CHD, MEAS_BNC565_MODE_CONTINUOUS, 0, 0, 0);
   
   meas_bnc565_run(0, MEAS_BNC565_RUN); /* start unit */
 
