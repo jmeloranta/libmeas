@@ -1,6 +1,9 @@
 /*
  * Simple pulse generator using Raspberry Pi (using gpio.c).
  *
+ * To make it more complete, allow overlap between pulses on different channels. At the moment only one channel can fire at given
+ * time. 
+ *
  * Channel to BCM GPIO pin map for Raspberry Pi 3 (use gpio readall to see):
  *
  * Channel		BCM pin #
@@ -60,21 +63,19 @@ EXPORT int meas_pulse_open() {
 EXPORT void meas_pulse_exec(struct meas_pulse *pulses, int npulses) {
 
   int i;
-  unsigned int pin;
 
   /* Make sure that all accessed channels are in output mode */
   for(i = 0; i < npulses; i++) {
-    meas_gpio_mode(CHTOGPIO(pulses[i].channel), 2);
-    meas_gpio_write(CHTOGPIO(pulses[i].channel), 0);
+    meas_gpio_mode(pulses[i].channel, 2);
+    meas_gpio_write(pulses[i].channel, 0);
   }
 
   meas_gpio_interrupt(0); /* Disable interrupts */
 
   for(i = 0; i < npulses; i++) {
-    pin = CHTOGPIO(pulses[i].channel);
-    meas_gpio_write(pin, 1);
+    meas_gpio_write(pulses[i].channel, 1);
     meas_gpio_timer(pulses[i].length);
-    meas_gpio_write(pin, 0);
+    meas_gpio_write(pulses[i].channel, 0);
     meas_gpio_timer(pulses[i].delay);
   }
 
