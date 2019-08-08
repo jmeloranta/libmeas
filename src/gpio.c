@@ -68,7 +68,7 @@ EXPORT int meas_gpio_open() {
             
   if(stream == NULL) {
     fprintf(stderr, "libmeas: Failed to open /proc/device-tree/soc/ranges\n");
-    return -1;
+    exit(1);
   }
    
   getout = 0;
@@ -95,14 +95,14 @@ EXPORT int meas_gpio_open() {
     fprintf(stderr, "libmeas: Pi type = Pi4\n");
   } else {
     fprintf(stderr,"libmeas: Failed to determine Pi type\n");
-    return -1;
+    exit(1);
   }
 
   memfd = open("/dev/mem",O_RDWR|O_SYNC);
   if(memfd < 0) {
     fprintf(stderr, "libmeas: Error opening /dev/mem (root access needed).\n");
     pitype = NOTSET;
-    return -1;
+    exit(1);
   }
 
   gpio_map = mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, memfd, baseadd+GPIO_BASE);
@@ -121,7 +121,7 @@ EXPORT int meas_gpio_open() {
   if(gpio_map == MAP_FAILED || timer_map == MAP_FAILED || int_map == MAP_FAILED || (pitype == ARM7 && quad_map == MAP_FAILED)) {
     fprintf(stderr, "Map failed\n");
     pitype = NOTSET;
-    return -1;
+    exit(1);
   }
 
   if(pitype == ARM7) intquad = (volatile unsigned *) quad_map;  // interrupt pointer
@@ -169,7 +169,7 @@ EXPORT int meas_gpio_interrupt(char flag) {
   	
   if(pitype == NOTSET) {
     fprintf(stderr, "libmeas: meas_gpio_interrupt() called before opening gpio.\n");
-    return -1;
+    exit(1);
   }
  
   if(flag == 0) {    // disable interrupts

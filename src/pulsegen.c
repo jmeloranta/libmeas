@@ -2,7 +2,7 @@
  * Simple pulse generator using Raspberry Pi (using gpio.c).
  *
  * To make it more complete, allow overlap between pulses on different channels. At the moment only one channel can fire at given
- * time. 
+ * time. So, we should have on/off periods for each channel separately.
  *
  * Channel to BCM GPIO pin map for Raspberry Pi 3 (use gpio readall to see):
  *
@@ -67,15 +67,52 @@ EXPORT void meas_pulse_exec(struct meas_pulse *pulses, int npulses) {
   /* Make sure that all accessed channels are in output mode */
   for(i = 0; i < npulses; i++) {
     meas_gpio_mode(pulses[i].channel, 2);
-    meas_gpio_write(pulses[i].channel, 0);
+    meas_gpio_write(pulses[i].channel, pulses[i].polarity);
   }
 
   meas_gpio_interrupt(0); /* Disable interrupts */
 
   for(i = 0; i < npulses; i++) {
-    meas_gpio_write(pulses[i].channel, 1);
+    meas_gpio_write(pulses[i].channel, !pulses[i].polarity);
     meas_gpio_timer(pulses[i].length);
-    meas_gpio_write(pulses[i].channel, 0);
+    meas_gpio_write(pulses[i].channel, pulses[i].polarity);
+    meas_gpio_timer(pulses[i].delay);
+  }
+
+  meas_gpio_interrupt(1); /* Enable interrupts */
+}
+
+/*
+ * Execute pulse sequence after receiving external trigger.
+ *
+ * pulses  = Array of pulse information (struct meas_pulse).
+ * npulses = Number of pulses in array (int).
+ * port    = Port for trigger signal (char). Note this port must be set as input.
+ * polarity= 1: trigger from rising edge (from 0 to 1) or 0: trigger from falling edge (from 1 to 0).
+ *
+ * No return value.
+ *
+ * Note: If the trigger signal is never received, this can lock up the system.
+ *
+ */
+
+EXPORT void meas_pulse_exec_on_trigger(struct meas_pulse *pulses, int npulses, char port, char polarity) {
+
+  int i;
+
+  /* Make sure that all accessed channels are in output mode */
+  for(i = 0; i < npulses; i++) {
+    meas_gpio_mode(pulses[i].channel, 2);
+    meas_gpio_write(pulses[i].channel, pulses[i].polarity);
+  }
+
+  meas_gpio_interrupt(0); /* Disable interrupts */
+
+  while(meas_gpio_read(port) != polarity);  /* Wait for trigger */
+  for(i = 0; i < npulses; i++) {
+    meas_gpio_write(pulses[i].channel, !pulses[i].polarity);
+    meas_gpio_timer(pulses[i].length);
+    meas_gpio_write(pulses[i].channel, pulses[i].polarity);
     meas_gpio_timer(pulses[i].delay);
   }
 
