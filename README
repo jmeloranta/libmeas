@@ -16,13 +16,16 @@ See src/ directory for supported devices.
 
 2.1 Install the required external libraries (Fedora naming convention): 
    xforms-devel, libusb-devel and linux-gpib from sourceforge
-   (http://linux-gpib.sourceforge.net/). There is a sample gpib config
-   file in src/gpib-sample.conf, which could be placed as /etc/gpib.conf.
-   Most notably the first interface is named gpib0 rather than the default
-   "violet". For pi-max, you will need the freely available pvcam library
-   installed in /usr/lib and /usr/include (see pi-max/). For firewire, you will
-   also need to install the libraw1394-devel package. Don't forget to install the
-   necessary kernel level driver for the camera. See pi-max/rc.local.
+   (http://linux-gpib.sourceforge.net/). On Debian based systems (RasPI's):
+   gawk libforms-dev libforms-bin libusb-dev
+
+   There is a sample gpib config file in src/gpib-sample.conf, which could be 
+   placed as /etc/gpib.conf. Most notably the first interface is named gpib0 
+   rather than the default "violet". For pi-max, you will need the freely 
+   available pvcam library installed in /usr/lib and /usr/include (see 
+   pi-max/). For firewire, you will also need to install the libraw1394-devel
+   package. Don't forget to install the necessary kernel level driver for the
+   camera. See pi-max/rc.local.
 
 2.2 Take a look at make.conf to see if you need to change anything there.
 
