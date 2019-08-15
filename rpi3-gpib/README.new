@@ -2,3 +2,85 @@ There is updated version available for the new descriptor based GPIO interface a
 https://github.com/elektronomikon/raspi_gpib_driver
 
 So, use that for new kernels.
+
+Apply the patch with patch -p1 < patchfile in the kernel distribution directory.
+To compile with linux gpib 4.2 edit drivers/gpib/gpio/gpio.c as:
+
+*** gpio.c	2019-08-14 18:11:50.425958912 -0700
+--- gpio.c~	2019-08-14 17:58:28.609267171 -0700
+***************
+*** 496,502 ****
+  }
+  
+  
+! int gpio_attach(gpib_board_t *board, const gpib_board_config_t *config)
+  {
+  	gpio_private_t *gpio_priv;
+  
+--- 496,502 ----
+  }
+  
+  
+! int gpio_attach(gpib_board_t *board, gpib_board_config_t config)
+  {
+  	gpio_private_t *gpio_priv;
+  
+***************
+*** 512,518 ****
+  	gpio_priv->irq = gpiod_to_irq(SRQ);
+  
+  	if (request_irq(gpio_priv->irq, gpio_interrupt, IRQF_TRIGGER_FALLING, "gpib_gpio", board)) {
+! 		printk("gpib: can't request IRQ %d\n", config->ibirq);
+  		return -1;
+  	}
+  	dbg_printk("IRQ=%d registered\r\n", gpio_priv->irq);
+--- 512,518 ----
+  	gpio_priv->irq = gpiod_to_irq(SRQ);
+  
+  	if (request_irq(gpio_priv->irq, gpio_interrupt, IRQF_TRIGGER_FALLING, "gpib_gpio", board)) {
+! 		printk("gpib: can't request IRQ %d\n", board->ibirq);
+  		return -1;
+  	}
+  	dbg_printk("IRQ=%d registered\r\n", gpio_priv->irq);
+***************
+*** 585,592 ****
+  
+  	SET_DIR_WRITE();
+  	gpiod_direction_output(ACT_LED, 0);
+! //        setup_timer(&g_timer, TimerHandler, 0);
+! //        timer_setup(&g_timer, TimerHandler, 0);
+  
+  	dbg_printk("gpib_gpio module loaded!\r\n");
+  
+--- 585,591 ----
+  
+  	SET_DIR_WRITE();
+  	gpiod_direction_output(ACT_LED, 0);
+!         setup_timer(&g_timer, TimerHandler, 0);
+  
+  	dbg_printk("gpib_gpio module loaded!\r\n");
+
+and gpio.h:
+
+*** gpio.h	2019-08-14 18:04:42.473592398 -0700
+--- gpio.h~	2019-08-14 17:58:28.609267171 -0700
+***************
+*** 78,84 ****
+  
+  #define dbg_printk(...) {if (DEBUG) printk(KERN_INFO __VA_ARGS__);}
+  
+! int gpio_attach(gpib_board_t *board, const gpib_board_config_t *config);
+  void gpio_detach(gpib_board_t *board);
+  int gpio_line_status(const gpib_board_t *board );
+  inline long int usec_diff(struct timespec *a, struct timespec *b);
+--- 78,84 ----
+  
+  #define dbg_printk(...) {if (DEBUG) printk(KERN_INFO __VA_ARGS__);}
+  
+! int gpio_attach(gpib_board_t *board, gpib_board_config_t config);
+  void gpio_detach(gpib_board_t *board);
+  int gpio_line_status(const gpib_board_t *board );
+  inline long int usec_diff(struct timespec *a, struct timespec *b);
+
+On raspbian you will need the raspbian-kernel-headers package installed.
+On Fedora this is kernel-source.
