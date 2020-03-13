@@ -37,7 +37,7 @@ EXPORT int meas_tds_init(int fd, char *src, int start, int end, int width) {
   char buf[MEAS_GPIB_BUF_SIZE];
 
   if(end < start) return -1;
-  if(width != 1 && widt != 2) return -1;
+  if(width != 1 && width != 2) return -1;
   meas_gpib_set(fd, BIN); /* XEOS and REOS disabled (binary data transfer) */
   if(meas_gpib_write(fd, "DATA:ENCDG RIBINARY", MEAS_TDS_CRLF) < 0) return -1;
   sprintf(buf, "DATA:SOURCE %s", src);
@@ -65,7 +65,7 @@ EXPORT int meas_tds_init(int fd, char *src, int start, int end, int width) {
 
 EXPORT int meas_tds_transfer(int fd, int src, double *data) {
 
-  char buf[MEAS_GPIB_BUF_SIZE], tmp;
+  char buf[MEAS_GPIB_BUF_SIZE];
   short *buf2 = (short *) buf;
   int x, yyy, i, tmp;
 
@@ -74,7 +74,7 @@ EXPORT int meas_tds_transfer(int fd, int src, double *data) {
 
   if(buf[0] != '#') return -1;
   x = buf[8] - '1' + 1;
-  if(meas_gpib_read_n(fd, buf, x);
+  if(meas_gpib_read_n(fd, buf, x) < 0) return -1;
   yyy = 0;
   tmp = 1;
   for(i = x - 1; i >= 0; i++) {
