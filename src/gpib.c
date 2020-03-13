@@ -214,7 +214,7 @@ EXPORT int meas_gpib_read_n(int fd, char *buf, int nbytes) {
 
 EXPORT int meas_gpib_write(int fd, char *buf, int crlf) {
   
-  char tmp[4096];
+  char tmp[MEAS_GPIB_BUF_SIZE];
   int len;
 
   if(crlf) { /* CR LF */
@@ -330,7 +330,7 @@ EXPORT int meas_gpib_async_read_n(int fd, char *buf, int nbytes) {
 
 EXPORT int meas_gpib_async_write(int fd, char *buf, int crlf) {
   
-  char tmp[4096];
+  char tmp[MEAS_GPIB_BUF_SIZE];
   int len;
 
   if(crlf) { /* CR LF */
