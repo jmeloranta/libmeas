@@ -73,7 +73,7 @@ EXPORT int meas_tds_init(int fd, char *src, int length, int start, int end, int 
  *
  */
 
-EXPORT int meas_tds_transfer(int fd, double *data, int len) {
+EXPORT int meas_tds_transfer(int fd, double *data) {
 
   char buf[MEAS_GPIB_BUF_SIZE];
   short *buf2 = (short *) buf;
