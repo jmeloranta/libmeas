@@ -250,6 +250,7 @@ EXPORT int meas_graphics_update() {
  * win    = window number (0, ...).
  * xdata  = an array of X points.
  * ydata  = an array of Y points.
+ * ns     = number of points.
  *
  * Returns 0 on success.
  *
