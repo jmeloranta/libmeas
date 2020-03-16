@@ -1,10 +1,5 @@
-
 /*
  * Image processing and conversion routines.
- *
- * Note that Y16 is little endian format. On big endian machines,
- * the application program is responsible for the conversion if
- * the data is accessed as 16 bit integers.
  *
  */
 
@@ -76,8 +71,13 @@ EXPORT void meas_image_y16_to_rgb3(unsigned char *y16, unsigned char *rgb3, unsi
   int i, j;
   
   /* Y16 is little endian format */
-  for (i = j = 0; i < 3 * width * height; i += 3, j += 2)
-    rgb3[i] = rgb3[i+1] = rgb3[i+2] = 255 * (y16[j+1] * 256 + y16[j]) / 65535;
+  if(meas_endian() == 1) {
+    for (i = j = 0; i < 3 * width * height; i += 3, j += 2)
+      rgb3[i] = rgb3[i+1] = rgb3[i+2] = 255 * (y16[j+1] * 256 + y16[j]) / 65535;
+  } else {
+    for (i = j = 0; i < 3 * width * height; i += 3, j += 2)
+      rgb3[i] = rgb3[i+1] = rgb3[i+2] = 255 * (y16[j] * 256 + y16[j+1]) / 65535;
+  }
 }
 
 /*
@@ -310,9 +310,16 @@ EXPORT int meas_image_pgm_to_y16(FILE *fp, unsigned char *y16, unsigned int *wid
   if(fscanf(fp, "P5%*[ \r\n\t]%u%*[ \r\n\t]%u%*[ \r\n\t]65535", width, height) != 2) return -1;
   (void) fgetc(fp); /* read the space - note: fscanf can match actual data for white spaces! */
   /* PGM is big endian format */
-  for (i = 0; i < 2 * *width * *height; i += 2) {
-    if(fread((void *) (y16+i+1), 1, 1, fp) != 1) return -1;
-    if(fread((void *) (y16+i), 1, 1, fp) != 1) return -1;
+  if(meas_endian() == 1) {
+    for (i = 0; i < 2 * *width * *height; i += 2) {
+      if(fread((void *) (y16+i+1), 1, 1, fp) != 1) return -1;
+      if(fread((void *) (y16+i), 1, 1, fp) != 1) return -1;
+    }
+  } else {
+    for (i = 0; i < 2 * *width * *height; i += 2) {
+      if(fread((void *) (y16+i), 1, 1, fp) != 1) return -1;
+      if(fread((void *) (y16+i+1), 1, 1, fp) != 1) return -1;
+    }
   }
   return 0;
 }

@@ -153,8 +153,8 @@ EXPORT int meas_gpib_timeout(int fd, double value) {
 /*
  * Read string from GPIB device.
  *
- * fd  = GPIB device descriptor.
- * buf = Buffer for output.
+ * fd  = GPIB device descriptor (int).
+ * buf = Buffer for output (char *).
  *
  */
 
@@ -207,7 +207,7 @@ EXPORT int meas_gpib_read_n(int fd, char *buf, int nbytes) {
  * Write string to GPIB device.
  *
  * fd   = GPIB device descriptor.
- * buf  = Data to write.
+ * buf  = Data to write (char *).
  * crlf = 0: use CR, 1: use CR LF as line end.
  *
  */
@@ -222,7 +222,6 @@ EXPORT int meas_gpib_write(int fd, char *buf, int crlf) {
     len = strlen(buf);
     tmp[len] = '\r';
     tmp[len+1] = '\n';
-    
     usleep(MEAS_GPIB_DELAY);
     if(ibwrt(fd, tmp, len+2) < 0)
       meas_err("meas_gpib_write: write failed.");
@@ -230,7 +229,6 @@ EXPORT int meas_gpib_write(int fd, char *buf, int crlf) {
     strcpy(tmp, buf);
     len = strlen(buf);
     tmp[len] = gpib_eos;
-    
     usleep(MEAS_GPIB_DELAY);
     if(ibwrt(fd, tmp, len+1) < 0)
       meas_err("meas_gpib_write: write failed.");
@@ -332,18 +330,22 @@ EXPORT int meas_gpib_async_write(int fd, char *buf, int crlf) {
   
   char tmp[MEAS_GPIB_BUF_SIZE];
   int len;
-
+ 
   if(crlf) { /* CR LF */
     strcpy(tmp, buf);
     len = strlen(buf);
     tmp[len] = '\r';
     tmp[len+1] = '\n';
-    ibwrta(fd, tmp, len+2);
+    usleep(MEAS_GPIB_DELAY);
+    if(ibwrta(fd, tmp, len+2) < 0)
+      meas_err("meas_gpib_write: write failed.");
   } else {
     strcpy(tmp, buf);
     len = strlen(buf);
-    tmp[len] = gpib_eos;    
-    ibwrta(fd, tmp, len+1);
+    tmp[len] = gpib_eos;
+    usleep(MEAS_GPIB_DELAY);
+    if(ibwrta(fd, tmp, len+1) < 0)
+      meas_err("meas_gpib_write: write failed.");
   }
   return 0;
 }

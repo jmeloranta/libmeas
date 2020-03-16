@@ -3,7 +3,7 @@
 #include <gpib/ib.h>
 
 /* Standard buffer size */
-#define MEAS_GPIB_BUF_SIZE 4096
+#define MEAS_GPIB_BUF_SIZE (3*65535)
 
 /* controller parameters */
 #define MEAS_GPIB_TIMEOUT 20

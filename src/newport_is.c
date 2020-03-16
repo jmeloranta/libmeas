@@ -64,10 +64,12 @@ static void swap_bytes(unsigned short *v) {
 
   unsigned char *p, tmp;
 
-  p = (unsigned char *) v;
-  tmp = *p;
-  *p = *(p + 1);
-  *(p + 1) = tmp;
+  if(meas_endian() == 1) {
+    p = (unsigned char *) v;
+    tmp = *p;
+    *p = *(p + 1);
+    *(p + 1) = tmp;
+  } // else do nothing
 }
 
 static unsigned char lowbyte(unsigned short v) {
