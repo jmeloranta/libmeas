@@ -34,8 +34,8 @@ static unsigned int timend;
 #define TIMEOUT           (((*timer-timend) & 0x80000000) == 0)
 #define NOTIMEOUT         (((*timer-timend) & 0x80000000) != 0)
 
-#define GP_HI(x) *gpset = (1 << (x))
-#define GP_LO(x) *gpclr = (1 << (x))
+#define GP_HI(x) (*gpset = (1 << (x)))
+#define GP_LO(x) (*gpclr = (1 << (x)))
 
 #define GP_IN(x) (*gpin & (1 << (x)))   // GPIO 3 input - zero or non-zero
 
@@ -355,6 +355,38 @@ EXPORT int meas_gpio_write(char port, char value) {
   else GP_LO(port);
 
   return 0;  
+}
+
+/*
+ * Fast (no error checking) read GPIO port value.
+ *
+ * port = GPIO port (char).
+ *
+ * Returns 0 or 1 depending on the port value
+ * and -1 for error.
+ *
+ */
+
+EXPORT inline int meas_gpio_read_fast(char port) {
+
+  return GP_IN(port)?1:0;
+}
+
+/*
+ * Fast (no error checking) write to GPIO port.
+ *
+ * port  = GPIO port (char).
+ *
+ */
+
+EXPORT inline void meas_gpio_write_fast_on(char port) {
+
+  GP_HI(port);
+}
+
+EXPORT inline void meas_gpio_write_fast_off(char port) {
+
+  GP_LO(port);
 }
 
 /*
