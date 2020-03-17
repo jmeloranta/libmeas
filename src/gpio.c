@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <time.h>
 #include "misc.h"
 
 #define MAX_GPIO 35
@@ -402,6 +403,23 @@ EXPORT void meas_gpio_timer(unsigned int dtim) {
 
   timend = *timer + dtim;
   TIMERLOOP;
+}
+
+/*
+ * Timer function (nanosecond resolution).
+ *
+ * dtim = Delay time in nanoseconds (unsigned int).
+ *
+ */
+
+EXPORT void meas_gpio_timer2(long dtim) {
+
+  struct timespec val;
+
+  val.tv_sec = 0;
+  val.tv_nsec = dtim;
+
+  nanosleep(&val, NULL);
 }
 
 #endif /* RPI */
