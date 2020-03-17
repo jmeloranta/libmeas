@@ -367,7 +367,7 @@ EXPORT int meas_gpio_write(char port, char value) {
  *
  */
 
-EXPORT inline int meas_gpio_read_fast(char port) {
+EXPORT int meas_gpio_read_fast(char port) {
 
   return GP_IN(port)?1:0;
 }
@@ -379,12 +379,12 @@ EXPORT inline int meas_gpio_read_fast(char port) {
  *
  */
 
-EXPORT inline void meas_gpio_write_fast_on(char port) {
+EXPORT void meas_gpio_write_fast_on(char port) {
 
   GP_HI(port);
 }
 
-EXPORT inline void meas_gpio_write_fast_off(char port) {
+EXPORT void meas_gpio_write_fast_off(char port) {
 
   GP_LO(port);
 }
