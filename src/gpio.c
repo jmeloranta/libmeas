@@ -6,6 +6,8 @@
  * Note: The system will not respond to anything else when interrupts are disabled.
  * Typical GPIO line time jitter when interrupts are off is +- 100 ns.
  *
+ * All these routines require root priv.
+ *
  */
 
 #ifdef RPI
@@ -16,6 +18,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <time.h>
+#include <string.h>
 #include "misc.h"
 
 #define MAX_GPIO 35
@@ -27,7 +30,7 @@ static char mode[MAX_GPIO];
 #define INT_BASE 0x0000B000
 
 volatile static unsigned *gpio, *gpset, *gpclr, *gpin, *timer, *intrupt, *intquad;
-enum pitypes {NOTSET, ARM6, ARM7, PI4};
+enum pitypes {NOTSET, PI2, PI3, PI4};
 static enum pitypes pitype = NOTSET;
 static unsigned int timend;
 
@@ -86,14 +89,14 @@ EXPORT int meas_gpio_open() {
   fclose(stream);
 
   if(baseadd == 0x20000000) {
-    pitype = ARM6;   // Pi2
-    fprintf(stderr, "libmeas: Pi type = ARMv6\n");
+    pitype = PI2;   // Pi2
+    fprintf(stderr, "libmeas: Pi type = Pi 2\n");
   } else if(baseadd == 0x3F000000) {
-    pitype = ARM7;  // 3B+
-    fprintf(stderr, "libmeas: Pi type = ARMv7\n");
+    pitype = PI3;  // 3B+
+    fprintf(stderr, "libmeas: Pi type = Pi 3\n");
   } else if(baseadd == 0xFE000000) {
     pitype = PI4;
-    fprintf(stderr, "libmeas: Pi type = Pi4\n");
+    fprintf(stderr, "libmeas: Pi type = Pi 4\n");
   } else {
     fprintf(stderr,"libmeas: Failed to determine Pi type\n");
     exit(1);
@@ -113,19 +116,19 @@ EXPORT int meas_gpio_open() {
   if(pitype == PI4) int_map = mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, memfd, 0xFF841000);  // GIC distributor
   else int_map = mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, memfd, baseadd+INT_BASE);
   
-  if(pitype == ARM7)  // Pi3
+  if(pitype == PI3)  // Pi3
     quad_map = mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, memfd, 0x40000000);
   else quad_map = MAP_FAILED;
  
   close(memfd);
 
-  if(gpio_map == MAP_FAILED || timer_map == MAP_FAILED || int_map == MAP_FAILED || (pitype == ARM7 && quad_map == MAP_FAILED)) {
+  if(gpio_map == MAP_FAILED || timer_map == MAP_FAILED || int_map == MAP_FAILED || (pitype == PI3 && quad_map == MAP_FAILED)) {
     fprintf(stderr, "Map failed\n");
     pitype = NOTSET;
     exit(1);
   }
 
-  if(pitype == ARM7) intquad = (volatile unsigned *) quad_map;  // interrupt pointer
+  if(pitype == PI3) intquad = (volatile unsigned *) quad_map;  // interrupt pointer
   intrupt = (volatile unsigned *) int_map;     // timer pointer
   timer = (volatile unsigned *) timer_map;
   ++timer;    // timer lo 4 bytes
@@ -186,7 +189,7 @@ EXPORT int meas_gpio_interrupt(char flag) {
 
     // save current interrupt settings  
 
-    if(pitype == ARM7) {  // Pi3 only
+    if(pitype == PI3) {  // Pi3 only
       sav4 = *(intquad+4);     // Performance Monitor Interrupts set  register 0x0010
       sav16 = *(intquad+16);   // Core0 timers Interrupt control  register 0x0040 
       sav17 = *(intquad+17);   // Core1 timers Interrupt control  register 0x0044
@@ -216,7 +219,7 @@ EXPORT int meas_gpio_interrupt(char flag) {
 
     // disable all interrupts
 
-    if(pitype == ARM7) {  // Pi3 only
+    if(pitype == PI3) {  // Pi3 only
       *(intquad+5) = sav4;   // disable via Performance Monitor Interrupts clear  register 0x0014
       *(intquad+16) = 0;     // disable by direct write
       *(intquad+17) = 0;
@@ -258,7 +261,7 @@ EXPORT int meas_gpio_interrupt(char flag) {
       *(intrupt+131) = temp131;     // write back to register
     }
       
-    if(pitype == ARM7) { // Pi3 only
+    if(pitype == PI3) { // Pi3 only
       *(intquad+4) = sav4;
       *(intquad+16) = sav16;
       *(intquad+17) = sav17;
@@ -391,7 +394,7 @@ EXPORT void meas_gpio_write_fast_off(char port) {
 }
 
 /*
- * Timer function (microsecond resolution).
+ * Timer function (microsecond resolution). This uses hardware timer (1 MHz).
  *
  * dtim = Delay time in microseconds (unsigned int).
  *
@@ -406,20 +409,70 @@ EXPORT void meas_gpio_timer(unsigned int dtim) {
 }
 
 /*
- * Timer function (nanosecond resolution).
+ * Set CPU frequency scaling policy.
  *
- * dtim = Delay time in nanoseconds (unsigned int).
+ * mode = 0: performance (fixed to max), 1: powersave (fixed to lowest), 2: ondemand (dynamic), 3: conservative (dynamic).
+ *
+ * Note: Use modes 0 or 1 if you intend to use meas_gpio_timer2() - otherwise the timings will be inconsistent.
+ *
+ * Returns: 0 for OK, -1 for error.
  *
  */
 
-EXPORT void meas_gpio_timer2(long dtim) {
+EXPORT int meas_gpio_cpu_scaling(char mode) {
 
-  struct timespec val;
+  char *str;
+  int i, fd;
 
-  val.tv_sec = 0;
-  val.tv_nsec = dtim;
+  switch(mode) {
+    case 0:
+      str = "performance";
+      break;
+    case 1:
+      str = "powersave";
+      break;
+    case 2:
+      str = "ondemand";
+      break;
+    case 3:
+      str = "conservative";
+      break;
+    default:
+      return -1;
+  }
+  if(pitype == NOTSET) return -1; // PI 2, 3, 4 have four cores.
 
-  nanosleep(&val, NULL);
+  if((fd = open("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", O_WRONLY)) < 0) return -1;
+  write(fd, str, strlen(str));
+  close(fd);
+  if((fd = open("/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor", O_WRONLY)) < 0) return -1;
+  write(fd, str, strlen(str));
+  close(fd);
+  if((fd = open("/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor", O_WRONLY)) < 0) return -1;
+  write(fd, str, strlen(str));
+  close(fd);
+  if((fd = open("/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor", O_WRONLY)) < 0) return -1;
+  write(fd, str, strlen(str));
+  close(fd);
+
+  return 0;
+}
+
+/*
+ * CPU loop delay rotuine. This must have the CPU governor set to something fixed
+ * such that the CPU clock frequency cannot change.
+ *
+ * dtim = Delay time in nanoseconds (unsigned int).
+ *
+ * No return value.
+ *
+ * Warning: Do not compile with -O4 or anything that would enable loop unrolling.
+ *
+ */
+
+EXPORT void meas_gpio_timer2(unsigned int dtim) {
+
+   for (; dtim >= 0; dtim--);
 }
 
 #endif /* RPI */
