@@ -123,7 +123,7 @@ EXPORT int meas_gpio_open() {
   close(memfd);
 
   if(gpio_map == MAP_FAILED || timer_map == MAP_FAILED || int_map == MAP_FAILED || (pitype == PI3 && quad_map == MAP_FAILED)) {
-    fprintf(stderr, "Map failed\n");
+    fprintf(stderr, "libmeas: GPIO Map failed\n");
     pitype = NOTSET;
     exit(1);
   }
@@ -441,6 +441,7 @@ EXPORT int meas_gpio_cpu_scaling(char mode) {
       return -1;
   }
   if(pitype == NOTSET) return -1; // PI 2, 3, 4 have four cores.
+  fprintf(stderr, "libmeas: CPU clock frequency scaling = %s.\n", str);
 
   if((fd = open("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", O_WRONLY)) < 0) return -1;
   write(fd, str, strlen(str));
@@ -459,7 +460,7 @@ EXPORT int meas_gpio_cpu_scaling(char mode) {
 }
 
 /*
- * CPU loop delay rotuine. This must have the CPU governor set to something fixed
+ * CPU loop delay routine. This must have the CPU governor set to something fixed
  * such that the CPU clock frequency cannot change.
  *
  * dtim = Delay time in nanoseconds (unsigned int).
