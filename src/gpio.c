@@ -463,7 +463,9 @@ EXPORT int meas_gpio_cpu_scaling(char mode) {
  * CPU loop delay routine. This must have the CPU governor set to something fixed
  * such that the CPU clock frequency cannot change.
  *
- * dtim = Delay time in nanoseconds (unsigned int).
+ * dtim = Delay time in units of dummy loop iterations (unsigned int).
+ *        Use meas_gpio_timer_calib2() to convert between real time
+ *        and iterations.
  *
  * No return value.
  *
@@ -474,6 +476,45 @@ EXPORT int meas_gpio_cpu_scaling(char mode) {
 EXPORT void meas_gpio_timer2(unsigned int dtim) {
 
    for (; dtim >= 0; dtim--);
+}
+
+/*
+ * Convert actual delay time (nanoseconds) to number of dummy loop iterations.
+ * This depends on the CPU clock frequency and the CPU itself (which Pi is
+ * used). The data for this routine was collected at the maximum clock
+ * frequency (where also most consistent timings were obtained). So, be sure
+ * to call: meas_gpio_cpu_scaling(0) before doing any of this.
+ * This assumes that the loop iteration # and delay time depend linearly on
+ * each other.
+ *
+ * dt = Delay time in nanoseconds (unsigned int).
+ *
+ * Returns the number of dummy loop iterations needed in meas_gpio_timer2()
+ * for a given delay time. One should call this outside timing critical
+ * sections as this would add some overhead.
+ *
+ */
+
+EXPORT unsigned int meas_gpio_timer2_calib(unsigned int dt) {
+
+  double x, y;
+
+  y = (double) dt;
+  switch(pitype) {
+    case NOTSET:
+      fprintf(stderr, "libmeas: Pi architecture not set.\n");
+      exit(1);
+    case PI2:
+      fprintf(stderr, "libmeas: Pi2 data not available yet.\n");
+      exit(1);
+    case PI3:
+      fprintf(stderr, "libmeas: Pi3 data not available yet.\n");
+      exit(1);
+    case PI4:
+      x = y / 2.75 - 21.4 / 2.75; // delay(y) = 2.75 * iterations(x) + 21.4 (ns)
+      break;
+  }
+  return (unsigned int) (x + 0.5);
 }
 
 #endif /* RPI */
