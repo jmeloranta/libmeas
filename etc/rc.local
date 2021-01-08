@@ -5,7 +5,7 @@
 GPIB_DRIVER=gpib_bitbang
 
 /usr/sbin/modprobe $GPIB_DRIVER
-/usr/sbin/gpib_config --minor 0
+/usr/sbin/gpib_config -t $GPIB_DRIVER --minor 0
 # Without the following sleep, the owners & permissions go wrong...
 sleep 2
 /usr/bin/chgrp gpib /dev/gpib*
