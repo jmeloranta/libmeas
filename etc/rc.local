@@ -8,7 +8,8 @@ GPIB_DRIVER=gpib_bitbang
 /usr/sbin/gpib_config -t $GPIB_DRIVER --minor 0
 # Without the following sleep, the owners & permissions go wrong...
 sleep 2
-/usr/bin/chgrp gpib /dev/gpib*
-# After this, accessible to users in gpib group
-/usr/bin/chmod 770 /dev/gpib*
+# /usr/bin/chgrp gpib /dev/gpib*
+/usr/bin/chgrp gpio /dev/gpib*
+# After this, accessible to users in gpib group + everyone (reduce for security)
+/usr/bin/chmod 777 /dev/gpib*
 exit 0
