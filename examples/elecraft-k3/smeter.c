@@ -2,10 +2,13 @@
 #include <math.h>
 #include <meas/meas.h>
 
+#define DEVICE "/dev/ttyUSB0"
+#define DEVICE_SPEED MEAS_B38400
+
 // #define PLOT_NOISE_VARIANCE
 
 #define N 8192
-#define AVE 1
+#define AVE 10
 
 double xdata[N], ydata[N];
 
@@ -15,8 +18,8 @@ int main(int argc, char **argv) {
   char buf[512];
   double maxval = -1E99, minval = 1E99, val, ma, mi;
   
-  fd = meas_rs232_open("/dev/ttyS0", MEAS_B38400 | MEAS_NOHANDSHAKE);
-  meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, 128, "test");
+  fd = meas_rs232_open(DEVICE, DEVICE_SPEED | MEAS_NOHANDSHAKE);
+  meas_graphics_open(0, MEAS_GRAPHICS_XY, 512, 512, 128, "K3 S-meter reading");
   meas_graphics_xtitle(0, "Time");
   meas_graphics_ytitle(0, "S-meter");
 
