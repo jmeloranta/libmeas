@@ -1,12 +1,12 @@
 include /usr/include/meas/make.conf
 
-all: swr
+all: sweep
 
-swr: swr.o
-	$(CC) $(CFLAGS) -o swr swr.o $(LDFLAGS)
+sweep: sweep.o
+	$(CC) $(CFLAGS) -o sweep sweep.o $(LDFLAGS)
 
-swr.o: swr.c
-	$(CC) $(CFLAGS) -c swr.c
+sweep.o: sweep.c
+	$(CC) $(CFLAGS) -c sweep.c
 
 clean:
-	-rm swr.o swr *~
+	-rm sweep.o sweep *~
